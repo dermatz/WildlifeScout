@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:wildlifescout/core/theme/wildscout_theme.dart';
+import 'package:wildlifescout/core/theme/wildlifescout_theme.dart';
 import 'package:wildlifescout/domain/models/habitat_zone.dart';
-import 'package:wildlifescout/presentation/screens/tactical_map_screen.dart';
+import 'package:wildlifescout/presentation/screens/field_map_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Tactical Map Chance Score & Habitat UX Tests', () {
+  group('Field Map Chance Score & Habitat UX Tests', () {
     test('Chance Score Formula combines Activity & Biotop cleanly', () {
       final sampleZone = HabitatZone(
         id: 'test_zone_1',
@@ -39,12 +39,12 @@ void main() {
       expect(chanceScore, 70);
     });
 
-    testWidgets('TacticalMapScreen renders self-explanatory "70% Chance" marker and detailed breakdown on tap',
+    testWidgets('FieldMapScreen renders self-explanatory "70% Chance" marker and detailed breakdown on tap',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
-          home: const TacticalMapScreen(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
+          home: const FieldMapScreen(),
         ),
       );
 

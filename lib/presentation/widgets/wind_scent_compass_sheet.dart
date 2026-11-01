@@ -3,14 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart' hide Path;
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../data/services/compass_heading_service.dart';
 import '../../domain/models/habitat_zone.dart';
 import '../../domain/models/secret_spot.dart';
 import '../../domain/models/species_profile.dart';
 import '../../domain/models/weather_frame.dart';
 
-/// Modal-Sheet für den taktischen 360° Witterungs- & Wind-Kompass.
+/// Modal-Sheet für den 360° Witterungs- & Wind-Kompass im Gelände.
 /// Unterstützt:
 /// 1. **Live-Blickrichtung (Head-Up)**: Die Kompassrose und die Nordnadel
 ///    drehen sich in Echtzeit anhand der tatsächlichen Haltung/Blickrichtung
@@ -109,10 +109,10 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: WildScoutTheme.bgObsidian.withValues(alpha: 0.98),
+        color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: const Border(
-          top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1.2),
+          top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1.2),
         ),
         boxShadow: const [
           BoxShadow(
@@ -152,15 +152,15 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 Container(
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: WildScoutTheme.cyanWater.withValues(alpha: 0.16),
+                    color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: WildScoutTheme.cyanWater.withValues(alpha: 0.4),
+                      color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.4),
                     ),
                   ),
                   child: const Icon(
                     Icons.explore_rounded,
-                    color: WildScoutTheme.cyanWater,
+                    color: WildlifeScoutTheme.cyanWater,
                     size: 22,
                   ),
                 ),
@@ -174,7 +174,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
-                          color: WildScoutTheme.textPrimary,
+                          color: WildlifeScoutTheme.textPrimary,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -184,7 +184,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         style: const TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -195,7 +195,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 IconButton(
                   icon: const Icon(
                     Icons.close_rounded,
-                    color: WildScoutTheme.textMuted,
+                    color: WildlifeScoutTheme.textMuted,
                     size: 22,
                   ),
                   tooltip: 'Schließen',
@@ -213,7 +213,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
             ),
             const SizedBox(height: 10),
 
-            // 4. 360° Taktische Kompassrose (Dreht sich flüssig anhand der Blickrichtung)
+            // 4. 360° Feld-Kompassrose (Dreht sich flüssig anhand der Blickrichtung)
             Center(
               child: SizedBox(
                 width: 290,
@@ -232,7 +232,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         width: 280,
                         height: 280,
                         child: CustomPaint(
-                          painter: _TacticalCompassPainter(
+                          painter: _FieldCompassPainter(
                             windDirectionDeg: windDir,
                             windSpeedKmh: widget.weather.windSpeedKmh,
                             windCardinal: widget.weather.windCardinalLabel,
@@ -258,8 +258,8 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                             ),
                             decoration: BoxDecoration(
                               color: _useLiveHeading
-                                  ? WildScoutTheme.cyanWater
-                                  : WildScoutTheme.emeraldBio,
+                                  ? WildlifeScoutTheme.cyanWater
+                                  : WildlifeScoutTheme.emeraldBio,
                               borderRadius: BorderRadius.circular(6),
                               boxShadow: const [
                                 BoxShadow(
@@ -282,8 +282,8 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                             Icons.arrow_drop_down_rounded,
                             size: 20,
                             color: _useLiveHeading
-                                ? WildScoutTheme.cyanWater
-                                : WildScoutTheme.emeraldBio,
+                                ? WildlifeScoutTheme.cyanWater
+                                : WildlifeScoutTheme.emeraldBio,
                           ),
                         ],
                       ),
@@ -313,8 +313,8 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
             ),
             const SizedBox(height: 10),
 
-            // 7. Taktische Handlungsanweisung & Annäherungs-Leitfaden
-            _buildTacticalStalkingCard(
+            // 7. Ansitz-Empfehlung & Annäherungs-Leitfaden
+            _buildFieldApproachCard(
               windDir: windDir,
               scentDir: scentDir,
               coneAngle: coneAngle,
@@ -352,7 +352,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: WildScoutTheme.borderSubtle),
+        border: Border.all(color: WildlifeScoutTheme.borderSubtle),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -366,14 +366,14 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 decoration: BoxDecoration(
                   color: _useLiveHeading
                       ? (hasSensor
-                          ? WildScoutTheme.cyanWater
-                          : WildScoutTheme.amberGold)
-                      : WildScoutTheme.textMuted,
+                          ? WildlifeScoutTheme.cyanWater
+                          : WildlifeScoutTheme.amberGold)
+                      : WildlifeScoutTheme.textMuted,
                   shape: BoxShape.circle,
                   boxShadow: [
                     if (_useLiveHeading && hasSensor)
                       BoxShadow(
-                        color: WildScoutTheme.cyanWater.withValues(alpha: 0.7),
+                        color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.7),
                         blurRadius: 6,
                         spreadRadius: 1,
                       ),
@@ -405,8 +405,8 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       fontSize: 9.5,
                       fontWeight: FontWeight.w600,
                       color: _useLiveHeading
-                          ? WildScoutTheme.cyanWater
-                          : WildScoutTheme.textMuted,
+                          ? WildlifeScoutTheme.cyanWater
+                          : WildlifeScoutTheme.textMuted,
                     ),
                   ),
                 ],
@@ -429,12 +429,12 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _useLiveHeading
-                        ? WildScoutTheme.cyanWater.withValues(alpha: 0.22)
+                        ? WildlifeScoutTheme.cyanWater.withValues(alpha: 0.22)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: _useLiveHeading
-                          ? WildScoutTheme.cyanWater
+                          ? WildlifeScoutTheme.cyanWater
                           : Colors.transparent,
                     ),
                   ),
@@ -445,7 +445,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         size: 13,
                         color: _useLiveHeading
                             ? Colors.white
-                            : WildScoutTheme.textMuted,
+                            : WildlifeScoutTheme.textMuted,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -455,7 +455,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                           fontWeight: FontWeight.w800,
                           color: _useLiveHeading
                               ? Colors.white
-                              : WildScoutTheme.textMuted,
+                              : WildlifeScoutTheme.textMuted,
                         ),
                       ),
                     ],
@@ -474,12 +474,12 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: !_useLiveHeading
-                        ? WildScoutTheme.emeraldBio.withValues(alpha: 0.22)
+                        ? WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.22)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: !_useLiveHeading
-                          ? WildScoutTheme.emeraldBio
+                          ? WildlifeScoutTheme.emeraldBio
                           : Colors.transparent,
                     ),
                   ),
@@ -490,7 +490,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         size: 13,
                         color: !_useLiveHeading
                             ? Colors.white
-                            : WildScoutTheme.textMuted,
+                            : WildlifeScoutTheme.textMuted,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -500,7 +500,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                           fontWeight: FontWeight.w800,
                           color: !_useLiveHeading
                               ? Colors.white
-                              : WildScoutTheme.textMuted,
+                              : WildlifeScoutTheme.textMuted,
                         ),
                       ),
                     ],
@@ -531,25 +531,25 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
       label = 'GEGENWIND (VON VORN)';
       description =
           'Optimal: Der Wind weht dir ins Gesicht. Dein Eigengeruch zieht hinter dich ab. Perfekt für das Beobachten & Fotografieren in Blickrichtung!';
-      accentColor = WildScoutTheme.emeraldBio;
+      accentColor = WildlifeScoutTheme.emeraldBio;
       icon = Icons.check_circle_outline;
     } else if (relativeWind >= 135 && relativeWind <= 225) {
       label = 'RÜCKENWIND (GEFAHR)';
       description =
           'Kritisch: Der Wind weht dir in den Rücken. Dein Geruch eilt dir in Blickrichtung voraus! Tiere vor dir können deinen Eigengeruch wahrnehmen und sich zurückziehen.';
-      accentColor = WildScoutTheme.crimsonScent;
+      accentColor = WildlifeScoutTheme.crimsonScent;
       icon = Icons.warning_amber_rounded;
     } else if (relativeWind > 45 && relativeWind < 135) {
       label = 'SEITENWIND (VON RECHTS)';
       description =
           'Wind kommt von rechts. Dein Eigengeruch zieht nach links ab. Behalte den linken Geländesektor im Auge.';
-      accentColor = WildScoutTheme.amberGold;
+      accentColor = WildlifeScoutTheme.amberGold;
       icon = Icons.arrow_back_rounded;
     } else {
       label = 'SEITENWIND (VON LINKS)';
       description =
           'Wind kommt von links. Dein Eigengeruch zieht nach rechts ab. Behalte den rechten Geländesektor im Auge.';
-      accentColor = WildScoutTheme.amberGold;
+      accentColor = WildlifeScoutTheme.amberGold;
       icon = Icons.arrow_forward_rounded;
     }
 
@@ -589,7 +589,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: WildScoutTheme.textPrimary,
+                    color: WildlifeScoutTheme.textPrimary,
                     height: 1.3,
                   ),
                 ),
@@ -643,7 +643,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
         widget.hidePosition,
         spot.coordinate,
       );
-      if (m > 3000) continue; // Nur Spots im taktischen 3-km-Radius
+      if (m > 3000) continue; // Nur Spots im 3-km-Beobachtungsradius
       final rawBearing = distCalc.bearing(widget.hidePosition, spot.coordinate);
       final bearing = (rawBearing + 360.0) % 360.0;
       final status = _evaluateScentStatus(bearing);
@@ -721,10 +721,10 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.crimsonScent.withValues(alpha: 0.12),
+                  color: WildlifeScoutTheme.crimsonScent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: WildScoutTheme.crimsonScent.withValues(alpha: 0.35),
+                    color: WildlifeScoutTheme.crimsonScent.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Column(
@@ -735,7 +735,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         Icon(
                           Icons.warning_amber_rounded,
                           size: 13,
-                          color: WildScoutTheme.crimsonScent,
+                          color: WildlifeScoutTheme.crimsonScent,
                         ),
                         SizedBox(width: 4),
                         Text(
@@ -744,7 +744,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.4,
-                            color: WildScoutTheme.crimsonScent,
+                            color: WildlifeScoutTheme.crimsonScent,
                           ),
                         ),
                       ],
@@ -779,10 +779,10 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.emeraldBio.withValues(alpha: 0.12),
+                  color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: WildScoutTheme.emeraldBio.withValues(alpha: 0.35),
+                    color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Column(
@@ -793,7 +793,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         Icon(
                           Icons.check_circle_outline,
                           size: 13,
-                          color: WildScoutTheme.emeraldBio,
+                          color: WildlifeScoutTheme.emeraldBio,
                         ),
                         SizedBox(width: 4),
                         Text(
@@ -802,7 +802,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.4,
-                            color: WildScoutTheme.emeraldBio,
+                            color: WildlifeScoutTheme.emeraldBio,
                           ),
                         ),
                       ],
@@ -822,7 +822,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: WildScoutTheme.emeraldBio,
+                        color: WildlifeScoutTheme.emeraldBio,
                       ),
                     ),
                   ],
@@ -840,7 +840,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: WildScoutTheme.borderSubtle),
+            border: Border.all(color: WildlifeScoutTheme.borderSubtle),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -850,7 +850,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                   const Icon(
                     Icons.air_rounded,
                     size: 15,
-                    color: WildScoutTheme.cyanWater,
+                    color: WildlifeScoutTheme.cyanWater,
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -858,7 +858,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                     style: const TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
-                      color: WildScoutTheme.textPrimary,
+                      color: WildlifeScoutTheme.textPrimary,
                     ),
                   ),
                 ],
@@ -868,7 +868,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: WildScoutTheme.textMuted,
+                  color: WildlifeScoutTheme.textMuted,
                 ),
               ),
             ],
@@ -878,7 +878,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
     );
   }
 
-  Widget _buildTacticalStalkingCard({
+  Widget _buildFieldApproachCard({
     required double windDir,
     required double scentDir,
     required double coneAngle,
@@ -896,17 +896,17 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
 
     if (isWindCalm) {
       icon = Icons.waves_rounded;
-      accentColor = WildScoutTheme.amberGold;
+      accentColor = WildlifeScoutTheme.amberGold;
       advice =
           'Fast Windstille (${widget.weather.windSpeedKmh.round()} km/h): Geruch verharrt im Wald- & Vegetationsbereich. Achtung vor unberechenbarer Hang- und Kaltluftthermik am Waldrand!';
     } else if (hasHighGusts) {
       icon = Icons.air_rounded;
-      accentColor = WildScoutTheme.amberGold;
+      accentColor = WildlifeScoutTheme.amberGold;
       advice =
           'Böiger Wind (${widget.weather.windGustsKmh.round()} km/h Böen): Starke Wirbelschleppen hinter Waldkanten. Halte mindestens ${(widget.primarySpecies.behavior.scentSensitivityMeters * 0.8).round()} m Sicherheitsabstand!';
     } else {
       icon = Icons.directions_walk_rounded;
-      accentColor = WildScoutTheme.emeraldBio;
+      accentColor = WildlifeScoutTheme.emeraldBio;
       advice =
           'Konstanter Wind: Sichere Annäherung ausschließlich aus $approachCardinal (${windDir.round()}%). Niemals aus ${_cardinalFromDegrees(scentDir)} anlaufen!';
     }
@@ -945,7 +945,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     height: 1.35,
-                    color: WildScoutTheme.textPrimary,
+                    color: WildlifeScoutTheme.textPrimary,
                   ),
                 ),
               ],
@@ -962,7 +962,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: WildScoutTheme.borderSubtle),
+        border: Border.all(color: WildlifeScoutTheme.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -975,7 +975,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                   Icon(
                     Icons.schedule_rounded,
                     size: 14,
-                    color: WildScoutTheme.textMuted,
+                    color: WildlifeScoutTheme.textMuted,
                   ),
                   SizedBox(width: 5),
                   Text(
@@ -984,7 +984,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.4,
-                      color: WildScoutTheme.textMuted,
+                      color: WildlifeScoutTheme.textMuted,
                     ),
                   ),
                 ],
@@ -994,7 +994,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
-                  color: WildScoutTheme.emeraldBio,
+                  color: WildlifeScoutTheme.emeraldBio,
                 ),
               ),
             ],
@@ -1033,9 +1033,9 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
           ),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: WildScoutTheme.cyanWater,
-              thumbColor: WildScoutTheme.cyanWater,
-              overlayColor: WildScoutTheme.cyanWater.withValues(alpha: 0.2),
+              activeTrackColor: WildlifeScoutTheme.cyanWater,
+              thumbColor: WildlifeScoutTheme.cyanWater,
+              overlayColor: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.2),
               trackHeight: 3.5,
             ),
             child: Slider(
@@ -1066,7 +1066,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
               fontSize: 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
-              color: WildScoutTheme.textMuted,
+              color: WildlifeScoutTheme.textMuted,
             ),
           ),
         ),
@@ -1083,17 +1083,17 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
 
     switch (info.status) {
       case _ScentStatus.scentContaminated:
-        badgeColor = WildScoutTheme.crimsonScent;
+        badgeColor = WildlifeScoutTheme.crimsonScent;
         badgeText = 'WITTERUNGS-GEFAHR';
         badgeIcon = Icons.warning_amber_rounded;
         break;
       case _ScentStatus.safeHeadwind:
-        badgeColor = WildScoutTheme.emeraldBio;
+        badgeColor = WildlifeScoutTheme.emeraldBio;
         badgeText = 'SICHER (GEGENWIND)';
         badgeIcon = Icons.check_circle_outline;
         break;
       case _ScentStatus.crosswind:
-        badgeColor = WildScoutTheme.amberGold;
+        badgeColor = WildlifeScoutTheme.amberGold;
         badgeText = 'SEITENWIND';
         badgeIcon = Icons.swap_horiz_rounded;
         break;
@@ -1108,7 +1108,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
         border: Border.all(
           color: info.isPrimary
               ? badgeColor.withValues(alpha: 0.45)
-              : WildScoutTheme.borderSubtle,
+              : WildlifeScoutTheme.borderSubtle,
         ),
       ),
       child: Row(
@@ -1149,7 +1149,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         ),
                         decoration: BoxDecoration(
                           color:
-                              WildScoutTheme.amberGold.withValues(alpha: 0.2),
+                              WildlifeScoutTheme.amberGold.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
@@ -1157,7 +1157,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                           style: TextStyle(
                             fontSize: 8.5,
                             fontWeight: FontWeight.w900,
-                            color: WildScoutTheme.amberGold,
+                            color: WildlifeScoutTheme.amberGold,
                           ),
                         ),
                       ),
@@ -1170,7 +1170,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                   style: const TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w600,
-                    color: WildScoutTheme.textMuted,
+                    color: WildlifeScoutTheme.textMuted,
                   ),
                 ),
               ],
@@ -1229,13 +1229,13 @@ class _TimePresetButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 5),
           decoration: BoxDecoration(
             color: isSelected
-                ? WildScoutTheme.cyanWater.withValues(alpha: 0.22)
+                ? WildlifeScoutTheme.cyanWater.withValues(alpha: 0.22)
                 : Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected
-                  ? WildScoutTheme.cyanWater.withValues(alpha: 0.5)
-                  : WildScoutTheme.borderSubtle,
+                  ? WildlifeScoutTheme.cyanWater.withValues(alpha: 0.5)
+                  : WildlifeScoutTheme.borderSubtle,
             ),
           ),
           alignment: Alignment.center,
@@ -1244,7 +1244,7 @@ class _TimePresetButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected ? Colors.white : WildScoutTheme.textMuted,
+              color: isSelected ? Colors.white : WildlifeScoutTheme.textMuted,
             ),
           ),
         ),
@@ -1277,9 +1277,9 @@ class _TargetBearingInfo {
   });
 }
 
-/// CustomPainter für die taktische 360° Kompassrose.
+/// CustomPainter für die 360° Feld-Kompassrose.
 /// Visualisiert:
-/// 1. Dunklen, gradierten Kompass-Hintergrund mit taktischen Entfernungsringen
+/// 1. Dunklen, gradierten Kompass-Hintergrund mit Entfernungsringen
 /// 2. Den Witterungskegel (roter Radial-Fächer vom Zentrum ausgehend)
 /// 3. Den sicheren Annäherungssektor (grüner Radial-Fächer für Gegenwind)
 /// 4. Flankierende Seitenwind-Markierungen
@@ -1287,7 +1287,7 @@ class _TargetBearingInfo {
 /// 6. Einströmenden Windvektor (Cyan-Pfeil von außen nach innen zum Beobachter)
 /// 7. Zentrierten Fotospot- / Beobachter-Punkt
 /// 8. Peilungs-Pins für Spots & Habitate
-class _TacticalCompassPainter extends CustomPainter {
+class _FieldCompassPainter extends CustomPainter {
   final double windDirectionDeg;
   final double windSpeedKmh;
   final String windCardinal;
@@ -1296,7 +1296,7 @@ class _TacticalCompassPainter extends CustomPainter {
   final double scentDistanceMeters;
   final List<_TargetBearingInfo> targetBearings;
 
-  _TacticalCompassPainter({
+  _FieldCompassPainter({
     required this.windDirectionDeg,
     required this.windSpeedKmh,
     required this.windCardinal,
@@ -1311,7 +1311,7 @@ class _TacticalCompassPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final dialRadius = size.width / 2 - 20;
 
-    // 1. Hintergrundkreis mit radialem Tactical-Farbverlauf
+    // 1. Hintergrundkreis mit radialem Farbverlauf
     final bgPaint = Paint()
       ..shader = RadialGradient(
         colors: [
@@ -1322,7 +1322,7 @@ class _TacticalCompassPainter extends CustomPainter {
       ).createShader(Rect.fromCircle(center: center, radius: dialRadius));
     canvas.drawCircle(center, dialRadius, bgPaint);
 
-    // Feine konzentrische Taktik-Ringe (33%, 66%, 100%)
+    // Feine konzentrische Entfernungs-Ringe (33%, 66%, 100%)
     final gridPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.06)
       ..style = PaintingStyle.stroke
@@ -1372,8 +1372,8 @@ class _TacticalCompassPainter extends CustomPainter {
     final fillPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          WildScoutTheme.crimsonScent.withValues(alpha: 0.10),
-          WildScoutTheme.crimsonScent.withValues(alpha: 0.42),
+          WildlifeScoutTheme.crimsonScent.withValues(alpha: 0.10),
+          WildlifeScoutTheme.crimsonScent.withValues(alpha: 0.42),
         ],
         stops: const [0.0, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
@@ -1382,7 +1382,7 @@ class _TacticalCompassPainter extends CustomPainter {
 
     // Roter Randbogen am Perimeter
     final arcPaint = Paint()
-      ..color = WildScoutTheme.crimsonScent.withValues(alpha: 0.85)
+      ..color = WildlifeScoutTheme.crimsonScent.withValues(alpha: 0.85)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.4;
     canvas.drawArc(
@@ -1396,7 +1396,7 @@ class _TacticalCompassPainter extends CustomPainter {
     // Witterungs-Zentrumslinie
     final scentRad = _degToCanvasRad(scentDirectionDeg);
     final centerLinePaint = Paint()
-      ..color = WildScoutTheme.crimsonScent.withValues(alpha: 0.7)
+      ..color = WildlifeScoutTheme.crimsonScent.withValues(alpha: 0.7)
       ..strokeWidth = 1.4
       ..style = PaintingStyle.stroke;
     canvas.drawLine(
@@ -1430,8 +1430,8 @@ class _TacticalCompassPainter extends CustomPainter {
     final fillPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          WildScoutTheme.emeraldBio.withValues(alpha: 0.08),
-          WildScoutTheme.emeraldBio.withValues(alpha: 0.28),
+          WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.08),
+          WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.28),
         ],
         stops: const [0.0, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
@@ -1440,7 +1440,7 @@ class _TacticalCompassPainter extends CustomPainter {
 
     // Grüner Randbogen
     final arcPaint = Paint()
-      ..color = WildScoutTheme.emeraldBio.withValues(alpha: 0.75)
+      ..color = WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.75)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.2;
     canvas.drawArc(
@@ -1471,7 +1471,7 @@ class _TacticalCompassPainter extends CustomPainter {
       final tickLength = isCardinal ? 9.0 : (isMajor ? 6.0 : 3.5);
       tickPaint.strokeWidth = isCardinal ? 2.0 : (isMajor ? 1.4 : 0.9);
       tickPaint.color = isCardinal
-          ? (deg == 0 ? WildScoutTheme.crimsonScent : Colors.white)
+          ? (deg == 0 ? WildlifeScoutTheme.crimsonScent : Colors.white)
           : (isMajor ? Colors.white70 : Colors.white24);
 
       final p1 = Offset(
@@ -1504,14 +1504,14 @@ class _TacticalCompassPainter extends CustomPainter {
 
     // Kardinal-Punkte N, O, S, W & Zwischenkardinäle NO, SO, SW, NW
     final cardinals = [
-      (0, 'N', WildScoutTheme.crimsonScent, 13.0, FontWeight.w900),
-      (45, 'NO', WildScoutTheme.textMuted, 9.5, FontWeight.w700),
+      (0, 'N', WildlifeScoutTheme.crimsonScent, 13.0, FontWeight.w900),
+      (45, 'NO', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
       (90, 'O', Colors.white, 12.0, FontWeight.w800),
-      (135, 'SO', WildScoutTheme.textMuted, 9.5, FontWeight.w700),
+      (135, 'SO', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
       (180, 'S', Colors.white, 12.0, FontWeight.w800),
-      (225, 'SW', WildScoutTheme.textMuted, 9.5, FontWeight.w700),
+      (225, 'SW', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
       (270, 'W', Colors.white, 12.0, FontWeight.w800),
-      (315, 'NW', WildScoutTheme.textMuted, 9.5, FontWeight.w700),
+      (315, 'NW', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
     ];
 
     for (final (deg, label, color, fontSize, weight) in cardinals) {
@@ -1548,7 +1548,7 @@ class _TacticalCompassPainter extends CustomPainter {
 
     // Pfeil-Schaft
     final arrowPaint = Paint()
-      ..color = WildScoutTheme.cyanWater
+      ..color = WildlifeScoutTheme.cyanWater
       ..strokeWidth = 3.2
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -1572,18 +1572,18 @@ class _TacticalCompassPainter extends CustomPainter {
       ..close();
 
     final tipPaint = Paint()
-      ..color = WildScoutTheme.cyanWater
+      ..color = WildlifeScoutTheme.cyanWater
       ..style = PaintingStyle.fill;
     canvas.drawPath(tipPath, tipPaint);
 
     // Äußere Windmarkierung (Leuchtender Cyan-Punkt an der Peripherie)
     final beaconPaint = Paint()
-      ..color = WildScoutTheme.cyanWater
+      ..color = WildlifeScoutTheme.cyanWater
       ..style = PaintingStyle.fill;
     canvas.drawCircle(outerP, 4.5, beaconPaint);
 
     final glowPaint = Paint()
-      ..color = WildScoutTheme.cyanWater.withValues(alpha: 0.35)
+      ..color = WildlifeScoutTheme.cyanWater.withValues(alpha: 0.35)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(outerP, 9.0, glowPaint);
   }
@@ -1599,13 +1599,13 @@ class _TacticalCompassPainter extends CustomPainter {
       Color color;
       switch (target.status) {
         case _ScentStatus.scentContaminated:
-          color = WildScoutTheme.crimsonScent;
+          color = WildlifeScoutTheme.crimsonScent;
           break;
         case _ScentStatus.safeHeadwind:
-          color = WildScoutTheme.emeraldBio;
+          color = WildlifeScoutTheme.emeraldBio;
           break;
         case _ScentStatus.crosswind:
-          color = WildScoutTheme.amberGold;
+          color = WildlifeScoutTheme.amberGold;
           break;
       }
 
@@ -1641,12 +1641,12 @@ class _TacticalCompassPainter extends CustomPainter {
 
     // Zentraler Fotospot
     final hubBg = Paint()
-      ..color = WildScoutTheme.bgObsidian
+      ..color = WildlifeScoutTheme.bgObsidian
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 9, hubBg);
 
     final hubBorder = Paint()
-      ..color = WildScoutTheme.emeraldBio
+      ..color = WildlifeScoutTheme.emeraldBio
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
     canvas.drawCircle(center, 9, hubBorder);
@@ -1684,7 +1684,7 @@ class _TacticalCompassPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _TacticalCompassPainter oldDelegate) {
+  bool shouldRepaint(covariant _FieldCompassPainter oldDelegate) {
     return oldDelegate.windDirectionDeg != windDirectionDeg ||
         oldDelegate.windSpeedKmh != windSpeedKmh ||
         oldDelegate.scentDirectionDeg != scentDirectionDeg ||

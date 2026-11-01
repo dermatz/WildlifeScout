@@ -106,16 +106,21 @@ void main() {
   }
 
   testWidgets(
-      'SpeciesMultiSelectSheet does NOT show "Unsplash • Frei" on images',
+      'SpeciesMultiSelectSheet has clean subtitle and does NOT show "Unsplash • Frei"',
       (tester) async {
     await tester.pumpWidget(buildTestSheet());
     await tester.pumpAndSettle();
 
     // Verify "Unsplash • Frei" badge overlay is completely absent
     expect(find.text('Unsplash • Frei'), findsNothing);
+
+    // Verify updated clean subtitle without "Lizenzfreie Unsplash-Fotos" and without "Offene"
+    expect(find.text('Wilddaten & Tipps'), findsOneWidget);
+    expect(find.textContaining('Lizenzfreie Unsplash-Fotos'), findsNothing);
+    expect(find.textContaining('Offene Wilddaten'), findsNothing);
   });
 
-  testWidgets('SpeciesMultiSelectSheet renders compact tiles with facts',
+  testWidgets('SpeciesMultiSelectSheet renders compact tiles with minHeight 76',
       (tester) async {
     await tester.pumpWidget(buildTestSheet());
     await tester.pumpAndSettle();
@@ -126,6 +131,11 @@ void main() {
     expect(find.text('Schwarzwild'), findsOneWidget);
     expect(find.text('Rotfuchs'), findsOneWidget);
 
+    // Verify card height has at least 76px
+    final cardFinder = find.byType(AnimatedContainer).first;
+    final cardSize = tester.getSize(cardFinder);
+    expect(cardSize.height, greaterThanOrEqualTo(76.0));
+
     // Verify compact quick fact pills are rendered
     expect(find.text('Witterung 250m'), findsOneWidget);
     expect(find.text('Flucht 80m'), findsOneWidget);
@@ -134,6 +144,10 @@ void main() {
     // Verify counter shows 4 species available
     expect(find.text('4 Wildarten im Revier'), findsOneWidget);
     expect(find.text('1 aktiv'), findsOneWidget);
+
+    // Verify Latin scientific name and category badge are removed from the card
+    expect(find.text('Capreolus capreolus'), findsNothing);
+    expect(find.text('Schalenwild'), findsNothing);
   });
 
   testWidgets('Live search filters species by name, category, and science',

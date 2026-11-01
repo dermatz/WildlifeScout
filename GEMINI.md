@@ -1,4 +1,4 @@
-# WildScout – Verbindliche Projekt- & Agent-Regeln (GEMINI.md)
+# WildlifeScout – Verbindliche Projekt- & Agent-Regeln (GEMINI.md)
 
 ## 1. Striktes Gebot: 100 % Lizenzfreie Bilder & Medien (Immer gewährleisten!)
 - **Ausnahmslos lizenzfreie Bilder:** Alle in diesem Projekt verwendeten Fotos, Tierbilder, Grafiken und Medien müssen **zwingend und jederzeit lizenzfrei** sein (z. B. unter der freien **Unsplash License** über `images.unsplash.com`, **CC0 / Public Domain** oder frei nutzbare Open-Data-Medien ohne Lizenzgebühren).

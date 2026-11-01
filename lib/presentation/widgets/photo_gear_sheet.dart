@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../data/services/photo_gear_service.dart';
 import '../../domain/models/photo_gear_profile.dart';
 
@@ -96,10 +96,10 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
     return Container(
       constraints: BoxConstraints(maxHeight: maxSheetHeight),
       decoration: BoxDecoration(
-        color: WildScoutTheme.bgObsidian.withValues(alpha: 0.98),
+        color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: const Border(
-          top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1),
+          top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1),
         ),
       ),
       padding: EdgeInsets.only(
@@ -134,12 +134,12 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.cyanWater.withValues(alpha: 0.16),
+                  color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.camera_alt_rounded,
-                  color: WildScoutTheme.cyanWater,
+                  color: WildlifeScoutTheme.cyanWater,
                   size: 20,
                 ),
               ),
@@ -160,7 +160,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       'Objektiv, Sensor & Telekonverter konfigurieren',
                       style: TextStyle(
                         fontSize: 11.5,
-                        color: WildScoutTheme.textMuted,
+                        color: WildlifeScoutTheme.textMuted,
                       ),
                     ),
                   ],
@@ -170,7 +170,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                 icon: const Icon(
                   Icons.close_rounded,
                   size: 22,
-                  color: WildScoutTheme.textMuted,
+                  color: WildlifeScoutTheme.textMuted,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'Schließen',
@@ -185,7 +185,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
               padding: EdgeInsets.symmetric(vertical: 40),
               child: Center(
                 child: CircularProgressIndicator(
-                  color: WildScoutTheme.cyanWater,
+                  color: WildlifeScoutTheme.cyanWater,
                 ),
               ),
             )
@@ -206,7 +206,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: WildScoutTheme.textMuted,
+                        color: WildlifeScoutTheme.textMuted,
                         letterSpacing: 0.6,
                       ),
                     ),
@@ -233,19 +233,19 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                       : FontWeight.w500,
                                   color: isSelected
                                       ? Colors.black
-                                      : WildScoutTheme.textPrimary,
+                                      : WildlifeScoutTheme.textPrimary,
                                 ),
                               ),
                               selected: isSelected,
                               onSelected: (_) => _applyPreset(preset),
-                              selectedColor: WildScoutTheme.cyanWater,
-                              backgroundColor: WildScoutTheme.surfaceCard,
+                              selectedColor: WildlifeScoutTheme.cyanWater,
+                              backgroundColor: WildlifeScoutTheme.surfaceCard,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                                 side: BorderSide(
                                   color: isSelected
-                                      ? WildScoutTheme.cyanWater
-                                      : WildScoutTheme.borderSubtle,
+                                      ? WildlifeScoutTheme.cyanWater
+                                      : WildlifeScoutTheme.borderSubtle,
                                 ),
                               ),
                             ),
@@ -264,7 +264,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                           style: TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: WildScoutTheme.textPrimary,
+                            color: WildlifeScoutTheme.textPrimary,
                           ),
                         ),
                         Container(
@@ -274,10 +274,10 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                           ),
                           decoration: BoxDecoration(
                             color:
-                                WildScoutTheme.cyanWater.withValues(alpha: 0.16),
+                                WildlifeScoutTheme.cyanWater.withValues(alpha: 0.16),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: WildScoutTheme.cyanWater
+                              color: WildlifeScoutTheme.cyanWater
                                   .withValues(alpha: 0.4),
                             ),
                           ),
@@ -286,7 +286,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
-                              color: WildScoutTheme.cyanWater,
+                              color: WildlifeScoutTheme.cyanWater,
                             ),
                           ),
                         ),
@@ -294,11 +294,11 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: WildScoutTheme.cyanWater,
+                        activeTrackColor: WildlifeScoutTheme.cyanWater,
                         inactiveTrackColor: Colors.white12,
-                        thumbColor: WildScoutTheme.cyanWater,
+                        thumbColor: WildlifeScoutTheme.cyanWater,
                         overlayColor:
-                            WildScoutTheme.cyanWater.withValues(alpha: 0.2),
+                            WildlifeScoutTheme.cyanWater.withValues(alpha: 0.2),
                       ),
                       child: Slider(
                         value: _currentGear.focalLengthMm.clamp(70.0, 1200.0),
@@ -334,14 +334,14 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? WildScoutTheme.cyanWater
+                                  ? WildlifeScoutTheme.cyanWater
                                       .withValues(alpha: 0.25)
-                                  : WildScoutTheme.surfaceCard,
+                                  : WildlifeScoutTheme.surfaceCard,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: isSelected
-                                    ? WildScoutTheme.cyanWater
-                                    : WildScoutTheme.borderSubtle,
+                                    ? WildlifeScoutTheme.cyanWater
+                                    : WildlifeScoutTheme.borderSubtle,
                               ),
                             ),
                             child: Text(
@@ -352,8 +352,8 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                     ? FontWeight.w800
                                     : FontWeight.w600,
                                 color: isSelected
-                                    ? WildScoutTheme.cyanWater
-                                    : WildScoutTheme.textPrimary,
+                                    ? WildlifeScoutTheme.cyanWater
+                                    : WildlifeScoutTheme.textPrimary,
                               ),
                             ),
                           ),
@@ -371,7 +371,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                           style: TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: WildScoutTheme.textPrimary,
+                            color: WildlifeScoutTheme.textPrimary,
                           ),
                         ),
                         Text(
@@ -379,7 +379,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: WildScoutTheme.amberGold,
+                            color: WildlifeScoutTheme.amberGold,
                           ),
                         ),
                       ],
@@ -403,14 +403,14 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? WildScoutTheme.amberGold
+                                  ? WildlifeScoutTheme.amberGold
                                       .withValues(alpha: 0.22)
-                                  : WildScoutTheme.surfaceCard,
+                                  : WildlifeScoutTheme.surfaceCard,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: isSelected
-                                    ? WildScoutTheme.amberGold
-                                    : WildScoutTheme.borderSubtle,
+                                    ? WildlifeScoutTheme.amberGold
+                                    : WildlifeScoutTheme.borderSubtle,
                               ),
                             ),
                             child: Text(
@@ -421,8 +421,8 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                     ? FontWeight.w800
                                     : FontWeight.w600,
                                 color: isSelected
-                                    ? WildScoutTheme.amberGold
-                                    : WildScoutTheme.textPrimary,
+                                    ? WildlifeScoutTheme.amberGold
+                                    : WildlifeScoutTheme.textPrimary,
                               ),
                             ),
                           ),
@@ -437,7 +437,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: WildScoutTheme.textPrimary,
+                        color: WildlifeScoutTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -459,14 +459,14 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? WildScoutTheme.emeraldBio
+                                  ? WildlifeScoutTheme.emeraldBio
                                       .withValues(alpha: 0.16)
-                                  : WildScoutTheme.surfaceCard,
+                                  : WildlifeScoutTheme.surfaceCard,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isSelected
-                                    ? WildScoutTheme.emeraldBio
-                                    : WildScoutTheme.borderSubtle,
+                                    ? WildlifeScoutTheme.emeraldBio
+                                    : WildlifeScoutTheme.borderSubtle,
                               ),
                             ),
                             child: Row(
@@ -477,8 +477,8 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                       : Icons.radio_button_off_rounded,
                                   size: 18,
                                   color: isSelected
-                                      ? WildScoutTheme.emeraldBio
-                                      : WildScoutTheme.textMuted,
+                                      ? WildlifeScoutTheme.emeraldBio
+                                      : WildlifeScoutTheme.textMuted,
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -495,14 +495,14 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                               : FontWeight.w500,
                                           color: isSelected
                                               ? Colors.white
-                                              : WildScoutTheme.textPrimary,
+                                              : WildlifeScoutTheme.textPrimary,
                                         ),
                                       ),
                                       Text(
                                         'Sensorfläche: ${format.sensorWidthMm.toStringAsFixed(1)} × ${format.sensorHeightMm.toStringAsFixed(1)} mm',
                                         style: const TextStyle(
                                           fontSize: 11,
-                                          color: WildScoutTheme.textMuted,
+                                          color: WildlifeScoutTheme.textMuted,
                                         ),
                                       ),
                                     ],
@@ -540,7 +540,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: WildScoutTheme.textPrimary,
+                        color: WildlifeScoutTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -562,14 +562,14 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                     const EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? WildScoutTheme.cyanWater
+                                      ? WildlifeScoutTheme.cyanWater
                                           .withValues(alpha: 0.20)
-                                      : WildScoutTheme.surfaceCard,
+                                      : WildlifeScoutTheme.surfaceCard,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: isSelected
-                                        ? WildScoutTheme.cyanWater
-                                        : WildScoutTheme.borderSubtle,
+                                        ? WildlifeScoutTheme.cyanWater
+                                        : WildlifeScoutTheme.borderSubtle,
                                   ),
                                 ),
                                 child: Column(
@@ -584,8 +584,8 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                             ? FontWeight.w800
                                             : FontWeight.w600,
                                         color: isSelected
-                                            ? WildScoutTheme.cyanWater
-                                            : WildScoutTheme.textPrimary,
+                                            ? WildlifeScoutTheme.cyanWater
+                                            : WildlifeScoutTheme.textPrimary,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
@@ -595,7 +595,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                           : 'Volles Licht',
                                       style: const TextStyle(
                                         fontSize: 10.5,
-                                        color: WildScoutTheme.textMuted,
+                                        color: WildlifeScoutTheme.textMuted,
                                       ),
                                     ),
                                   ],
@@ -628,10 +628,10 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                         'Berücksichtigt 2–3 Belichtungsstufen Puffer bei Freihand-Verschlusszeiten',
                         style: TextStyle(
                           fontSize: 11.5,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
-                      activeTrackColor: WildScoutTheme.emeraldBio,
+                      activeTrackColor: WildlifeScoutTheme.emeraldBio,
                     ),
                     const SizedBox(height: 12),
 
@@ -647,7 +647,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                         icon: const Icon(Icons.refresh_rounded, size: 16),
                         label: const Text('Auf Standard (400 mm Vollformat) zurücksetzen'),
                         style: TextButton.styleFrom(
-                          foregroundColor: WildScoutTheme.textMuted,
+                          foregroundColor: WildlifeScoutTheme.textMuted,
                           textStyle: const TextStyle(fontSize: 12),
                         ),
                       ),
@@ -675,10 +675,10 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: WildScoutTheme.surfaceCard,
+        color: WildlifeScoutTheme.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: WildScoutTheme.cyanWater.withValues(alpha: 0.4),
+          color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.4),
         ),
       ),
       child: Column(
@@ -689,7 +689,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
               const Icon(
                 Icons.analytics_outlined,
                 size: 18,
-                color: WildScoutTheme.cyanWater,
+                color: WildlifeScoutTheme.cyanWater,
               ),
               const SizedBox(width: 8),
               const Expanded(
@@ -698,14 +698,14 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w800,
-                    color: WildScoutTheme.cyanWater,
+                    color: WildlifeScoutTheme.cyanWater,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.cyanWater.withValues(alpha: 0.15),
+                  color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -713,7 +713,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: WildScoutTheme.cyanWater,
+                    color: WildlifeScoutTheme.cyanWater,
                   ),
                 ),
               ),
@@ -738,7 +738,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                         'KB-Äquivalent',
                         style: TextStyle(
                           fontSize: 10.5,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -754,7 +754,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                         '${gear.focalLengthMm.round()} mm × ${gear.sensorFormat.cropFactor}x',
                         style: const TextStyle(
                           fontSize: 10,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
                     ],
@@ -776,7 +776,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                         'Effektive Blende',
                         style: TextStyle(
                           fontSize: 10.5,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -785,7 +785,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
-                          color: WildScoutTheme.amberGold,
+                          color: WildlifeScoutTheme.amberGold,
                         ),
                       ),
                       Text(
@@ -794,7 +794,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                             : 'Nativ ohne Lichtverlust',
                         style: const TextStyle(
                           fontSize: 10,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
                     ],
@@ -831,7 +831,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
               const Icon(
                 Icons.center_focus_strong_outlined,
                 size: 14,
-                color: WildScoutTheme.emeraldBio,
+                color: WildlifeScoutTheme.emeraldBio,
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -841,7 +841,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       : 'Schärfebereich bei 30 m: nur ${dof30.round()} cm (präziser Fokus nötig!)',
                   style: const TextStyle(
                     fontSize: 11,
-                    color: WildScoutTheme.textMuted,
+                    color: WildlifeScoutTheme.textMuted,
                   ),
                 ),
               ),
@@ -859,7 +859,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
           distance,
           style: const TextStyle(
             fontSize: 10,
-            color: WildScoutTheme.textMuted,
+            color: WildlifeScoutTheme.textMuted,
           ),
         ),
         const SizedBox(height: 1),
@@ -868,7 +868,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: WildScoutTheme.textPrimary,
+            color: WildlifeScoutTheme.textPrimary,
           ),
         ),
       ],

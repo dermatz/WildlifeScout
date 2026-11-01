@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../domain/models/secret_spot.dart';
 import '../../domain/models/species_profile.dart';
 import 'species_photo_avatar.dart';
@@ -73,10 +73,10 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: WildScoutTheme.bgObsidian.withValues(alpha: 0.97),
+        color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.97),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: const Border(
-          top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1),
+          top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1),
         ),
       ),
       padding: EdgeInsets.only(
@@ -105,12 +105,12 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.emeraldBio.withValues(alpha: 0.15),
+                  color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.shield_outlined,
-                  color: WildScoutTheme.emeraldBio,
+                  color: WildlifeScoutTheme.emeraldBio,
                   size: 22,
                 ),
               ),
@@ -124,14 +124,14 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: WildScoutTheme.textPrimary,
+                        color: WildlifeScoutTheme.textPrimary,
                       ),
                     ),
                     Text(
                       '100 % lokal auf deinem Gerät • Keine Weitergabe von Koordinaten',
                       style: TextStyle(
                         fontSize: 12,
-                        color: WildScoutTheme.textMuted,
+                        color: WildlifeScoutTheme.textMuted,
                       ),
                     ),
                   ],
@@ -140,7 +140,7 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
               FilledButton.icon(
                 onPressed: () => setState(() => _isAdding = !_isAdding),
                 style: FilledButton.styleFrom(
-                  backgroundColor: WildScoutTheme.emeraldBio,
+                  backgroundColor: WildlifeScoutTheme.emeraldBio,
                   foregroundColor: Colors.black,
                 ),
                 icon: Icon(_isAdding ? Icons.close : Icons.add_location_alt, size: 18),
@@ -153,10 +153,10 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: WildScoutTheme.surfaceCard,
+                color: WildlifeScoutTheme.surfaceCard,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: WildScoutTheme.emeraldBio.withValues(alpha: 0.4),
+                  color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.4),
                 ),
               ),
               child: Column(
@@ -166,7 +166,7 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
                     'Aktuellen Tarnzelt-Pin speichern (${widget.activeSpecies.name})',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: WildScoutTheme.emeraldBio,
+                      color: WildlifeScoutTheme.emeraldBio,
                       fontSize: 13,
                     ),
                   ),
@@ -205,7 +205,7 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
                     child: ElevatedButton.icon(
                       onPressed: _saveCurrentPositionAsSpot,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: WildScoutTheme.amberGold,
+                        backgroundColor: WildlifeScoutTheme.amberGold,
                         foregroundColor: Colors.black,
                       ),
                       icon: const Icon(Icons.lock_outline, size: 18),
@@ -231,7 +231,7 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12.5,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
                     ),
@@ -255,9 +255,9 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: WildScoutTheme.surfaceCard,
+                      color: WildlifeScoutTheme.surfaceCard,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: WildScoutTheme.borderSubtle),
+                      border: Border.all(color: WildlifeScoutTheme.borderSubtle),
                     ),
                     child: Row(
                       children: [
@@ -310,7 +310,7 @@ class _SpotVaultSheetState extends State<SpotVaultSheet> {
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: WildScoutTheme.textMuted,
+                                  color: WildlifeScoutTheme.textMuted,
                                 ),
                               ),
                             ],

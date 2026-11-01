@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 
 /// Visueller Blickrichtungs-Fächer (Flashlight Beam / Peilstrahl) am Fotospot-Marker.
 /// Zeigt in Echtzeit auf der Karte an, in welche Himmelsrichtung das Smartphone
-/// im Gelände blickt (nach Vorbild von Apple Maps / Tactical GPS).
+/// im Gelände blickt (nach Vorbild von Apple Maps / Precision GPS).
 class DeviceHeadingBeam extends StatelessWidget {
   final double headingDeg; // 0 = oben, 90 = rechts, 180 = unten, 270 = links
   final double beamLength;
@@ -16,7 +16,7 @@ class DeviceHeadingBeam extends StatelessWidget {
     required this.headingDeg,
     this.beamLength = 58.0,
     this.beamAngleDeg = 50.0,
-    this.accentColor = WildScoutTheme.cyanWater,
+    this.accentColor = WildlifeScoutTheme.cyanWater,
   });
 
   @override
@@ -145,7 +145,7 @@ class _DeviceHeadingBeamPainter extends CustomPainter {
     );
     canvas.drawLine(laserStart, laserEnd, laserPaint);
 
-    // 5. Taktischer Richtungs-Pfeil (Chevron / Arrowhead) an der Spitze
+    // 5. Peilungs-Pfeil (Chevron / Arrowhead) an der Spitze
     final tipPoint = Offset(
       center.dx + (outerRadius + 11) * math.cos(centerRad),
       center.dy + (outerRadius + 11) * math.sin(centerRad),

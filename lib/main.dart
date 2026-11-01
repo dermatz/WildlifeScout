@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'core/theme/wildscout_theme.dart';
-import 'presentation/screens/tactical_map_screen.dart';
+import 'core/theme/wildlifescout_theme.dart';
+import 'presentation/screens/field_map_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +9,7 @@ void main() {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: WildScoutTheme.bgObsidian,
+      systemNavigationBarColor: WildlifeScoutTheme.bgObsidian,
     ),
   );
   runApp(const WildlifeScoutApp());
@@ -21,10 +21,10 @@ class WildlifeScoutApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WildlifeScout – Wildlife Tactical Planner',
+      title: 'WildlifeScout – Feld- & Ansitz-Planer',
       debugShowCheckedModeBanner: false,
-      theme: WildScoutTheme.buildDarkTheme(),
-      home: const TacticalMapScreen(),
+      theme: WildlifeScoutTheme.buildDarkTheme(),
+      home: const FieldMapScreen(),
     );
   }
 }

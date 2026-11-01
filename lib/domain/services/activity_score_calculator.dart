@@ -4,25 +4,31 @@ import '../models/species_profile.dart';
 import '../models/weather_frame.dart';
 import 'sun_moon_calculator.dart';
 
-class TacticalAssessment {
+class FieldAssessment {
   final int activityScorePercent; // 0 bis 100
   final String ratingLabel; // z. B. "Exzellentes Austrittsfenster"
   final String barometerInsight;
-  final String windTacticalAdvice;
+  final String windAdvice;
   final String lightQualityAdvice;
   final bool hasScentCollision;
   final String? scentCollisionWarning;
 
-  const TacticalAssessment({
+  const FieldAssessment({
     required this.activityScorePercent,
     required this.ratingLabel,
     required this.barometerInsight,
-    required this.windTacticalAdvice,
+    required this.windAdvice,
     required this.lightQualityAdvice,
     required this.hasScentCollision,
     this.scentCollisionWarning,
   });
+
+  /// Rückwärtskompatibler Getter für bisherigen Zugriff
+  String get windTacticalAdvice => windAdvice;
 }
+
+/// Rückwärtskompatibler Alias
+typedef TacticalAssessment = FieldAssessment;
 
 /// Berechnet den biologischen Aktivitäts-Index (0–100 %) und prüft live, ob der
 /// eigene Witterungskegel (Geruch) in eine aktive Habitat-Zone der gewählten
@@ -32,7 +38,7 @@ class ActivityScoreCalculator {
 
   static const Distance _geoDistance = Distance();
 
-  static TacticalAssessment evaluate({
+  static FieldAssessment evaluate({
     required SpeciesProfile species,
     required WeatherFrame weather,
     required SunMoonPosition astro,
@@ -180,11 +186,11 @@ class ActivityScoreCalculator {
           'Weiches Fotolicht aus ${_cardinalFromAzimuth(astro.sunAzimuthDegrees)}';
     }
 
-    return TacticalAssessment(
+    return FieldAssessment(
       activityScorePercent: finalScore,
       ratingLabel: ratingLabel,
       barometerInsight: baroInsight,
-      windTacticalAdvice: windAdvice,
+      windAdvice: windAdvice,
       lightQualityAdvice: lightAdvice,
       hasScentCollision: hasCollision,
       scentCollisionWarning: collisionMessage,

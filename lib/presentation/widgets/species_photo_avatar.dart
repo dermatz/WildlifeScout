@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../domain/models/species_profile.dart';
 
 /// Zeigt das lizenzfreie Unsplash-Tierfoto (lokal eingebettet unter `assets/species/images/`
@@ -142,7 +142,7 @@ class SpeciesPhotoAvatar extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 8.5,
                       fontWeight: FontWeight.w800,
-                      color: WildScoutTheme.emeraldBio,
+                      color: WildlifeScoutTheme.emeraldBio,
                       letterSpacing: 0.2,
                     ),
                   ),

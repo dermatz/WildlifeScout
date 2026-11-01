@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../data/repositories/spot_vault_repository.dart';
 import '../../data/services/app_settings_service.dart';
 import '../../domain/models/severe_weather_alert.dart';
 import 'severe_weather_alert_sheet.dart';
 
-/// Modal-Sheet für die Einstellungen der WildScout-App.
+/// Modal-Sheet für die Einstellungen der WildlifeScout-App.
 /// Organisiert als vertikale Accordion-Liste nach Apple HIG
 /// mit progressiver Offenlegung (Progressive Disclosure) und
 /// kompakter Statusanzeige bei geschlossenen Kategorien.
@@ -215,7 +215,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
           'Probe-Alarm: Sturmböen bis ${_gustThresholdKmh.round()} km/h (${_gustThresholdLabel(_gustThresholdKmh)})',
       subheadline: 'Funktionstest der Unwetter-Warnung für den Fotospot',
       description:
-          'Dies ist ein Test deiner eingestellten Warnschwelle (${_gustThresholdKmh.round()} km/h). Im Ernstfall schlägt WildScout bei heranziehendem Sturm, Gewitter oder Starkregen während einer aktiven Fotosession sofort Alarm.',
+          'Dies ist ein Test deiner eingestellten Warnschwelle (${_gustThresholdKmh.round()} km/h). Im Ernstfall schlägt WildlifeScout bei heranziehendem Sturm, Gewitter oder Starkregen während einer aktiven Fotosession sofort Alarm.',
       safetyRecommendation:
           'Im Ernstfall: Offenes Gelände oder Hochstände sofort verlassen; bei aufziehendem Sturm Waldgebiet rechtzeitig vor Windbruch räumen.',
       peakGustKmh: _gustThresholdKmh,
@@ -283,12 +283,12 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
           'Einstellungen auf Standardwerte zurückgesetzt.',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: WildScoutTheme.surfaceCard,
+        backgroundColor: WildlifeScoutTheme.surfaceCard,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: WildScoutTheme.borderSubtle),
+          side: const BorderSide(color: WildlifeScoutTheme.borderSubtle),
         ),
       ),
     );
@@ -305,10 +305,10 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.90),
       decoration: BoxDecoration(
-        color: WildScoutTheme.bgObsidian.withValues(alpha: 0.98),
+        color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: const Border(
-          top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1),
+          top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1),
         ),
       ),
       padding: EdgeInsets.only(
@@ -341,12 +341,12 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.emeraldBio.withValues(alpha: 0.16),
+                  color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.tune_rounded,
-                  color: WildScoutTheme.emeraldBio,
+                  color: WildlifeScoutTheme.emeraldBio,
                   size: 20,
                 ),
               ),
@@ -364,10 +364,10 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                       ),
                     ),
                     Text(
-                      'Fotogebiet • Sicherheit • Taktik • System',
+                      'Fotogebiet • Sicherheit • Einheiten • System',
                       style: TextStyle(
                         fontSize: 11.5,
-                        color: WildScoutTheme.textMuted,
+                        color: WildlifeScoutTheme.textMuted,
                       ),
                     ),
                   ],
@@ -377,7 +377,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                 icon: const Icon(
                   Icons.close_rounded,
                   size: 22,
-                  color: WildScoutTheme.textMuted,
+                  color: WildlifeScoutTheme.textMuted,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'Schließen',
@@ -395,7 +395,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  color: WildScoutTheme.textMuted,
+                  color: WildlifeScoutTheme.textMuted,
                   letterSpacing: 0.6,
                 ),
               ),
@@ -416,7 +416,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                   ),
                 ),
                 style: TextButton.styleFrom(
-                  foregroundColor: WildScoutTheme.emeraldBio,
+                  foregroundColor: WildlifeScoutTheme.emeraldBio,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 4,
@@ -433,7 +433,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
               padding: EdgeInsets.symmetric(vertical: 40),
               child: Center(
                 child: CircularProgressIndicator(
-                  color: WildScoutTheme.emeraldBio,
+                  color: WildlifeScoutTheme.emeraldBio,
                 ),
               ),
             )
@@ -450,7 +450,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                     _buildAccordionSection(
                       index: 0,
                       icon: Icons.radar_rounded,
-                      iconColor: WildScoutTheme.emeraldBio,
+                      iconColor: WildlifeScoutTheme.emeraldBio,
                       title: 'Fotogebiet & Umkreissuche',
                       subtitle: 'Suchbereich & Standorterfassung',
                       summaryBadge: '${_radiusKm.round()} km',
@@ -461,7 +461,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             const Icon(
                               Icons.adjust_rounded,
                               size: 16,
-                              color: WildScoutTheme.emeraldBio,
+                              color: WildlifeScoutTheme.emeraldBio,
                             ),
                             const SizedBox(width: 8),
                             const Expanded(
@@ -479,11 +479,11 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: WildScoutTheme.emeraldBio
+                                color: WildlifeScoutTheme.emeraldBio
                                     .withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: WildScoutTheme.emeraldBio
+                                  color: WildlifeScoutTheme.emeraldBio
                                       .withValues(alpha: 0.4),
                                 ),
                               ),
@@ -492,7 +492,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                 style: const TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w800,
-                                  color: WildScoutTheme.emeraldBio,
+                                  color: WildlifeScoutTheme.emeraldBio,
                                 ),
                               ),
                             ),
@@ -503,7 +503,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           'Legt fest, bis zu welcher Entfernung Natur- & Waldgebiete bei der Ortssuche in deiner Nähe vorgeschlagen werden.',
                           style: TextStyle(
                             fontSize: 11,
-                            color: WildScoutTheme.textMuted
+                            color: WildlifeScoutTheme.textMuted
                                 .withValues(alpha: 0.9),
                             height: 1.3,
                           ),
@@ -518,16 +518,16 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w600,
-                                color: WildScoutTheme.textMuted,
+                                color: WildlifeScoutTheme.textMuted,
                               ),
                             ),
                             Expanded(
                               child: SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
-                                  activeTrackColor: WildScoutTheme.emeraldBio,
+                                  activeTrackColor: WildlifeScoutTheme.emeraldBio,
                                   inactiveTrackColor: Colors.white12,
-                                  thumbColor: WildScoutTheme.amberGold,
-                                  overlayColor: WildScoutTheme.amberGold
+                                  thumbColor: WildlifeScoutTheme.amberGold,
+                                  overlayColor: WildlifeScoutTheme.amberGold
                                       .withValues(alpha: 0.2),
                                   trackHeight: 3.5,
                                   thumbShape: const RoundSliderThumbShape(
@@ -549,7 +549,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w600,
-                                color: WildScoutTheme.textMuted,
+                                color: WildlifeScoutTheme.textMuted,
                               ),
                             ),
                           ],
@@ -579,18 +579,18 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                       : FontWeight.w500,
                                   color: isSelected
                                       ? Colors.white
-                                      : WildScoutTheme.textMuted,
+                                      : WildlifeScoutTheme.textMuted,
                                 ),
                               ),
                               selected: isSelected,
-                              selectedColor: WildScoutTheme.emeraldBio
+                              selectedColor: WildlifeScoutTheme.emeraldBio
                                   .withValues(alpha: 0.35),
                               backgroundColor:
                                   Colors.white.withValues(alpha: 0.05),
                               side: BorderSide(
                                 color: isSelected
-                                    ? WildScoutTheme.emeraldBio
-                                    : WildScoutTheme.borderSubtle,
+                                    ? WildlifeScoutTheme.emeraldBio
+                                    : WildlifeScoutTheme.borderSubtle,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -603,7 +603,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                         const SizedBox(height: 10),
                         const Divider(
                           height: 1,
-                          color: WildScoutTheme.borderSubtle,
+                          color: WildlifeScoutTheme.borderSubtle,
                         ),
                         const SizedBox(height: 4),
 
@@ -613,14 +613,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           secondary: Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: WildScoutTheme.emeraldBio
+                              color: WildlifeScoutTheme.emeraldBio
                                   .withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.my_location_rounded,
                               size: 16,
-                              color: WildScoutTheme.emeraldBio,
+                              color: WildlifeScoutTheme.emeraldBio,
                             ),
                           ),
                           title: const Text(
@@ -634,11 +634,11 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Bestimmt automatisch deine Position bei App-Öffnung.',
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           value: _autoGps,
-                          activeTrackColor: WildScoutTheme.emeraldBio,
+                          activeTrackColor: WildlifeScoutTheme.emeraldBio,
                           onChanged: _updateAutoGps,
                         ),
                       ],
@@ -651,15 +651,15 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                     _buildAccordionSection(
                       index: 1,
                       icon: Icons.warning_amber_rounded,
-                      iconColor: WildScoutTheme.amberGold,
+                      iconColor: WildlifeScoutTheme.amberGold,
                       title: 'Unwetter-Warnung am Fotospot',
                       subtitle: 'Sturmwarnung & Probe-Alarm',
                       summaryBadge: _warnSevereWeather
                           ? '${_gustThresholdKmh.round()} km/h'
                           : 'Aus',
                       badgeColor: _warnSevereWeather
-                          ? WildScoutTheme.amberGold
-                          : WildScoutTheme.textMuted,
+                          ? WildlifeScoutTheme.amberGold
+                          : WildlifeScoutTheme.textMuted,
                       children: [
                         // Unwetterwarnung Toggle
                         SwitchListTile.adaptive(
@@ -675,18 +675,18 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Überwacht das Wetter live am Fotospot und warnt vor Gefahren.',
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           value: _warnSevereWeather,
-                          activeTrackColor: WildScoutTheme.amberGold,
+                          activeTrackColor: WildlifeScoutTheme.amberGold,
                           onChanged: _updateWarnSevereWeather,
                         ),
 
                         if (_warnSevereWeather) ...[
                           const Divider(
                             height: 1,
-                            color: WildScoutTheme.borderSubtle,
+                            color: WildlifeScoutTheme.borderSubtle,
                           ),
                           const SizedBox(height: 10),
 
@@ -696,7 +696,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               const Icon(
                                 Icons.air_rounded,
                                 size: 16,
-                                color: WildScoutTheme.amberGold,
+                                color: WildlifeScoutTheme.amberGold,
                               ),
                               const SizedBox(width: 6),
                               const Expanded(
@@ -714,11 +714,11 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: WildScoutTheme.amberGold
+                                  color: WildlifeScoutTheme.amberGold
                                       .withValues(alpha: 0.16),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: WildScoutTheme.amberGold
+                                    color: WildlifeScoutTheme.amberGold
                                         .withValues(alpha: 0.4),
                                   ),
                                 ),
@@ -727,7 +727,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w800,
-                                    color: WildScoutTheme.amberGold,
+                                    color: WildlifeScoutTheme.amberGold,
                                   ),
                                 ),
                               ),
@@ -738,7 +738,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Ab dieser Windstärke wird Astbruch-Alarm geschlagen (${_gustThresholdLabel(_gustThresholdKmh)}).',
                             style: const TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -751,16 +751,16 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                 style: TextStyle(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
-                                  color: WildScoutTheme.textMuted,
+                                  color: WildlifeScoutTheme.textMuted,
                                 ),
                               ),
                               Expanded(
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: WildScoutTheme.amberGold,
+                                    activeTrackColor: WildlifeScoutTheme.amberGold,
                                     inactiveTrackColor: Colors.white12,
-                                    thumbColor: WildScoutTheme.amberGold,
-                                    overlayColor: WildScoutTheme.amberGold
+                                    thumbColor: WildlifeScoutTheme.amberGold,
+                                    overlayColor: WildlifeScoutTheme.amberGold
                                         .withValues(alpha: 0.2),
                                     trackHeight: 3.5,
                                     thumbShape: const RoundSliderThumbShape(
@@ -783,7 +783,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                 style: TextStyle(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
-                                  color: WildScoutTheme.textMuted,
+                                  color: WildlifeScoutTheme.textMuted,
                                 ),
                               ),
                             ],
@@ -816,18 +816,18 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                         : FontWeight.w500,
                                     color: isSelected
                                         ? Colors.white
-                                        : WildScoutTheme.textMuted,
+                                        : WildlifeScoutTheme.textMuted,
                                   ),
                                 ),
                                 selected: isSelected,
-                                selectedColor: WildScoutTheme.amberGold
+                                selectedColor: WildlifeScoutTheme.amberGold
                                     .withValues(alpha: 0.35),
                                 backgroundColor:
                                     Colors.white.withValues(alpha: 0.05),
                                 side: BorderSide(
                                   color: isSelected
-                                      ? WildScoutTheme.amberGold
-                                      : WildScoutTheme.borderSubtle,
+                                      ? WildlifeScoutTheme.amberGold
+                                      : WildlifeScoutTheme.borderSubtle,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -841,7 +841,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           const SizedBox(height: 8),
                           const Divider(
                             height: 1,
-                            color: WildScoutTheme.borderSubtle,
+                            color: WildlifeScoutTheme.borderSubtle,
                           ),
 
                           // Haptik & Signal
@@ -850,14 +850,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             secondary: Container(
                               padding: const EdgeInsets.all(7),
                               decoration: BoxDecoration(
-                                color: WildScoutTheme.amberGold
+                                color: WildlifeScoutTheme.amberGold
                                     .withValues(alpha: 0.14),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
                                 Icons.vibration_rounded,
                                 size: 16,
-                                color: WildScoutTheme.amberGold,
+                                color: WildlifeScoutTheme.amberGold,
                               ),
                             ),
                             title: const Text(
@@ -871,11 +871,11 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               'Löst bei akuter Lebensgefahr durch Sturm oder Gewitter spürbare Haptik aus.',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: WildScoutTheme.textMuted,
+                                color: WildlifeScoutTheme.textMuted,
                               ),
                             ),
                             value: _severeWeatherHaptics,
-                            activeTrackColor: WildScoutTheme.amberGold,
+                            activeTrackColor: WildlifeScoutTheme.amberGold,
                             onChanged: _updateSevereWeatherHaptics,
                           ),
 
@@ -885,11 +885,11 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: WildScoutTheme.amberGold
+                              color: WildlifeScoutTheme.amberGold
                                   .withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: WildScoutTheme.amberGold
+                                color: WildlifeScoutTheme.amberGold
                                     .withValues(alpha: 0.25),
                               ),
                             ),
@@ -899,7 +899,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                 Icon(
                                   Icons.shield_outlined,
                                   size: 15,
-                                  color: WildScoutTheme.amberGold,
+                                  color: WildlifeScoutTheme.amberGold,
                                 ),
                                 SizedBox(width: 8),
                                 Expanded(
@@ -907,7 +907,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                     'Wald-Sicherheit: Ab 60 km/h (Bft 8) brechen größere Äste ab. Auf erhöhten Plattformen besteht Lebensgefahr. Bei Gewitter offenes Gelände umgehend verlassen.',
                                     style: TextStyle(
                                       fontSize: 10.5,
-                                      color: WildScoutTheme.textPrimary,
+                                      color: WildlifeScoutTheme.textPrimary,
                                       height: 1.35,
                                     ),
                                   ),
@@ -926,19 +926,19 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               icon: const Icon(
                                 Icons.play_circle_outline_rounded,
                                 size: 16,
-                                color: WildScoutTheme.amberGold,
+                                color: WildlifeScoutTheme.amberGold,
                               ),
                               label: const Text(
                                 'Probe-Alarm testen',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: WildScoutTheme.amberGold,
+                                  color: WildlifeScoutTheme.amberGold,
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(
-                                  color: WildScoutTheme.amberGold
+                                  color: WildlifeScoutTheme.amberGold
                                       .withValues(alpha: 0.5),
                                 ),
                                 shape: RoundedRectangleBorder(
@@ -961,7 +961,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                     _buildAccordionSection(
                       index: 2,
                       icon: Icons.layers_outlined,
-                      iconColor: WildScoutTheme.cyanWater,
+                      iconColor: WildlifeScoutTheme.cyanWater,
                       title: 'Karten & Sensoren',
                       subtitle: 'Satellit, Radar, Peilstrahl & Witterung',
                       summaryBadge: 'Ebenen',
@@ -972,14 +972,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           secondary: Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: WildScoutTheme.emeraldBio
+                              color: WildlifeScoutTheme.emeraldBio
                                   .withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.label_outline_rounded,
                               size: 16,
-                              color: WildScoutTheme.emeraldBio,
+                              color: WildlifeScoutTheme.emeraldBio,
                             ),
                           ),
                           title: const Text(
@@ -993,16 +993,16 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Blendet Geländenamen über dem Satellitenlayer ein.',
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           value: _showPlaceNames,
-                          activeTrackColor: WildScoutTheme.emeraldBio,
+                          activeTrackColor: WildlifeScoutTheme.emeraldBio,
                           onChanged: _updateShowPlaceNames,
                         ),
                         const Divider(
                           height: 1,
-                          color: WildScoutTheme.borderSubtle,
+                          color: WildlifeScoutTheme.borderSubtle,
                         ),
 
                         // DWD Niederschlagsradar
@@ -1011,14 +1011,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           secondary: Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: WildScoutTheme.cyanWater
+                              color: WildlifeScoutTheme.cyanWater
                                   .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.thunderstorm_outlined,
                               size: 16,
-                              color: WildScoutTheme.cyanWater,
+                              color: WildlifeScoutTheme.cyanWater,
                             ),
                           ),
                           title: const Text(
@@ -1032,16 +1032,16 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Live-Radarfilm des DWD (Open Data / GeoNutzV).',
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           value: _showRainRadar,
-                          activeTrackColor: WildScoutTheme.cyanWater,
+                          activeTrackColor: WildlifeScoutTheme.cyanWater,
                           onChanged: _updateShowRainRadar,
                         ),
                         const Divider(
                           height: 1,
-                          color: WildScoutTheme.borderSubtle,
+                          color: WildlifeScoutTheme.borderSubtle,
                         ),
 
                         // Blickrichtungs-Peilstrahl
@@ -1050,14 +1050,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           secondary: Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: WildScoutTheme.cyanWater
+                              color: WildlifeScoutTheme.cyanWater
                                   .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.explore_rounded,
                               size: 16,
-                              color: WildScoutTheme.cyanWater,
+                              color: WildlifeScoutTheme.cyanWater,
                             ),
                           ),
                           title: const Text(
@@ -1071,16 +1071,16 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Zeigt die Handy-Ausrichtung live als Lichtkegel auf der Karte.',
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           value: _showCompassBeam,
-                          activeTrackColor: WildScoutTheme.cyanWater,
+                          activeTrackColor: WildlifeScoutTheme.cyanWater,
                           onChanged: _updateShowCompassBeam,
                         ),
                         const Divider(
                           height: 1,
-                          color: WildScoutTheme.borderSubtle,
+                          color: WildlifeScoutTheme.borderSubtle,
                         ),
 
                         // Witterungs- & Windkegel
@@ -1089,14 +1089,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           secondary: Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: WildScoutTheme.crimsonScent
+                              color: WildlifeScoutTheme.crimsonScent
                                   .withValues(alpha: 0.16),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.air_rounded,
                               size: 16,
-                              color: WildScoutTheme.crimsonScent,
+                              color: WildlifeScoutTheme.crimsonScent,
                             ),
                           ),
                           title: const Text(
@@ -1110,16 +1110,16 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Visualisiert die menschliche Geruchsausbreitung vor Ort.',
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           value: _showWindScentCone,
-                          activeTrackColor: WildScoutTheme.crimsonScent,
+                          activeTrackColor: WildlifeScoutTheme.crimsonScent,
                           onChanged: _updateShowWindScentCone,
                         ),
                         const Divider(
                           height: 1,
-                          color: WildScoutTheme.borderSubtle,
+                          color: WildlifeScoutTheme.borderSubtle,
                         ),
 
                         // Objektiv-Blickwinkel (FOV-Modus)
@@ -1128,14 +1128,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           secondary: Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: WildScoutTheme.amberGold
+                              color: WildlifeScoutTheme.amberGold
                                   .withValues(alpha: 0.16),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.camera_alt_rounded,
                               size: 16,
-                              color: WildScoutTheme.amberGold,
+                              color: WildlifeScoutTheme.amberGold,
                             ),
                           ),
                           title: const Text(
@@ -1149,11 +1149,11 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             'Passt den Peilstrahl exakt an den optischen Bildwinkel deines Teleobjektivs an.',
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted,
+                              color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           value: _showLensFieldOfView,
-                          activeTrackColor: WildScoutTheme.amberGold,
+                          activeTrackColor: WildlifeScoutTheme.amberGold,
                           onChanged: _updateShowLensFieldOfView,
                         ),
                       ],
@@ -1161,13 +1161,13 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                     const SizedBox(height: 12),
 
                     // ==========================================
-                    // Accordion 4: Einheiten & Taktik-Format
+                    // Accordion 4: Einheiten & Mess-Format
                     // ==========================================
                     _buildAccordionSection(
                       index: 3,
                       icon: Icons.tune_rounded,
                       iconColor: Colors.deepPurpleAccent,
-                      title: 'Einheiten & Taktik-Format',
+                      title: 'Einheiten & Mess-Format',
                       subtitle: 'Windgeschwindigkeit & Distanzen',
                       summaryBadge:
                           '${_windSpeedUnit.toUpperCase()} • ${_distanceUnit == "metric" ? "km" : "mi"}',
@@ -1201,10 +1201,10 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                     ),
                                   ),
                                   Text(
-                                    'Darstellung auf Taktik-Kompass & Wetterkarte',
+                                    'Darstellung auf Witterungs-Kompass & Wetterkarte',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: WildScoutTheme.textMuted,
+                                      color: WildlifeScoutTheme.textMuted,
                                     ),
                                   ),
                                 ],
@@ -1242,7 +1242,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                         const SizedBox(height: 12),
                         const Divider(
                           height: 1,
-                          color: WildScoutTheme.borderSubtle,
+                          color: WildlifeScoutTheme.borderSubtle,
                         ),
                         const SizedBox(height: 8),
 
@@ -1278,7 +1278,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                     'Format für Distanzen & Geländepunkte',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: WildScoutTheme.textMuted,
+                                      color: WildlifeScoutTheme.textMuted,
                                     ),
                                   ),
                                 ],
@@ -1313,7 +1313,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                     _buildAccordionSection(
                       index: 4,
                       icon: Icons.security_rounded,
-                      iconColor: WildScoutTheme.cyanWater,
+                      iconColor: WildlifeScoutTheme.cyanWater,
                       title: 'Datenschutz & Speicher',
                       subtitle: 'Zero-Track Garantie & Spot-Tresor',
                       summaryBadge: 'Zero-Track',
@@ -1324,14 +1324,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             Container(
                               padding: const EdgeInsets.all(7),
                               decoration: BoxDecoration(
-                                color: WildScoutTheme.cyanWater
+                                color: WildlifeScoutTheme.cyanWater
                                     .withValues(alpha: 0.16),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
                                 Icons.verified_user_rounded,
                                 size: 16,
-                                color: WildScoutTheme.cyanWater,
+                                color: WildlifeScoutTheme.cyanWater,
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -1351,7 +1351,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                     'Deine Suchanfragen und Fotospots bleiben lokal. Der CoordinateGuard rundet Wetter-Abfragen auf 2 km ab.',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: WildScoutTheme.textMuted,
+                                      color: WildlifeScoutTheme.textMuted,
                                       height: 1.3,
                                     ),
                                   ),
@@ -1363,7 +1363,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                         const SizedBox(height: 10),
                         const Divider(
                           height: 1,
-                          color: WildScoutTheme.borderSubtle,
+                          color: WildlifeScoutTheme.borderSubtle,
                         ),
                         const SizedBox(height: 8),
 
@@ -1398,7 +1398,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                     '$_savedSpotsCount Fotospots sicher auf diesem Gerät gespeichert',
                                     style: const TextStyle(
                                       fontSize: 11,
-                                      color: WildScoutTheme.textMuted,
+                                      color: WildlifeScoutTheme.textMuted,
                                     ),
                                   ),
                                 ],
@@ -1418,7 +1418,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                 style: TextStyle(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,
-                                  color: WildScoutTheme.textMuted,
+                                  color: WildlifeScoutTheme.textMuted,
                                 ),
                               ),
                             ),
@@ -1438,7 +1438,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           style: TextStyle(fontSize: 12),
                         ),
                         style: TextButton.styleFrom(
-                          foregroundColor: WildScoutTheme.textMuted,
+                          foregroundColor: WildlifeScoutTheme.textMuted,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 10,
@@ -1469,7 +1469,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
     final isExpanded = _expandedIndices.contains(index);
 
     return Material(
-      color: WildScoutTheme.surfaceCard,
+      color: WildlifeScoutTheme.surfaceCard,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
@@ -1477,7 +1477,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
           border: Border.all(
             color: isExpanded
                 ? iconColor.withValues(alpha: 0.4)
-                : WildScoutTheme.borderSubtle,
+                : WildlifeScoutTheme.borderSubtle,
           ),
         ),
         child: Column(
@@ -1525,7 +1525,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             subtitle,
                             style: TextStyle(
                               fontSize: 11,
-                              color: WildScoutTheme.textMuted
+                              color: WildlifeScoutTheme.textMuted
                                   .withValues(alpha: 0.85),
                             ),
                           ),
@@ -1565,7 +1565,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                       child: const Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 20,
-                        color: WildScoutTheme.textMuted,
+                        color: WildlifeScoutTheme.textMuted,
                       ),
                     ),
                   ],
@@ -1585,7 +1585,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                         children: [
                           const Divider(
                             height: 1,
-                            color: WildScoutTheme.borderSubtle,
+                            color: WildlifeScoutTheme.borderSubtle,
                           ),
                           const SizedBox(height: 12),
                           ...children,
@@ -1612,16 +1612,16 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
         style: TextStyle(
           fontSize: 11.5,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          color: isSelected ? Colors.white : WildScoutTheme.textMuted,
+          color: isSelected ? Colors.white : WildlifeScoutTheme.textMuted,
         ),
       ),
       selected: isSelected,
-      selectedColor: WildScoutTheme.emeraldBio.withValues(alpha: 0.35),
+      selectedColor: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.35),
       backgroundColor: Colors.white.withValues(alpha: 0.05),
       side: BorderSide(
         color: isSelected
-            ? WildScoutTheme.emeraldBio
-            : WildScoutTheme.borderSubtle,
+            ? WildlifeScoutTheme.emeraldBio
+            : WildlifeScoutTheme.borderSubtle,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),

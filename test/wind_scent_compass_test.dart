@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:wildlifescout/core/theme/wildscout_theme.dart';
+import 'package:wildlifescout/core/theme/wildlifescout_theme.dart';
 import 'package:wildlifescout/domain/models/secret_spot.dart';
 import 'package:wildlifescout/domain/models/species_profile.dart';
 import 'package:wildlifescout/domain/models/weather_frame.dart';
@@ -9,7 +9,7 @@ import 'package:wildlifescout/presentation/widgets/device_heading_beam.dart';
 import 'package:wildlifescout/presentation/widgets/wind_scent_compass_sheet.dart';
 
 void main() {
-  group('WindScentCompassSheet & 360° Tactical Compass Tests', () {
+  group('WindScentCompassSheet & 360° Witterungs-Kompass Tests', () {
     late WeatherFrame testWeather;
     late SpeciesProfile testSpecies;
     const LatLng hidePosition = LatLng(51.1657, 10.4515);
@@ -56,7 +56,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
           home: Scaffold(
             body: WindScentCompassSheet(
               weather: testWeather,
@@ -100,7 +100,7 @@ void main() {
       // Wind weht aus 240° WSW. Wenn wir in Richtung 240° blicken, haben wir frontalen Gegenwind!
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
           home: Scaffold(
             body: WindScentCompassSheet(
               weather: testWeather,
@@ -143,7 +143,7 @@ void main() {
       // Wenn wir in Richtung 60° blicken, haben wir Rückenwind (Witterung zieht vor uns)!
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
           home: Scaffold(
             body: WindScentCompassSheet(
               weather: testWeather,
@@ -174,7 +174,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
           home: Scaffold(
             body: WindScentCompassSheet(
               weather: testWeather,
@@ -233,7 +233,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
           home: Scaffold(
             body: WindScentCompassSheet(
               weather: testWeather,
@@ -298,7 +298,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
           home: Scaffold(
             body: WindScentCompassSheet(
               weather: testWeather,

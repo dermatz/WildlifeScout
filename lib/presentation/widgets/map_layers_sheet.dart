@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../domain/models/species_profile.dart';
 
 class MapLayersSheet extends StatelessWidget {
@@ -40,10 +40,10 @@ class MapLayersSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: WildScoutTheme.bgObsidian.withValues(alpha: 0.98),
+        color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: const Border(
-          top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1),
+          top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
@@ -67,12 +67,12 @@ class MapLayersSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.cyanWater.withValues(alpha: 0.16),
+                  color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.layers_outlined,
-                  color: WildScoutTheme.cyanWater,
+                  color: WildlifeScoutTheme.cyanWater,
                   size: 22,
                 ),
               ),
@@ -82,7 +82,7 @@ class MapLayersSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Karten-Elemente & Taktik-Ebenen',
+                      'Karten-Elemente & Analyse-Ebenen',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
@@ -92,7 +92,7 @@ class MapLayersSheet extends StatelessWidget {
                       'Blende Overlays, Basiskarte & Sensoren nach Bedarf ein oder aus',
                       style: TextStyle(
                         fontSize: 12,
-                        color: WildScoutTheme.textMuted,
+                        color: WildlifeScoutTheme.textMuted,
                       ),
                     ),
                   ],
@@ -111,7 +111,7 @@ class MapLayersSheet extends StatelessWidget {
                   subtitle: 'Esri Luftbild (Wald/Wiese)',
                   icon: Icons.satellite_alt,
                   isSelected: useSatelliteLayer,
-                  accentColor: WildScoutTheme.cyanWater,
+                  accentColor: WildlifeScoutTheme.cyanWater,
                   onTap: () => onChangedSatellite(true),
                 ),
               ),
@@ -122,7 +122,7 @@ class MapLayersSheet extends StatelessWidget {
                   subtitle: 'Forstwege & Höhenlinien',
                   icon: Icons.map_outlined,
                   isSelected: !useSatelliteLayer,
-                  accentColor: WildScoutTheme.emeraldBio,
+                  accentColor: WildlifeScoutTheme.emeraldBio,
                   onTap: () => onChangedSatellite(false),
                 ),
               ),
@@ -137,7 +137,7 @@ class MapLayersSheet extends StatelessWidget {
             subtitle:
                 'Berechnete Waldrand-Buchten, Wiesen & Ruhezonen aus OpenStreetMap',
             value: showHabitatLayer,
-            activeColor: WildScoutTheme.emeraldBio,
+            activeColor: WildlifeScoutTheme.emeraldBio,
             onChanged: onChangedHabitat,
           ),
           const SizedBox(height: 8),
@@ -147,7 +147,7 @@ class MapLayersSheet extends StatelessWidget {
             subtitle:
                 'Wanderpfade, Radwege, Forst- & Wirtschaftswege inkl. Störradius',
             value: showDisturbanceLayer,
-            activeColor: WildScoutTheme.crimsonScent,
+            activeColor: WildlifeScoutTheme.crimsonScent,
             onChanged: onChangedDisturbance,
           ),
           if (primarySpecies.behavior.scentSensitivityMeters > 0) ...[
@@ -159,7 +159,7 @@ class MapLayersSheet extends StatelessWidget {
               subtitle:
                   'Live-Windfahne & Fluchtdistanz-Ring (${primarySpecies.behavior.flightDistanceMeters.round()}m) am Ansitz-Pin',
               value: showScentCone,
-              activeColor: WildScoutTheme.amberGold,
+              activeColor: WildlifeScoutTheme.amberGold,
               onChanged: onChangedScentCone,
             ),
           ],
@@ -170,7 +170,7 @@ class MapLayersSheet extends StatelessWidget {
             subtitle:
                 'Monochromes Rotlicht-Farbfilter für den Ansitz in der Dunkelheit',
             value: isNightVisionRedMode,
-            activeColor: WildScoutTheme.crimsonScent,
+            activeColor: WildlifeScoutTheme.crimsonScent,
             onChanged: onChangedNightVision,
           ),
           const SizedBox(height: 16),
@@ -180,15 +180,15 @@ class MapLayersSheet extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: WildScoutTheme.emeraldBio.withValues(
+                backgroundColor: WildlifeScoutTheme.emeraldBio.withValues(
                   alpha: 0.18,
                 ),
-                foregroundColor: WildScoutTheme.emeraldBio,
+                foregroundColor: WildlifeScoutTheme.emeraldBio,
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                   side: BorderSide(
-                    color: WildScoutTheme.emeraldBio.withValues(alpha: 0.6),
+                    color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.6),
                   ),
                 ),
               ),
@@ -236,12 +236,12 @@ class _BaseMapOptionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? accentColor.withValues(alpha: 0.16)
-              : WildScoutTheme.surfaceCard,
+              : WildlifeScoutTheme.surfaceCard,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected
                 ? accentColor.withValues(alpha: 0.75)
-                : WildScoutTheme.borderSubtle,
+                : WildlifeScoutTheme.borderSubtle,
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -249,7 +249,7 @@ class _BaseMapOptionCard extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? accentColor : WildScoutTheme.textMuted,
+              color: isSelected ? accentColor : WildlifeScoutTheme.textMuted,
               size: 20,
             ),
             const SizedBox(width: 10),
@@ -263,8 +263,8 @@ class _BaseMapOptionCard extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: isSelected
-                          ? WildScoutTheme.textPrimary
-                          : WildScoutTheme.textMuted,
+                          ? WildlifeScoutTheme.textPrimary
+                          : WildlifeScoutTheme.textMuted,
                     ),
                   ),
                   Text(
@@ -273,7 +273,7 @@ class _BaseMapOptionCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 10.5,
-                      color: WildScoutTheme.textMuted,
+                      color: WildlifeScoutTheme.textMuted,
                     ),
                   ),
                 ],
@@ -311,12 +311,12 @@ class _LayerToggleRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: WildScoutTheme.surfaceCard,
+          color: WildlifeScoutTheme.surfaceCard,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: value
                 ? activeColor.withValues(alpha: 0.5)
-                : WildScoutTheme.borderSubtle,
+                : WildlifeScoutTheme.borderSubtle,
           ),
         ),
         child: Row(
@@ -324,7 +324,7 @@ class _LayerToggleRow extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: value ? activeColor : WildScoutTheme.textMuted,
+              color: value ? activeColor : WildlifeScoutTheme.textMuted,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -342,7 +342,7 @@ class _LayerToggleRow extends StatelessWidget {
                     subtitle,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: WildScoutTheme.textMuted,
+                      color: WildlifeScoutTheme.textMuted,
                     ),
                   ),
                 ],

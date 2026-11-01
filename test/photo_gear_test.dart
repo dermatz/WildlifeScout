@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wildlifescout/core/theme/wildscout_theme.dart';
+import 'package:wildlifescout/core/theme/wildlifescout_theme.dart';
 import 'package:wildlifescout/data/services/photo_gear_service.dart';
 import 'package:wildlifescout/domain/models/photo_gear_profile.dart';
 import 'package:wildlifescout/domain/models/species_profile.dart';
@@ -309,7 +309,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: WildScoutTheme.buildDarkTheme(),
+          theme: WildlifeScoutTheme.buildDarkTheme(),
           home: Scaffold(
             body: SpeciesInspectorSheet(
               species: species,

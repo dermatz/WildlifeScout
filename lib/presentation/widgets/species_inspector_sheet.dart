@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../data/services/photo_gear_service.dart';
 import '../../domain/models/photo_gear_profile.dart';
 import '../../domain/models/soil_substrate_profile.dart';
@@ -32,10 +32,10 @@ class SpeciesInspectorSheet extends StatelessWidget {
     return Container(
       constraints: BoxConstraints(maxHeight: maxSheetHeight),
       decoration: BoxDecoration(
-        color: WildScoutTheme.bgObsidian.withValues(alpha: 0.98),
+        color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: const Border(
-          top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1),
+          top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1),
         ),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -65,7 +65,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                   icon: const Icon(
                     Icons.close_rounded,
                     size: 22,
-                    color: WildScoutTheme.textMuted,
+                    color: WildlifeScoutTheme.textMuted,
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                   tooltip: 'Schließen',
@@ -188,13 +188,13 @@ class SpeciesInspectorSheet extends StatelessWidget {
               species.shortDescription,
               style: const TextStyle(
                 fontSize: 13.5,
-                color: WildScoutTheme.textPrimary,
+                color: WildlifeScoutTheme.textPrimary,
                 height: 1.4,
               ),
             ),
             const SizedBox(height: 14),
 
-            // 2. Taktische Sensor-Metriken
+            // 2. Habitat- & Sensor-Metriken
             Row(
               children: [
                 Expanded(
@@ -204,7 +204,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                         ? '${species.behavior.scentSensitivityMeters.round()} m'
                         : 'Kein Geruchssinn',
                     icon: Icons.air,
-                    color: WildScoutTheme.crimsonScent,
+                    color: WildlifeScoutTheme.crimsonScent,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -213,7 +213,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                     label: 'Fluchtdistanz',
                     value: '${species.behavior.flightDistanceMeters.round()} m',
                     icon: Icons.radar,
-                    color: WildScoutTheme.amberGold,
+                    color: WildlifeScoutTheme.amberGold,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -223,7 +223,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                     value:
                         '${species.behavior.maxToleratedWindSpeedKmh.round()} km/h',
                     icon: Icons.wind_power,
-                    color: WildScoutTheme.emeraldBio,
+                    color: WildlifeScoutTheme.emeraldBio,
                   ),
                 ),
               ],
@@ -234,10 +234,10 @@ class SpeciesInspectorSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: WildScoutTheme.surfaceCard,
+                color: WildlifeScoutTheme.surfaceCard,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: WildScoutTheme.cyanWater.withValues(alpha: 0.35),
+                  color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.35),
                 ),
               ),
               child: Column(
@@ -248,7 +248,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       Icon(
                         Icons.biotech_outlined,
                         size: 18,
-                        color: WildScoutTheme.cyanWater,
+                        color: WildlifeScoutTheme.cyanWater,
                       ),
                       SizedBox(width: 7),
                       Text(
@@ -256,7 +256,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
-                          color: WildScoutTheme.cyanWater,
+                          color: WildlifeScoutTheme.cyanWater,
                         ),
                       ),
                     ],
@@ -325,7 +325,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w800,
-                  color: WildScoutTheme.emeraldBio,
+                  color: WildlifeScoutTheme.emeraldBio,
                 ),
               ),
               const SizedBox(height: 8),
@@ -334,7 +334,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: WildScoutTheme.surfaceCard,
+                    color: WildlifeScoutTheme.surfaceCard,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: species.accentColor.withValues(alpha: 0.32),
@@ -370,7 +370,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
-                                color: WildScoutTheme.textPrimary,
+                                color: WildlifeScoutTheme.textPrimary,
                               ),
                             ),
                           ),
@@ -381,7 +381,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                         trait.description,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                           height: 1.38,
                         ),
                       ),
@@ -409,10 +409,10 @@ class SpeciesInspectorSheet extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 14),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: WildScoutTheme.surfaceCard,
+                    color: WildlifeScoutTheme.surfaceCard,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: WildScoutTheme.emeraldBio.withValues(alpha: 0.35),
+                      color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.35),
                     ),
                   ),
                   child: Column(
@@ -423,7 +423,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                           const Icon(
                             Icons.camera_alt_outlined,
                             size: 18,
-                            color: WildScoutTheme.emeraldBio,
+                            color: WildlifeScoutTheme.emeraldBio,
                           ),
                           const SizedBox(width: 8),
                           const Expanded(
@@ -432,18 +432,18 @@ class SpeciesInspectorSheet extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w800,
-                                color: WildScoutTheme.emeraldBio,
+                                color: WildlifeScoutTheme.emeraldBio,
                               ),
                             ),
                           ),
                           TextButton.icon(
                             onPressed: () => PhotoGearSheet.show(context),
-                            icon: const Icon(Icons.tune, size: 14, color: WildScoutTheme.emeraldBio),
+                            icon: const Icon(Icons.tune, size: 14, color: WildlifeScoutTheme.emeraldBio),
                             label: const Text(
                               'Optik anpassen',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: WildScoutTheme.emeraldBio,
+                                color: WildlifeScoutTheme.emeraldBio,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -465,7 +465,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                               title: 'Fluchtdistanz',
                               value: '${species.behavior.flightDistanceMeters.round()} m',
                               icon: Icons.directions_run_outlined,
-                              color: WildScoutTheme.crimsonScent,
+                              color: WildlifeScoutTheme.crimsonScent,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -475,8 +475,8 @@ class SpeciesInspectorSheet extends StatelessWidget {
                               value: '${analysis.fullBodyDistanceMeters.round()} m',
                               icon: Icons.photo_size_select_large_outlined,
                               color: analysis.fullBodyStatus == FlightDistanceStatus.safe
-                                  ? WildScoutTheme.emeraldBio
-                                  : WildScoutTheme.amberGold,
+                                  ? WildlifeScoutTheme.emeraldBio
+                                  : WildlifeScoutTheme.amberGold,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -485,7 +485,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                               title: 'Nahporträt',
                               value: '${analysis.portraitDistanceMeters.round()} m',
                               icon: Icons.face_retouching_natural,
-                              color: WildScoutTheme.amberGold,
+                              color: WildlifeScoutTheme.amberGold,
                             ),
                           ),
                         ],
@@ -498,13 +498,13 @@ class SpeciesInspectorSheet extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: WildScoutTheme.borderSubtle),
+                          border: Border.all(color: WildlifeScoutTheme.borderSubtle),
                         ),
                         child: Text(
                           analysis.practicalRecommendation,
                           style: const TextStyle(
                             fontSize: 12,
-                            color: WildScoutTheme.textPrimary,
+                            color: WildlifeScoutTheme.textPrimary,
                             height: 1.35,
                           ),
                         ),
@@ -517,7 +517,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: WildScoutTheme.amberGold,
+                          color: WildlifeScoutTheme.amberGold,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -550,7 +550,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w800,
-                color: WildScoutTheme.amberGold,
+                color: WildlifeScoutTheme.amberGold,
               ),
             ),
             const SizedBox(height: 8),
@@ -562,10 +562,10 @@ class SpeciesInspectorSheet extends StatelessWidget {
                   vertical: 9,
                 ),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.amberGold.withValues(alpha: 0.07),
+                  color: WildlifeScoutTheme.amberGold.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: WildScoutTheme.amberGold.withValues(alpha: 0.25),
+                    color: WildlifeScoutTheme.amberGold.withValues(alpha: 0.25),
                   ),
                 ),
                 child: Row(
@@ -576,7 +576,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       child: Icon(
                         Icons.tips_and_updates_outlined,
                         size: 15,
-                        color: WildScoutTheme.amberGold,
+                        color: WildlifeScoutTheme.amberGold,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -585,7 +585,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                         tip,
                         style: const TextStyle(
                           fontSize: 12.5,
-                          color: WildScoutTheme.textPrimary,
+                          color: WildlifeScoutTheme.textPrimary,
                           height: 1.36,
                         ),
                       ),
@@ -601,10 +601,10 @@ class SpeciesInspectorSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.surfaceCard,
+                  color: WildlifeScoutTheme.surfaceCard,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: WildScoutTheme.amberGold.withValues(alpha: 0.45),
+                    color: WildlifeScoutTheme.amberGold.withValues(alpha: 0.45),
                   ),
                 ),
                 child: Column(
@@ -615,7 +615,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                         const Icon(
                           Icons.terrain_outlined,
                           size: 17,
-                          color: WildScoutTheme.amberGold,
+                          color: WildlifeScoutTheme.amberGold,
                         ),
                         const SizedBox(width: 7),
                         Expanded(
@@ -624,7 +624,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w800,
-                              color: WildScoutTheme.amberGold,
+                              color: WildlifeScoutTheme.amberGold,
                             ),
                           ),
                         ),
@@ -636,7 +636,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: WildScoutTheme.textPrimary,
+                        color: WildlifeScoutTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -644,7 +644,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       soilProfile!.fullGeologicalDescription,
                       style: const TextStyle(
                         fontSize: 11.5,
-                        color: WildScoutTheme.textMuted,
+                        color: WildlifeScoutTheme.textMuted,
                         height: 1.35,
                       ),
                     ),
@@ -660,7 +660,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: WildScoutTheme.emeraldBio,
+                color: WildlifeScoutTheme.emeraldBio,
               ),
             ),
             const SizedBox(height: 8),
@@ -672,7 +672,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                     const Icon(
                       Icons.add_circle_outline,
                       size: 16,
-                      color: WildScoutTheme.emeraldBio,
+                      color: WildlifeScoutTheme.emeraldBio,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -686,7 +686,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: WildScoutTheme.emeraldBio,
+                        color: WildlifeScoutTheme.emeraldBio,
                       ),
                     ),
                   ],
@@ -701,7 +701,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                     const Icon(
                       Icons.remove_circle_outline,
                       size: 16,
-                      color: WildScoutTheme.crimsonScent,
+                      color: WildlifeScoutTheme.crimsonScent,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -715,7 +715,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: WildScoutTheme.crimsonScent,
+                        color: WildlifeScoutTheme.crimsonScent,
                       ),
                     ),
                   ],
@@ -728,7 +728,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: WildScoutTheme.borderSubtle),
+                border: Border.all(color: WildlifeScoutTheme.borderSubtle),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -738,7 +738,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       const Icon(
                         Icons.verified_user_outlined,
                         size: 17,
-                        color: WildScoutTheme.emeraldBio,
+                        color: WildlifeScoutTheme.emeraldBio,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -746,7 +746,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                           'DSGVO Coordinate-Guard aktiv: Wetter-Abfragen senden nur das gerundete 2km-Raster ($obfuscatedLat, $obfuscatedLon).',
                           style: const TextStyle(
                             fontSize: 11.5,
-                            color: WildScoutTheme.textMuted,
+                            color: WildlifeScoutTheme.textMuted,
                           ),
                         ),
                       ),
@@ -758,7 +758,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                       const Icon(
                         Icons.photo_camera_back_outlined,
                         size: 17,
-                        color: WildScoutTheme.cyanWater,
+                        color: WildlifeScoutTheme.cyanWater,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -766,7 +766,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                           'Bildnachweis: Foto von ${species.imageAuthor} (${species.imageLicense}) • Quelle: ${species.imageSourceUrl}',
                           style: const TextStyle(
                             fontSize: 11,
-                            color: WildScoutTheme.textMuted,
+                            color: WildlifeScoutTheme.textMuted,
                           ),
                         ),
                       ),
@@ -803,7 +803,7 @@ class _FactItem extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: Icon(icon, size: 14.5, color: WildScoutTheme.textMuted),
+            child: Icon(icon, size: 14.5, color: WildlifeScoutTheme.textMuted),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -811,7 +811,7 @@ class _FactItem extends StatelessWidget {
               text: TextSpan(
                 style: const TextStyle(
                   fontSize: 12,
-                  color: WildScoutTheme.textPrimary,
+                  color: WildlifeScoutTheme.textPrimary,
                   height: 1.35,
                 ),
                 children: [
@@ -819,7 +819,7 @@ class _FactItem extends StatelessWidget {
                     text: '$label: ',
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: WildScoutTheme.textMuted,
+                      color: WildlifeScoutTheme.textMuted,
                     ),
                   ),
                   TextSpan(text: value),
@@ -851,7 +851,7 @@ class _MetricTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       decoration: BoxDecoration(
-        color: WildScoutTheme.surfaceCard,
+        color: WildlifeScoutTheme.surfaceCard,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
@@ -871,7 +871,7 @@ class _MetricTile extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 10.5,
-              color: WildScoutTheme.textMuted,
+              color: WildlifeScoutTheme.textMuted,
             ),
           ),
         ],
@@ -920,7 +920,7 @@ class _PhotoMetricTile extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 9.5,
-              color: WildScoutTheme.textMuted,
+              color: WildlifeScoutTheme.textMuted,
             ),
           ),
         ],
@@ -945,7 +945,7 @@ class _ShutterChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: WildScoutTheme.borderSubtle),
+        border: Border.all(color: WildlifeScoutTheme.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -954,7 +954,7 @@ class _ShutterChip extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 10,
-              color: WildScoutTheme.textMuted,
+              color: WildlifeScoutTheme.textMuted,
             ),
           ),
           const SizedBox(height: 2),
@@ -963,7 +963,7 @@ class _ShutterChip extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              color: WildScoutTheme.emeraldBio,
+              color: WildlifeScoutTheme.emeraldBio,
             ),
           ),
         ],

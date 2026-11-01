@@ -6,7 +6,8 @@ import '../../domain/models/photo_gear_profile.dart';
 /// Service zur lokalen, DSGVO-konformen Speicherung der Foto-Ausrüstung
 /// (Objektiv, Sensor, Telekonverter) via SharedPreferences mit reaktivem [ValueNotifier].
 class PhotoGearService {
-  static const String _keyPhotoGear = 'wildscout_photo_gear_v1';
+  static const String _keyPhotoGear = 'wildlifescout_photo_gear_v1';
+  static const String _legacyKeyPhotoGear = 'wildscout_photo_gear_v1';
 
   /// Standard-Ausrüstung: 400 mm f/4.0 an Vollformat ohne Konverter
   static const PhotoGearProfile defaultGear = PhotoGearProfile(
@@ -28,7 +29,7 @@ class PhotoGearService {
   static Future<PhotoGearProfile> loadGear() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonStr = prefs.getString(_keyPhotoGear);
+      final jsonStr = prefs.getString(_keyPhotoGear) ?? prefs.getString(_legacyKeyPhotoGear);
       if (jsonStr != null && jsonStr.isNotEmpty) {
         final Map<String, dynamic> data = jsonDecode(jsonStr);
         final loaded = PhotoGearProfile.fromJson(data);

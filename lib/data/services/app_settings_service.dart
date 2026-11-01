@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Datenmodell für die persistenten Einstellungen der WildScout-App.
+/// Datenmodell für die persistenten Einstellungen der WildlifeScout-App.
 class AppSettings {
   /// Suchradius für die Umkreissuche von Gebieten & Wäldern in Kilometern.
   /// Standardwert: 50.0 km.
@@ -116,26 +116,40 @@ class AppSettings {
 /// Service zur lokalen, DSGVO-konformen Speicherung der App-Einstellungen
 /// via SharedPreferences mit reaktivem [ValueNotifier].
 class AppSettingsService {
-  static const String _keySearchRadiusKm = 'wildscout_search_radius_km_v1';
-  static const String _keyAutoCenterGps = 'wildscout_auto_center_gps_v1';
-  static const String _keyShowPlaceNames = 'wildscout_show_place_names_v1';
-  static const String _keyShowRainRadar = 'wildscout_show_rain_radar_v1';
+  static const String _keySearchRadiusKm = 'wildlifescout_search_radius_km_v1';
+  static const String _keyAutoCenterGps = 'wildlifescout_auto_center_gps_v1';
+  static const String _keyShowPlaceNames = 'wildlifescout_show_place_names_v1';
+  static const String _keyShowRainRadar = 'wildlifescout_show_rain_radar_v1';
   static const String _keyWarnSevereWeather =
-      'wildscout_warn_severe_weather_v1';
+      'wildlifescout_warn_severe_weather_v1';
   static const String _keySevereWeatherGustThreshold =
-      'wildscout_severe_weather_gust_threshold_v1';
+      'wildlifescout_severe_weather_gust_threshold_v1';
   static const String _keySevereWeatherHaptics =
-      'wildscout_severe_weather_haptics_v1';
+      'wildlifescout_severe_weather_haptics_v1';
   static const String _keyShowCompassBeam =
-      'wildscout_show_compass_beam_v1';
+      'wildlifescout_show_compass_beam_v1';
   static const String _keyShowWindScentCone =
-      'wildscout_show_wind_scent_cone_v1';
+      'wildlifescout_show_wind_scent_cone_v1';
   static const String _keyShowLensFieldOfView =
-      'wildscout_show_lens_field_of_view_v1';
+      'wildlifescout_show_lens_field_of_view_v1';
   static const String _keyWindSpeedUnit =
-      'wildscout_wind_speed_unit_v1';
+      'wildlifescout_wind_speed_unit_v1';
   static const String _keyDistanceUnit =
-      'wildscout_distance_unit_v1';
+      'wildlifescout_distance_unit_v1';
+
+  // Legacy-Keys für nahtlose Abwärtskompatibilität
+  static const String _legacyKeySearchRadiusKm = 'wildscout_search_radius_km_v1';
+  static const String _legacyKeyAutoCenterGps = 'wildscout_auto_center_gps_v1';
+  static const String _legacyKeyShowPlaceNames = 'wildscout_show_place_names_v1';
+  static const String _legacyKeyShowRainRadar = 'wildscout_show_rain_radar_v1';
+  static const String _legacyKeyWarnSevereWeather = 'wildscout_warn_severe_weather_v1';
+  static const String _legacyKeySevereWeatherGustThreshold = 'wildscout_severe_weather_gust_threshold_v1';
+  static const String _legacyKeySevereWeatherHaptics = 'wildscout_severe_weather_haptics_v1';
+  static const String _legacyKeyShowCompassBeam = 'wildscout_show_compass_beam_v1';
+  static const String _legacyKeyShowWindScentCone = 'wildscout_show_wind_scent_cone_v1';
+  static const String _legacyKeyShowLensFieldOfView = 'wildscout_show_lens_field_of_view_v1';
+  static const String _legacyKeyWindSpeedUnit = 'wildscout_wind_speed_unit_v1';
+  static const String _legacyKeyDistanceUnit = 'wildscout_distance_unit_v1';
 
   /// Reaktiver Notifier für den aktuellen Suchradius, damit alle Sheets
   /// und Widgets (z. B. Ortssuche, Karte) ohne Neustart sofort reagieren.
@@ -151,25 +165,40 @@ class AppSettingsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final radius = prefs.getDouble(_keySearchRadiusKm) ??
+          prefs.getDouble(_legacyKeySearchRadiusKm) ??
           AppSettings.defaultSearchRadiusKm;
-      final autoGps = prefs.getBool(_keyAutoCenterGps) ?? true;
-      final showPlaces = prefs.getBool(_keyShowPlaceNames) ?? true;
-      final showRainRadar = prefs.getBool(_keyShowRainRadar) ?? false;
-      final warnSevereWeather =
-          prefs.getBool(_keyWarnSevereWeather) ?? AppSettings.defaultWarnSevereWeather;
+      final autoGps = prefs.getBool(_keyAutoCenterGps) ??
+          prefs.getBool(_legacyKeyAutoCenterGps) ??
+          true;
+      final showPlaces = prefs.getBool(_keyShowPlaceNames) ??
+          prefs.getBool(_legacyKeyShowPlaceNames) ??
+          true;
+      final showRainRadar = prefs.getBool(_keyShowRainRadar) ??
+          prefs.getBool(_legacyKeyShowRainRadar) ??
+          false;
+      final warnSevereWeather = prefs.getBool(_keyWarnSevereWeather) ??
+          prefs.getBool(_legacyKeyWarnSevereWeather) ??
+          AppSettings.defaultWarnSevereWeather;
       final gustThreshold = prefs.getDouble(_keySevereWeatherGustThreshold) ??
+          prefs.getDouble(_legacyKeySevereWeatherGustThreshold) ??
           AppSettings.defaultWindGustThresholdKmh;
       final soundHaptics = prefs.getBool(_keySevereWeatherHaptics) ??
+          prefs.getBool(_legacyKeySevereWeatherHaptics) ??
           AppSettings.defaultSevereWeatherSoundAndHaptics;
       final showCompassBeam = prefs.getBool(_keyShowCompassBeam) ??
+          prefs.getBool(_legacyKeyShowCompassBeam) ??
           AppSettings.defaultShowCompassHeadingBeam;
       final showWindScentCone = prefs.getBool(_keyShowWindScentCone) ??
+          prefs.getBool(_legacyKeyShowWindScentCone) ??
           AppSettings.defaultShowWindScentCone;
       final showLensFov = prefs.getBool(_keyShowLensFieldOfView) ??
+          prefs.getBool(_legacyKeyShowLensFieldOfView) ??
           AppSettings.defaultShowLensFieldOfView;
       final windSpeedUnit = prefs.getString(_keyWindSpeedUnit) ??
+          prefs.getString(_legacyKeyWindSpeedUnit) ??
           AppSettings.defaultWindSpeedUnit;
       final distanceUnit = prefs.getString(_keyDistanceUnit) ??
+          prefs.getString(_legacyKeyDistanceUnit) ??
           AppSettings.defaultDistanceUnit;
 
       final safeRadius = radius.clamp(

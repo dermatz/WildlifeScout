@@ -30,7 +30,7 @@ void main() {
       expect(find.text('Fotogebiet & Umkreissuche'), findsOneWidget);
       expect(find.text('Unwetter-Warnung am Fotospot'), findsOneWidget);
       expect(find.text('Karten & Sensoren'), findsOneWidget);
-      expect(find.text('Einheiten & Taktik-Format'), findsOneWidget);
+      expect(find.text('Einheiten & Mess-Format'), findsOneWidget);
       expect(find.text('Datenschutz & Speicher'), findsOneWidget);
 
       // Check "Alle aufklappen / zuklappen" control is present
@@ -103,7 +103,7 @@ void main() {
       expect(find.text('Alle aufklappen'), findsOneWidget);
     });
 
-    testWidgets('Updates and persists tactical units (Beaufort & Imperial) in expanded accordion', (tester) async {
+    testWidgets('Updates and persists measurement units (Beaufort & Imperial) in expanded accordion', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -120,8 +120,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Expand Einheiten & Taktik-Format
-      await tester.tap(find.text('Einheiten & Taktik-Format'));
+      // Expand Einheiten & Mess-Format
+      await tester.tap(find.text('Einheiten & Mess-Format'));
       await tester.pumpAndSettle();
 
       // Tap Beaufort unit

@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../domain/models/severe_weather_alert.dart';
 
 /// Interaktives Apple-HIG BottomSheet mit detaillierter Unwetter-Warnung
@@ -55,7 +55,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
         child: Container(
           constraints: BoxConstraints(maxHeight: screenHeight * 0.90),
           decoration: BoxDecoration(
-            color: WildScoutTheme.bgObsidian.withValues(alpha: 0.96),
+            color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.96),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             border: Border(
               top: BorderSide(
@@ -146,7 +146,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                               alert.timeLabel,
                               style: const TextStyle(
                                 fontSize: 11,
-                                color: WildScoutTheme.textMuted,
+                                color: WildlifeScoutTheme.textMuted,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -168,7 +168,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                     icon: const Icon(
                       Icons.close_rounded,
                       size: 22,
-                      color: WildScoutTheme.textMuted,
+                      color: WildlifeScoutTheme.textMuted,
                     ),
                     onPressed: () => Navigator.of(context).pop(),
                     tooltip: 'Schließen',
@@ -195,8 +195,8 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                               subtext: _beaufortLabel(alert.peakGustKmh),
                               icon: Icons.air_rounded,
                               color: alert.peakGustKmh >= 60.0
-                                  ? WildScoutTheme.crimsonScent
-                                  : WildScoutTheme.amberGold,
+                                  ? WildlifeScoutTheme.crimsonScent
+                                  : WildlifeScoutTheme.amberGold,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -210,8 +210,8 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                                   : 'Mäßig/Trocken',
                               icon: Icons.water_drop_rounded,
                               color: alert.precipitationMm >= 8.0
-                                  ? WildScoutTheme.cyanWater
-                                  : WildScoutTheme.textMuted,
+                                  ? WildlifeScoutTheme.cyanWater
+                                  : WildlifeScoutTheme.textMuted,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -236,10 +236,10 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: WildScoutTheme.surfaceCard,
+                          color: WildlifeScoutTheme.surfaceCard,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: WildScoutTheme.borderSubtle,
+                            color: WildlifeScoutTheme.borderSubtle,
                           ),
                         ),
                         child: Column(
@@ -267,7 +267,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                               alert.description,
                               style: const TextStyle(
                                 fontSize: 12.5,
-                                color: WildScoutTheme.textPrimary,
+                                color: WildlifeScoutTheme.textPrimary,
                                 height: 1.4,
                               ),
                             ),
@@ -276,7 +276,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
 
-                      // Taktische Handlungsanweisung / Wald-Sicherheit
+                      // Handlungsanweisung / Wald-Sicherheit am Ansitz
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
@@ -313,7 +313,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w600,
-                                color: WildScoutTheme.textPrimary,
+                                color: WildlifeScoutTheme.textPrimary,
                                 height: 1.4,
                               ),
                             ),
@@ -362,7 +362,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                                 ),
                                 label: const Text('Fotosession beenden'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: WildScoutTheme.crimsonScent,
+                                  backgroundColor: WildlifeScoutTheme.crimsonScent,
                                   foregroundColor: Colors.white,
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 14),
@@ -381,9 +381,9 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                                 Navigator.of(context).pop();
                               },
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: WildScoutTheme.textPrimary,
+                                foregroundColor: WildlifeScoutTheme.textPrimary,
                                 side: const BorderSide(
-                                  color: WildScoutTheme.borderSubtle,
+                                  color: WildlifeScoutTheme.borderSubtle,
                                 ),
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 14),
@@ -424,9 +424,9 @@ class SevereWeatherAlertSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: WildScoutTheme.surfaceCard,
+        color: WildlifeScoutTheme.surfaceCard,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: WildScoutTheme.borderSubtle),
+        border: Border.all(color: WildlifeScoutTheme.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,7 +442,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 10.5,
-                    color: WildScoutTheme.textMuted,
+                    color: WildlifeScoutTheme.textMuted,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -465,7 +465,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 9.5,
-              color: WildScoutTheme.textMuted,
+              color: WildlifeScoutTheme.textMuted,
             ),
           ),
         ],
@@ -497,14 +497,14 @@ class _SafetyCheckItem extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 14, color: WildScoutTheme.textMuted),
+        Icon(icon, size: 14, color: WildlifeScoutTheme.textMuted),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             text,
             style: const TextStyle(
               fontSize: 11,
-              color: WildScoutTheme.textMuted,
+              color: WildlifeScoutTheme.textMuted,
               height: 1.3,
             ),
           ),

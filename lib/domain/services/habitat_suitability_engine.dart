@@ -334,7 +334,7 @@ class HabitatSuitabilityEngine {
   static Future<List<Map<String, dynamic>>> _fetchSectorElementsFromOsm(
     LatLng origin,
   ) async {
-    // Kompakter, schneller Taktik-Sektor (~1,6 km Durchmesser, <50.000 Nodes selbst am Stadtrand)
+    // Kompakter, schneller Beobachtungs-Sektor (~1,6 km Durchmesser, <50.000 Nodes selbst am Stadtrand)
     final bbox = CoordinateGuard.buildPrivacyBoundingBoxForOsm(
       origin.latitude,
       origin.longitude,

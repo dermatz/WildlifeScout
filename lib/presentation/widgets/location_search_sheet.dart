@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../data/api/location_search_client.dart';
 import '../../data/services/app_settings_service.dart';
 import '../../data/services/nearby_nature_regions_service.dart';
@@ -192,10 +192,10 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: WildScoutTheme.bgObsidian.withValues(alpha: 0.98),
+        color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.98),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: const Border(
-          top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1),
+          top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1),
         ),
       ),
       padding: EdgeInsets.only(
@@ -224,7 +224,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
               children: [
                 const Icon(
                   Icons.travel_explore,
-                  color: WildScoutTheme.emeraldBio,
+                  color: WildlifeScoutTheme.emeraldBio,
                   size: 24,
                 ),
                 const SizedBox(width: 10),
@@ -243,7 +243,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                         'Gib einen Ortsnamen, ein Waldgebiet oder GPS-Koordinaten ein',
                         style: TextStyle(
                           fontSize: 12,
-                          color: WildScoutTheme.textMuted,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
                     ],
@@ -265,9 +265,9 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                   widget.onUseCurrentLocation();
                 },
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: WildScoutTheme.emeraldBio,
+                  foregroundColor: WildlifeScoutTheme.emeraldBio,
                   side: BorderSide(
-                    color: WildScoutTheme.emeraldBio.withValues(alpha: 0.6),
+                    color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.6),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -308,7 +308,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                         _voiceErrorMessage!,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: WildScoutTheme.textPrimary,
+                          color: WildlifeScoutTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -327,17 +327,17 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: WildScoutTheme.emeraldBio.withValues(alpha: 0.18),
+                  color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: WildScoutTheme.emeraldBio.withValues(alpha: 0.6),
+                    color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.6),
                   ),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.graphic_eq_rounded,
-                      color: WildScoutTheme.emeraldBio,
+                      color: WildlifeScoutTheme.emeraldBio,
                       size: 20,
                     ),
                     const SizedBox(width: 10),
@@ -347,7 +347,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: WildScoutTheme.emeraldBio,
+                          color: WildlifeScoutTheme.emeraldBio,
                         ),
                       ),
                     ),
@@ -358,7 +358,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                         child: const Text(
                           'Fertig',
                           style: TextStyle(
-                            color: WildScoutTheme.emeraldBio,
+                            color: WildlifeScoutTheme.emeraldBio,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -379,7 +379,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                 hintText: 'Ort, Waldgebiet oder GPS-Koordinaten eingeben...',
                 prefixIcon: const Icon(
                   Icons.search,
-                  color: WildScoutTheme.emeraldBio,
+                  color: WildlifeScoutTheme.emeraldBio,
                 ),
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -403,7 +403,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                           _voice.isListening ? Icons.mic : Icons.mic_none,
                           color: _voice.isListening
                               ? Colors.redAccent
-                              : WildScoutTheme.emeraldBio,
+                              : WildlifeScoutTheme.emeraldBio,
                         ),
                         onPressed: _voice.isListening
                             ? _stopVoiceInput
@@ -423,10 +423,10 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                   ],
                 ),
                 filled: true,
-                fillColor: WildScoutTheme.surfaceCard,
+                fillColor: WildlifeScoutTheme.surfaceCard,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: WildScoutTheme.borderSubtle),
+                  borderSide: const BorderSide(color: WildlifeScoutTheme.borderSubtle),
                 ),
               ),
             ),
@@ -438,7 +438,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: WildScoutTheme.textMuted,
+                  color: WildlifeScoutTheme.textMuted,
                 ),
               ),
               const SizedBox(height: 8),
@@ -475,14 +475,14 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: WildScoutTheme.textMuted,
+                  color: WildlifeScoutTheme.textMuted,
                 ),
               ),
               Text(
                 '(${AppSettingsService.searchRadiusNotifier.value.round()} km GPS-Umkreis)',
                 style: const TextStyle(
                   fontSize: 11,
-                  color: WildScoutTheme.textMuted,
+                  color: WildlifeScoutTheme.textMuted,
                 ),
               ),
               const SizedBox(height: 8),
@@ -491,13 +491,13 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                 runSpacing: 8,
                 children: _nearbyRegions.map((entry) {
                   return ActionChip(
-                    avatar: const Icon(Icons.forest_outlined, size: 16, color: WildScoutTheme.emeraldBio),
+                    avatar: const Icon(Icons.forest_outlined, size: 16, color: WildlifeScoutTheme.emeraldBio),
                     label: Text(
                       '${entry.region.name} (${entry.distanceKm.round()} km)',
-                      style: const TextStyle(fontSize: 11.5, color: WildScoutTheme.textPrimary),
+                      style: const TextStyle(fontSize: 11.5, color: WildlifeScoutTheme.textPrimary),
                     ),
-                    backgroundColor: WildScoutTheme.surfaceCard,
-                    side: const BorderSide(color: WildScoutTheme.borderSubtle),
+                    backgroundColor: WildlifeScoutTheme.surfaceCard,
+                    side: const BorderSide(color: WildlifeScoutTheme.borderSubtle),
                     onPressed: () {
                       final item = LocationSearchResult(
                         title: entry.region.name,
@@ -520,7 +520,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: WildScoutTheme.amberGold,
+                  color: WildlifeScoutTheme.amberGold,
                 ),
               ),
               const SizedBox(height: 8),
@@ -532,7 +532,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                         child: Center(
                           child: Text(
                             'Kein Ort gefunden. Versuche einen anderen Namen oder GPS-Koordinaten.',
-                            style: TextStyle(color: WildScoutTheme.textMuted),
+                            style: TextStyle(color: WildlifeScoutTheme.textMuted),
                           ),
                         ),
                       )
@@ -552,10 +552,10 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: WildScoutTheme.surfaceCard,
+                                color: WildlifeScoutTheme.surfaceCard,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: WildScoutTheme.borderSubtle,
+                                  color: WildlifeScoutTheme.borderSubtle,
                                 ),
                               ),
                               child: Row(
@@ -564,14 +564,14 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                                     width: 38,
                                     height: 38,
                                     decoration: BoxDecoration(
-                                      color: WildScoutTheme.emeraldBio.withValues(
+                                      color: WildlifeScoutTheme.emeraldBio.withValues(
                                         alpha: 0.16,
                                       ),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Icon(
                                       isGps ? Icons.gps_fixed : Icons.place_outlined,
-                                      color: WildScoutTheme.emeraldBio,
+                                      color: WildlifeScoutTheme.emeraldBio,
                                       size: 20,
                                     ),
                                   ),
@@ -594,7 +594,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                             fontSize: 11.5,
-                                            color: WildScoutTheme.textMuted,
+                                            color: WildlifeScoutTheme.textMuted,
                                           ),
                                         ),
                                       ],
@@ -614,7 +614,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                                       style: const TextStyle(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w600,
-                                        color: WildScoutTheme.amberGold,
+                                        color: WildlifeScoutTheme.amberGold,
                                       ),
                                     ),
                                   ),
@@ -646,8 +646,8 @@ class _SuggestionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return ActionChip(
       label: Text(label, style: const TextStyle(fontSize: 12)),
-      backgroundColor: WildScoutTheme.surfaceCard,
-      side: const BorderSide(color: WildScoutTheme.borderSubtle),
+      backgroundColor: WildlifeScoutTheme.surfaceCard,
+      side: const BorderSide(color: WildlifeScoutTheme.borderSubtle),
       onPressed: onTap,
     );
   }

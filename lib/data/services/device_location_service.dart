@@ -19,18 +19,21 @@ class DeviceLocationResult {
 }
 
 class DeviceLocationService {
-  static const String _lastLatKey = 'wildscout_last_user_lat_v1';
-  static const String _lastLonKey = 'wildscout_last_user_lon_v1';
-  static const String _lastTitleKey = 'wildscout_last_user_title_v1';
+  static const String _lastLatKey = 'wildlifescout_last_user_lat_v1';
+  static const String _lastLonKey = 'wildlifescout_last_user_lon_v1';
+  static const String _lastTitleKey = 'wildlifescout_last_user_title_v1';
+  static const String _legacyLastLatKey = 'wildscout_last_user_lat_v1';
+  static const String _legacyLastLonKey = 'wildscout_last_user_lon_v1';
+  static const String _legacyLastTitleKey = 'wildscout_last_user_title_v1';
 
   /// Lädt den zuletzt verwendeten Standort aus dem lokalen Speicher, damit
   /// die Karte sofort ohne Sprung am richtigen Ort startet.
   static Future<DeviceLocationResult?> loadLastSavedLocation() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final lat = prefs.getDouble(_lastLatKey);
-      final lon = prefs.getDouble(_lastLonKey);
-      final title = prefs.getString(_lastTitleKey);
+      final lat = prefs.getDouble(_lastLatKey) ?? prefs.getDouble(_legacyLastLatKey);
+      final lon = prefs.getDouble(_lastLonKey) ?? prefs.getDouble(_legacyLastLonKey);
+      final title = prefs.getString(_lastTitleKey) ?? prefs.getString(_legacyLastTitleKey);
       if (lat != null &&
           lon != null &&
           CoordinateGuard.isValidCoordinate(lat, lon)) {

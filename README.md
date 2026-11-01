@@ -1,13 +1,13 @@
-# WildScout 🦌📸
+# WildlifeScout 🦌📸
 
-> **Taktische Feldkarte, Habitat-Analyse & Ansitz-Planer für Natur- & Wildlife-Fotografen.**  
+> **Präzisions-Feldkarte, Habitat-Analyse & Ansitz-Planer für Natur- & Wildlife-Fotografen.**  
 > Entwickelt mit Flutter – Local-First, kompromisslos datenschutzfreundlich und optimiert für den Einsatz draußen im Feld.
 
 ---
 
 ## 🌟 Highlights & Features
 
-- 🎯 **Taktische Feldkarte ("Tactical Nature Glass"):**
+- 🎯 **Präzisions-Feldkarte ("Field Nature Glass"):**
   - Integrierte OpenStreetMap-Vektorkarte mit dynamischem Witterungskegel (*Scent Cone*).
   - Interaktive Vorhersage von Windrichtung, Windgeschwindigkeit und Geruchsausbreitung (z. B. 250 m bei Rehwild bis 450 m bei Rotwild).
   - Zeitschieberegler (*Time Scrubber*) zur Simulation der Wind- und Lichtbedingungen über den Tagesverlauf.
@@ -50,7 +50,7 @@ lib/
 │   └── repositories/   # SpotVaultRepository (lokal verschlüsselt), SpeciesRepository
 └── presentation/
     ├── state/          # Reaktiver App-State
-    ├── screens/        # TacticalMapScreen, SpotVaultScreen, PrivacyScreen
+    ├── screens/        # FieldMapScreen, SpotVaultScreen, PrivacyScreen
     └── widgets/        # Glassmorphic HUD, ScentConePainter, TimeScrubber
 ```
 
@@ -92,5 +92,5 @@ Detaillierte Design- und Sicherheitsrichtlinien findest du in der [DESIGN_AND_SE
 
 ## 📜 Lizenz & Bildnachweis
 
-- Der Quellcode steht unter freier Nutzung für das WildScout-Projekt.
+- Der Quellcode steht unter freier Nutzung für das WildlifeScout-Projekt.
 - Alle verwendeten Tierbilder und Medien unterliegen freien, lizenzfreien Lizenzen (Unsplash License / CC0 / Public Domain). Bildautoren und Originalquellen sind in den jeweiligen Species-JSON-Dateien unter `assets/species/` transparent hinterlegt.

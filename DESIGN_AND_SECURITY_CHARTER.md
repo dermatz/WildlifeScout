@@ -1,6 +1,6 @@
-# WildScout – Design System, Security & DSGVO Charter
+# WildlifeScout – Design System, Security & DSGVO Charter
 
-Dieses Dokument definiert die verbindlichen Standards für **UX/UI-Exzellenz**, **Clean Architecture (Wartbarkeit)**, **Security** und **DSGVO-Konformität (Privacy by Design)** für WildScout.
+Dieses Dokument definiert die verbindlichen Standards für **UX/UI-Exzellenz**, **Clean Architecture (Wartbarkeit)**, **Security** und **DSGVO-Konformität (Privacy by Design)** für WildlifeScout.
 
 ---
 
@@ -50,7 +50,7 @@ lib/
 │   └── repositories/   # SpotVaultRepository (Lokal verschlüsselt), SpeciesRepository
 └── presentation/
     ├── state/          # Zentraler, reaktiver App-State
-    ├── screens/        # TacticalMapScreen, SpotVaultScreen, PrivacyScreen
+    ├── screens/        # FieldMapScreen, SpotVaultScreen, PrivacyScreen
     └── widgets/        # Glassmorphic HUD, ScentConePainter, TimeScrubber, SpeciesSelector
 ```
 
@@ -59,9 +59,9 @@ lib/
 
 ---
 
-## 4. Award-Winning UX/UI Design System: "Tactical Nature Glass"
+## 4. Award-Winning UX/UI Design System: "Precision Nature Glass"
 
-WildScout kombiniert die Präzision moderner Luftfahrt-/Taktik-Interfaces mit der Ruhe und Ästhetik der Natur:
+WildlifeScout kombiniert die Klarheit und Präzision moderner Navigations-Interfaces mit der Ruhe und Ästhetik der Natur:
 
 ### 4.1 Zwei adaptive Licht-Modi (inkl. Tarnzelt-Rotlicht!)
 1. **Obsidian Forest (Standard Dark HUD):**
@@ -82,7 +82,7 @@ WildScout kombiniert die Präzision moderner Luftfahrt-/Taktik-Interfaces mit de
 ## 5. Lizenzfreiheit für Bilder & Medien (Zero Copyright Risk)
 
 1. **Ausnahmslos lizenzfreie Tierfotos:**
-   - Alle Tierfotos in WildScout stammen ausschließlich aus geprüften, **lizenzfreien Quellen** (freie **Unsplash License** via `images.unsplash.com` oder **CC0 / Public Domain**), die sowohl kommerziell als auch nicht-kommerziell kostenfrei und ohne Lizenzzwang nutzbar sind.
+   - Alle Tierfotos in WildlifeScout stammen ausschließlich aus geprüften, **lizenzfreien Quellen** (freie **Unsplash License** via `images.unsplash.com` oder **CC0 / Public Domain**), die sowohl kommerziell als auch nicht-kommerziell kostenfrei und ohne Lizenzzwang nutzbar sind.
    - Kostenpflichtige *Unsplash+*-Bilder (`plus.unsplash.com`) oder urheberrechtlich geschützte Agenturbilder sind strikt untersagt.
 2. **Transparenter Lizenz- & Urhebernachweis:**
    - Jedes Tierprofil unter `assets/species/*.json` dokumentiert transparent `imageLicense`, `imageAuthor`, `imageSourceUrl`, `imageUrl` sowie das lokal eingebettete Offline-Bild unter `assets/species/images/`.

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/wildscout_theme.dart';
+import '../../core/theme/wildlifescout_theme.dart';
 import '../../data/services/app_settings_service.dart';
 import 'weather_frame.dart';
 
@@ -49,7 +49,7 @@ class SevereWeatherAlert {
   bool get isDanger => severity == SevereWeatherSeverity.danger;
 
   Color get accentColor =>
-      isDanger ? WildScoutTheme.crimsonScent : WildScoutTheme.amberGold;
+      isDanger ? WildlifeScoutTheme.crimsonScent : WildlifeScoutTheme.amberGold;
 
   IconData get icon {
     switch (type) {
@@ -80,7 +80,7 @@ class SevereWeatherEvaluator {
   const SevereWeatherEvaluator._();
 
   /// Überprüft die Wettervorhersage ab dem aktuellen Vorhersage-Index
-  /// (inklusive eines taktischen 4-Stunden-Vorausschau-Fensters).
+  /// (inklusive eines 4-Stunden-Vorausschau-Fensters für den Ansitz).
   ///
   /// Gibt `null` zurück, wenn in den Einstellungen die Warnung deaktiviert ist
   /// oder keine Unwetterbedingungen vorliegen.
@@ -96,7 +96,7 @@ class SevereWeatherEvaluator {
       return null;
     }
 
-    // Taktisches Vorausschau-Fenster: Aktuelle Stunde + bis zu 3 Folgestunden
+    // Vorausschau-Fenster für den Ansitz: Aktuelle Stunde + bis zu 3 Folgestunden
     final windowEnd = (activeForecastIndex + 4).clamp(0, forecast.length);
     final candidateFrames = forecast.sublist(activeForecastIndex, windowEnd);
 

@@ -5,11 +5,13 @@ import '../../domain/models/secret_spot.dart';
 /// 100% lokaler, geräteseitiger Tresor für eigene Standorte (Zero-Cloud).
 /// Keine Synchronisation an fremde Server (DSGVO & Spot-Schutz).
 class SpotVaultRepository {
-  static const String _storageKey = 'wildscout_local_spot_vault_v1';
+  static const String _storageKey = 'wildlifescout_local_spot_vault_v1';
+  static const String _legacyStorageKey = 'wildscout_local_spot_vault_v1';
 
   Future<List<SecretSpot>> loadSpots() async {
     final prefs = await SharedPreferences.getInstance();
-    final rawList = prefs.getStringList(_storageKey);
+    final rawList = prefs.getStringList(_storageKey) ??
+        prefs.getStringList(_legacyStorageKey);
     if (rawList == null || rawList.isEmpty) {
       return [];
     }
