@@ -20,16 +20,22 @@ class LocationSearchResult {
 /// DSGVO-freundliche Orts-, Wald- und Gebietssuche über OpenStreetMap Nominatim
 /// sowie direkte GPS-Koordinaten-Erkennung.
 class LocationSearchClient {
-  /// Sucht nach Orten, Wäldern, Naturschutzgebieten oder parst direkte
-  /// GPS-Koordinaten (z. B. "51.234, 9.876").
-  Future<List<LocationSearchResult>> search(String rawQuery) async {
-    final query = rawQuery.trim();
-    if (query.isEmpty) return const [];
+  /// Parst direkte GPS-Koordinaten in unterschiedlichen Formaten
+  /// (z. B. "51.234, 9.876", "51,234 9,876", "51.234; 9.876", "N 51.234, E 9.876").
+  /// Gibt null zurück, wenn kein gültiges Koordinatenpaar vorliegt.
+  LatLng? parseDirectCoordinates(String rawQuery) {
+    var query = rawQuery.trim();
+    if (query.isEmpty) return null;
 
-    // 1. Prüfe auf direkte GPS-Koordinaten-Eingabe (z.B. "51.123, 10.456")
+    // Entferne Himmelsrichtungs-Präfixe wie N, S, E, W, O
+    var clean = query
+        .replaceAll(RegExp(r'^[NSEWO]\s*', caseSensitive: false), '')
+        .replaceAll(RegExp(r'[,;/]\s*[NSEWO]\s*', caseSensitive: false), ', ');
+
     final coordMatch = RegExp(
       r'^(-?\d+[.,]\d+)\s*[,;/\s]\s*(-?\d+[.,]\d+)$',
-    ).firstMatch(query);
+    ).firstMatch(clean);
+
     if (coordMatch != null) {
       final lat = double.tryParse(coordMatch.group(1)!.replaceAll(',', '.'));
       final lon = double.tryParse(coordMatch.group(2)!.replaceAll(',', '.'));
@@ -39,15 +45,29 @@ class LocationSearchClient {
           lat <= 90 &&
           lon >= -180 &&
           lon <= 180) {
-        return [
-          LocationSearchResult(
-            title: 'Direkte GPS-Koordinate',
-            subtitle: '${lat.toStringAsFixed(5)}, ${lon.toStringAsFixed(5)}',
-            coordinate: LatLng(lat, lon),
-            categoryLabel: 'GPS-Direkt',
-          ),
-        ];
+        return LatLng(lat, lon);
       }
+    }
+    return null;
+  }
+
+  /// Sucht nach Orten, Wäldern, Naturschutzgebieten oder parst direkte
+  /// GPS-Koordinaten (z. B. "51.234, 9.876").
+  Future<List<LocationSearchResult>> search(String rawQuery) async {
+    final query = rawQuery.trim();
+    if (query.isEmpty) return const [];
+
+    // 1. Prüfe auf direkte GPS-Koordinaten-Eingabe (z.B. "51.123, 10.456")
+    final direct = parseDirectCoordinates(query);
+    if (direct != null) {
+      return [
+        LocationSearchResult(
+          title: 'Direkte GPS-Koordinate',
+          subtitle: '${direct.latitude.toStringAsFixed(5)}, ${direct.longitude.toStringAsFixed(5)}',
+          coordinate: direct,
+          categoryLabel: 'GPS-Direkt',
+        ),
+      ];
     }
 
     // 2. OpenStreetMap Nominatim Geocoding-Suche

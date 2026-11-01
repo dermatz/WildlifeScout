@@ -25,7 +25,7 @@ class OpenMeteoClient {
       'latitude': obfuscated.lat.toStringAsFixed(2),
       'longitude': obfuscated.lon.toStringAsFixed(2),
       'hourly':
-          'temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cloud_cover,precipitation',
+          'temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cloud_cover,precipitation,weather_code',
       'timezone': 'auto',
       'forecast_days': '7',
     });
@@ -51,6 +51,7 @@ class OpenMeteoClient {
       final pressures = (hourly['surface_pressure'] as List<dynamic>? ?? []);
       final clouds = (hourly['cloud_cover'] as List<dynamic>? ?? []);
       final precip = (hourly['precipitation'] as List<dynamic>? ?? []);
+      final weatherCodes = (hourly['weather_code'] as List<dynamic>? ?? []);
 
       final frames = <WeatherFrame>[];
       final count = math.min(times.length, 24 * 7);
@@ -96,6 +97,9 @@ class OpenMeteoClient {
             precipitationMm:
                 (precip.length > i ? (precip[i] as num?)?.toDouble() : null) ??
                 0.0,
+            weatherCode:
+                (weatherCodes.length > i ? (weatherCodes[i] as num?)?.toInt() : null) ??
+                0,
           ),
         );
       }

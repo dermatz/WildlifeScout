@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/wildscout_theme.dart';
+import '../../data/services/photo_gear_service.dart';
+import '../../domain/models/photo_gear_profile.dart';
 import '../../domain/models/soil_substrate_profile.dart';
 import '../../domain/models/species_profile.dart';
+import '../../domain/services/wildlife_photo_calculator.dart';
+import 'photo_gear_sheet.dart';
 import 'species_photo_avatar.dart';
 
 class SpeciesInspectorSheet extends StatelessWidget {
@@ -380,7 +384,159 @@ class SpeciesInspectorSheet extends StatelessWidget {
               const SizedBox(height: 10),
             ],
 
-            // 5. Wertvolle Praxis-Tipps für den Ansitz
+            // 5. Foto-Praxis: Fluchtdistanz vs. Fotodistanz & Verschlusszeiten
+            ValueListenableBuilder<PhotoGearProfile>(
+              valueListenable: PhotoGearService.gearNotifier,
+              builder: (context, gear, _) {
+                final analysis = WildlifePhotoCalculator.calculateFramingAnalysis(
+                  species: species,
+                  gear: gear,
+                );
+                final shutter = WildlifePhotoCalculator.calculateShutterGuide(
+                  species: species,
+                  gear: gear,
+                );
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: WildScoutTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: WildScoutTheme.emeraldBio.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.camera_alt_outlined,
+                            size: 18,
+                            color: WildScoutTheme.emeraldBio,
+                          ),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Foto-Praxis: Fluchtdistanz vs. Fotodistanz',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: WildScoutTheme.emeraldBio,
+                              ),
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => PhotoGearSheet.show(context),
+                            icon: const Icon(Icons.tune, size: 14, color: WildScoutTheme.emeraldBio),
+                            label: const Text(
+                              'Optik anpassen',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: WildScoutTheme.emeraldBio,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Distanz-Übersicht: Fluchtdistanz, Ganzkörper, Porträt
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _PhotoMetricTile(
+                              title: 'Fluchtdistanz',
+                              value: '${species.behavior.flightDistanceMeters.round()} m',
+                              icon: Icons.directions_run_outlined,
+                              color: WildScoutTheme.crimsonScent,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _PhotoMetricTile(
+                              title: 'Ganzkörper-Foto',
+                              value: '${analysis.fullBodyDistanceMeters.round()} m',
+                              icon: Icons.photo_size_select_large_outlined,
+                              color: analysis.fullBodyStatus == FlightDistanceStatus.safe
+                                  ? WildScoutTheme.emeraldBio
+                                  : WildScoutTheme.amberGold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _PhotoMetricTile(
+                              title: 'Nahporträt',
+                              value: '${analysis.portraitDistanceMeters.round()} m',
+                              icon: Icons.face_retouching_natural,
+                              color: WildScoutTheme.amberGold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Praxis-Empfehlung
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: WildScoutTheme.borderSubtle),
+                        ),
+                        child: Text(
+                          analysis.practicalRecommendation,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: WildScoutTheme.textPrimary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Empfohlene Verschlusszeiten
+                      const Text(
+                        'Empfohlene Verschlusszeiten für diese Art',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: WildScoutTheme.amberGold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _ShutterChip(
+                              label: 'Ruhend / Äsend',
+                              speed: shutter.restingShutter,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _ShutterChip(
+                              label: 'In Bewegung / Ziehend',
+                              speed: shutter.movingShutter,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
+            // 6. Wertvolle Praxis-Tipps für den Ansitz
             const Text(
               'Wertvolle Praxis- & Fotografie-Tipps für den Ansitz',
               style: TextStyle(
@@ -708,6 +864,98 @@ class _MetricTile extends StatelessWidget {
             style: const TextStyle(
               fontSize: 10.5,
               color: WildScoutTheme.textMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PhotoMetricTile extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const _PhotoMetricTile({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 9.5,
+              color: WildScoutTheme.textMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ShutterChip extends StatelessWidget {
+  final String label;
+  final String speed;
+
+  const _ShutterChip({
+    required this.label,
+    required this.speed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: WildScoutTheme.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              color: WildScoutTheme.textMuted,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            speed,
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: WildScoutTheme.emeraldBio,
             ),
           ),
         ],
