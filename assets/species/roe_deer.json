@@ -1,0 +1,95 @@
+{
+  "id": "roe_deer",
+  "name": "Rehwild",
+  "scientificName": "Capreolus capreolus",
+  "category": "ungulate",
+  "shortDescription": "Konzentratselektierer der Wald-Feld-Kanten und Saumbiotope. Sehr standorttreu und im kurzen Rhythmus von Äsung und Wiederkäuen aktiv – besonders in der frühen Morgen- und späten Abenddämmerung.",
+  "accentColorHex": "#10B981",
+  "imageAssetPath": "assets/species/images/roe_deer.jpg",
+  "imageUrl": "https://images.unsplash.com/photo-1790448745885-c2664f74efe3?auto=format&fit=crop&w=800&q=80",
+  "imageAuthor": "Andrei Lazar (doncoombez)",
+  "imageLicense": "Unsplash License (Lizenzfrei & frei nutzbar)",
+  "imageSourceUrl": "https://unsplash.com/photos/roe-deer-in-green-foliage-AAY8fnQdZvw",
+  "behavior": {
+    "scentSensitivityMeters": 250,
+    "scentConeAngleDegrees": 45,
+    "primaryActivityPeriods": ["dawn", "dusk"],
+    "barometerDropSensitivity": 0.75,
+    "maxToleratedWindSpeedKmh": 40,
+    "flightDistanceMeters": 80
+  },
+  "openData": {
+    "taxonomy": "Paarhufer • Trughirsche (Capreolinae)",
+    "conservationStatus": "LC – Nicht gefährdet (IUCN Red List)",
+    "bodyWeight": "15 – 30 kg (Bock kräftiger als Ricke)",
+    "bodySize": "Länge 95–135 cm • Schulterhöhe 65–75 cm",
+    "homeRange": "15 – 50 ha (extrem standorttreu)",
+    "peakSeason": "Blattzeit (Ende Juli – Mitte Aug.) & Mai (Fegen)",
+    "diet": "Konzentratselektierer: Kräuter, Knospen, Brombeerblätter, Eicheln",
+    "tracksAndSigns": "Schalenabdruck ~4,5 cm lang, Plätzstellen & Fegestellen an Jungbäumen",
+    "vocalizations": "Schrecken (bellendes „Bö-bö“ bei Gefahr), Fiepen (Ricke/Kitz in der Blattzeit)",
+    "sensoryStrengths": "Geruchssinn (Witterung) & Gehör exzellent • Bewegungssehen scharf",
+    "recommendedLens": "400–600 mm Tele (f/2.8–f/5.6) • Lautloser Verschluss (Silent Shutter)"
+  },
+  "behaviorTraits": [
+    {
+      "title": "8–12 Äsungsintervalle pro Tag",
+      "tag": "Tagesrhythmus",
+      "description": "Da Rehwild als Konzentratselektierer einen kleinen Pansen besitzt, muss es alle 2 bis 3 Stunden für 30–60 Minuten leicht verdauliche Kräuter und Triebe äsen, gefolgt von einer Wiederkäuphase in dichter Deckung."
+    },
+    {
+      "title": "Verhoffen & Scheinäsen am Waldsaum",
+      "tag": "Sicherungsverhalten",
+      "description": "Vor dem Austreten verharrt das Stück oft minutenlang im Halbschatten der Waldkante. Auf der Wiese senkt es bei Unsicherheit ruckartig das Haupt zum Scheinäsen und wirft es sofort wieder hoch, um Bewegungen des Fotografen zu provozieren."
+    },
+    {
+      "title": "Territorialverhalten & Plätzen (Frühjahr–Sommer)",
+      "tag": "Sozialverhalten",
+      "description": "Von April bis Ende August verteidigen Rehböcke feste Einstandsgebiete. Sie markieren Reviergrenzen durch Fegen des Gehörns an dünnen Stämmchen (Stirndrüsen-Sekret) und Scharren am Boden (Plätzstellen)."
+    },
+    {
+      "title": "Frühes Austreten vor Luftdruckabfall",
+      "tag": "Wetter-Reaktion",
+      "description": "Sinkt der Luftdruck vor einer Regenfront merklich ab, zieht Rehwild häufig 45–60 Minuten vor der normalen Abenddämmerung auf die Äsungsflächen, um vor dem Starkregen Nahrung aufzunehmen."
+    }
+  ],
+  "habitatRules": {
+    "edgePreferences": [
+      {
+        "typeA": "landuse=forest",
+        "typeB": "landuse=meadow",
+        "bufferMeters": 55,
+        "scoreBoost": 5.0,
+        "label": "Wald-Wiesen-Saum (Äsungskante)"
+      },
+      {
+        "typeA": "landuse=forest",
+        "typeB": "landuse=farmland",
+        "bufferMeters": 45,
+        "scoreBoost": 4.0,
+        "label": "Wald-Feld-Übergang"
+      }
+    ],
+    "landuseWeights": [
+      { "osmTag": "natural=scrub", "score": 4.2, "label": "Verjüngung & Hecken" },
+      { "osmTag": "landuse=meadow", "score": 3.5, "label": "Kräuterreiche Waldwiese" }
+    ],
+    "disturbancePenalties": [
+      { "osmTag": "highway=path", "radiusMeters": 45, "penaltyScore": -2.5, "label": "Spazier-/Wanderpfad" },
+      { "osmTag": "highway=cycleway", "radiusMeters": 65, "penaltyScore": -4.0, "label": "Radweg" },
+      { "osmTag": "highway=track", "radiusMeters": 25, "penaltyScore": -1.0, "label": "Forstweg" }
+    ],
+    "waterProximity": {
+      "maxDistanceMeters": 350,
+      "scoreBoost": 1.5
+    },
+    "minContiguousAreaHectares": 2.0
+  },
+  "fieldTips": [
+    "Ansitz spätestens 45 Min. vor Sonnenaufgang beziehen – Rehwild steht oft schon im ersten Büchsenlicht auf der Wiese.",
+    "Auf Spaziergänger mit Hunden achten: Nach einer kurzen Störung am Waldrand tritt standorttreues Rehwild oft nach 30–45 Min. an derselben Bucht erneut aus.",
+    "Waldkanten mit Süd-Ost-Exposition werden an kühlen, klaren Morgen zuerst aufgesucht, weil dort die ersten Sonnenstrahlen den Tau trocknen und wärmen.",
+    "Niemals bewegen, solange das Stück in deine Richtung sichert: Erst wenn das Haupt wieder im Gras verschwindet oder das Stück wegschaut, das Teleobjektiv langsam nachführen.",
+    "Wenn ein Stück schreckt („Bö-bö“) und mit weiß aufgestelltem Spiegel abspringt, hat es meist nur eine unklare Silhouette oder Bewegung bemerkt – bleib absolut regungslos sitzen, oft kehrt es neugierig im Bogen zurück."
+  ]
+}

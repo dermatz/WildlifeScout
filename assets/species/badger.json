@@ -1,0 +1,100 @@
+{
+  "id": "badger",
+  "name": "Dachs",
+  "scientificName": "Meles meles",
+  "category": "carnivore",
+  "shortDescription": "Heimlicher „Baumeister des Waldes“. Gräbt weitverzweigte Generationenbaue (Dachsburgen) in trockene, wurzelreiche Laubwaldhänge nahe regenwurmreichen Wiesen.",
+  "accentColorHex": "#A3E635",
+  "imageAssetPath": "assets/species/images/badger.jpg",
+  "imageUrl": "https://images.unsplash.com/photo-1786177477505-94acff1c6968?auto=format&fit=crop&w=800&q=80",
+  "imageAuthor": "Pauline Heidmets",
+  "imageLicense": "Unsplash License (Lizenzfrei & frei nutzbar)",
+  "imageSourceUrl": "https://unsplash.com/photos/european-badger-in-green-meadow-__vQtu-gsg4",
+  "behavior": {
+    "scentSensitivityMeters": 220,
+    "scentConeAngleDegrees": 45,
+    "primaryActivityPeriods": ["dusk", "night", "dawn"],
+    "barometerDropSensitivity": 0.80,
+    "maxToleratedWindSpeedKmh": 38,
+    "flightDistanceMeters": 55
+  },
+  "openData": {
+    "taxonomy": "Raubtiere (Carnivora) • Marderartige (Mustelidae)",
+    "conservationStatus": "LC – Nicht gefährdet (IUCN Red List)",
+    "bodyWeight": "10 – 18 kg (im Spätherbst mit Winterspeck bis 20 kg)",
+    "bodySize": "Körperlänge 65–85 cm • Schulterhöhe ~30 cm",
+    "homeRange": "30 – 150 ha rund um die Hauptburg",
+    "peakSeason": "Mai – Juli (Jungdachse spielen bei Büchsenlicht vor dem Bau)",
+    "diet": "Omnivor mit Spezialisierung: Regenwürmer (bis 60 %), Fallobst, Mais, Käferlarven, Schnecken",
+    "tracksAndSigns": "Breites Sohlengänger-Trittsiegel mit 5 langen Grabkrallen vor den Zehenballen, Dachsabtritte (Latrinen)",
+    "vocalizations": "Leises Brummen, Schnaufen & Schmatzen bei der Nahrungssuche, Keckern der Jungdachse beim Spiel",
+    "sensoryStrengths": "Extrem feiner Geruchs- & Erschütterungssinn (Trittschall!) • Schwaches Sehvermögen",
+    "recommendedLens": "300–500 mm lichtstark (f/2.8–f/4) • Stativ wegen langer Belichtungszeiten im Wald zwingend"
+  },
+  "behaviorTraits": [
+    {
+      "title": "Generationenbau (Dachsburg) & Polsterwechsel",
+      "tag": "Bau-Ökologie",
+      "description": "Dachsburgen werden oft über Jahrzehnte genutzt und besitzen dutzende Röhren. Regelmäßig zieht der Dachs rückwärts trockenes Laub, Farn und Moos als frisches Polstermaterial über eine glattgeschliffene „Feg-Rinne“ in den Kessel."
+    },
+    {
+      "title": "Vorsichtiges „Windholen“ an der Einfahrt",
+      "tag": "Austrittsverhalten",
+      "description": "Am Abend erscheint zuerst nur die schwarz-weiße Maske im Röhreneingang. Der Dachs prüft minutenlang mit der Nase die Luftströmung und lauscht auf Trittschall, bevor er vollständig ausfährt und sich ausgiebig putzt."
+    },
+    {
+      "title": "Feste Wechsel & Latrinen-Markierung",
+      "tag": "Territorialverhalten",
+      "description": "Vom Bau führen ausgetretene, fast vegetationsfreie Pfade wie Schienen zu den nächsten Wiesen. Reviergrenzen und Baunähe werden durch kleine gegrabene Kotgruben („Dachsabtritte“) markiert."
+    }
+  ],
+  "habitatRules": {
+    "edgePreferences": [
+      {
+        "typeA": "landuse=forest",
+        "typeB": "landuse=meadow",
+        "bufferMeters": 50,
+        "scoreBoost": 5.2,
+        "label": "Trockene Waldrand-Hanglage an Regenwurmwiese (Bau & Austritt)"
+      },
+      {
+        "typeA": "landuse=forest",
+        "typeB": "landuse=orchard",
+        "bufferMeters": 60,
+        "scoreBoost": 4.8,
+        "label": "Waldkante an Streuobstwiese (Fallobst & Tauwürmer)"
+      },
+      {
+        "typeA": "landuse=forest",
+        "typeB": "landuse=farmland",
+        "bufferMeters": 45,
+        "scoreBoost": 4.2,
+        "label": "Wald-Feld-Saum (Mais & Erntereste)"
+      }
+    ],
+    "landuseWeights": [
+      { "osmTag": "landuse=forest", "score": 5.2, "label": "Laub-/Mischwald mit lockerem, trockenem Boden & Wurzelarmierung" },
+      { "osmTag": "man_made=embankment", "score": 5.5, "label": "Böschung / Hanglage / Hohlweg (Idealer Röhren- & Kesselbau)" },
+      { "osmTag": "landuse=meadow", "score": 4.8, "label": "Humusreiche Wiese (Regenwurm-Revier mit Stecklöchern)" },
+      { "osmTag": "landuse=orchard", "score": 4.6, "label": "Streuobstwiese (Fallobst & Käferlarven)" },
+      { "osmTag": "natural=scrub", "score": 4.3, "label": "Wurzelreiche Heckenriegel & Feldgehölze (Nebenbaue)" }
+    ],
+    "disturbancePenalties": [
+      { "osmTag": "highway=path", "radiusMeters": 75, "penaltyScore": -5.5, "label": "Wanderpfad (Trittschall & Hundegefahr am Bau)" },
+      { "osmTag": "highway=cycleway", "radiusMeters": 95, "penaltyScore": -6.5, "label": "Radweg" },
+      { "osmTag": "highway=track", "radiusMeters": 35, "penaltyScore": -1.8, "label": "Forstweg (wird nachts oft als Schnürpfad genutzt)" }
+    ],
+    "waterProximity": {
+      "maxDistanceMeters": 280,
+      "scoreBoost": 2.2
+    },
+    "minContiguousAreaHectares": 1.5
+  },
+  "fieldTips": [
+    "Waldboden für den Bau: Dachse brauchen zwingend trockene, gut drainierte, lehmig-sandige Böden ohne Staunässe. Bevorzugt werden Hanglagen, Böschungen und Hohlwege (20–50 m innerhalb der Waldkante) unter alten Buchen oder Eichen, deren Wurzelwerk die Kesseldecke stützt.",
+    "Dachsbau erkennen: Querovale Röhreneingänge (breiter als hoch) mit mächtigem Erdauswurf, einer glattgezogenen 'Feg-Rinne' für Polstermaterial (Laub, Moos, Farn) und nahegelegenen 'Dachsabtritten' (kleine Latrinengruben).",
+    "Nahrungsspuren im Waldboden: Nach milden Regennächten zeigen kleine trichterförmige 'Stecklöcher' (Schnauzentrichter) im feuchten Humus und auf kurzgrasigen Wiesen die Jagd nach Regenwürmern.",
+    "Ansitz-Disziplin: Der Dachs sieht schlecht, nimmt aber feinste Bodenerschütterungen (Trittschall über Baumwurzeln!) und Gerüche wahr – niemals direkt auf das Kesselgewölbe treten.",
+    "Beste Fotozeit im Jahreslauf: Von Mitte Mai bis Anfang Juli herrscht die kürzeste Nacht; dann verlassen Altdachse und verspielte Jungdachse ruhige Baue oft schon 45–60 Min. vor Sonnenuntergang bei gutem Licht."
+  ]
+}

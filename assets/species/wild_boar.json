@@ -1,0 +1,83 @@
+{
+  "id": "wild_boar",
+  "name": "Schwarzwild",
+  "scientificName": "Sus scrofa",
+  "category": "ungulate",
+  "shortDescription": "Wehrhaftes, hochintelligentes und soziales Wild der Dickungen, Schilfgürtel und Laubmischwälder. Liebt Suhlen, feuchte Senken sowie Eichen- und Buchenmastbestände.",
+  "accentColorHex": "#8B5CF6",
+  "imageAssetPath": "assets/species/images/wild_boar.jpg",
+  "imageUrl": "https://images.unsplash.com/photo-1792851684148-c5736b4d863c?auto=format&fit=crop&w=800&q=80",
+  "imageAuthor": "Tim Schmidbauer",
+  "imageLicense": "Unsplash License (Lizenzfrei & frei nutzbar)",
+  "imageSourceUrl": "https://unsplash.com/photos/wild-boar-in-forest-tmmeUaPzXkM",
+  "behavior": {
+    "scentSensitivityMeters": 350,
+    "scentConeAngleDegrees": 55,
+    "primaryActivityPeriods": ["dusk", "night", "dawn"],
+    "barometerDropSensitivity": 0.85,
+    "maxToleratedWindSpeedKmh": 60,
+    "flightDistanceMeters": 120
+  },
+  "openData": {
+    "taxonomy": "Paarhufer • Echte Schweine (Suidae)",
+    "conservationStatus": "LC – Nicht gefährdet (IUCN Red List)",
+    "bodyWeight": "50 – 160 kg (reife Keiler teils über 150 kg)",
+    "bodySize": "Länge 110–180 cm • Schulterhöhe 70–105 cm",
+    "homeRange": "200 – 1.500 ha (abhängig von Mast & Deckung)",
+    "peakSeason": "Rauschzeit (Nov.–Jan.) & Frischlingszeit (März–Mai)",
+    "diet": "Allesfresser (Omnivor): Eicheln, Bucheckern, Wurzeln, Engerlinge, Regenwürmer, Mais",
+    "tracksAndSigns": "Trittsiegel mit deutlichem Geäfter (Afterklauen), Gebräch (umgepflügte Grasnarbe), Malbäume",
+    "vocalizations": "Grunzen im Rottenverband, Schnauben/Blasen bei Witterung, kurzes Warn-Wuffen der Leitbache",
+    "sensoryStrengths": "Herausragender Geruchssinn & feines Gehör • Geringeres Sehvermögen auf Distanz",
+    "recommendedLens": "300–600 mm lichtstarkes Tele (f/2.8–f/4) für hohe ISO-Reserven in der Dämmerung"
+  },
+  "behaviorTraits": [
+    {
+      "title": "Matriarchale Rottenführung durch die Leitbache",
+      "tag": "Sozialstruktur",
+      "description": "Bachen und Nachwuchs leben in eng verbundenen Familienrotten. Die erfahrenste Leitbache bestimmt Wechsel, Austrittszeitpunkt und Fluchtrichtung; adulte Keiler ziehen außerhalb der Rauschzeit meist als Einzelgänger."
+    },
+    {
+      "title": "Suhlen & Scheuern am Malbaum",
+      "tag": "Körperpflege & Revier",
+      "description": "Nach dem Schlammbad in der Suhle reiben sich Sauen an harzenden Nadelbäumen oder Eichen (Malbäumen). Die Höhe der Schlammkruste und einzelne Borsten am Stamm verraten exakt die Körpergröße der Stücke."
+    },
+    {
+      "title": "Verhoffen & Windprüfen im Dickungsrand",
+      "tag": "Sicherungsverhalten",
+      "description": "Bevor die Rotte auf eine Wiese oder Lichtung zieht, verhofft die Leitbache oft 10–15 Minuten direkt hinter der letzten Brombeer- oder Schilfkante und zieht mit erhobenem Wurf (Rüssel) intensiv Wind."
+    }
+  ],
+  "habitatRules": {
+    "edgePreferences": [
+      {
+        "typeA": "landuse=forest",
+        "typeB": "landuse=farmland",
+        "bufferMeters": 50,
+        "scoreBoost": 4.2,
+        "label": "Wald-Acker-Kante (Feldfrucht/Mais)"
+      }
+    ],
+    "landuseWeights": [
+      { "osmTag": "natural=wetland", "score": 6.0, "label": "Suhle / Schilfeinstand" },
+      { "osmTag": "natural=scrub", "score": 5.2, "label": "Dichter Brombeer-/Schwarzdornverhau" },
+      { "osmTag": "landuse=forest", "score": 4.0, "label": "Laubholz (Eichen-/Buchenmast)" }
+    ],
+    "disturbancePenalties": [
+      { "osmTag": "highway=path", "radiusMeters": 110, "penaltyScore": -7.5, "label": "Fußweg" },
+      { "osmTag": "highway=cycleway", "radiusMeters": 160, "penaltyScore": -9.0, "label": "Radweg" }
+    ],
+    "waterProximity": {
+      "maxDistanceMeters": 120,
+      "scoreBoost": 4.5
+    },
+    "minContiguousAreaHectares": 10.0
+  },
+  "fieldTips": [
+    "Sauen sichern vor dem Austreten oft 10–15 Minuten regungslos am Dickungsrand und prüfen den Wind.",
+    "An warmen Frühjahrs- und Sommertagen sind Suhlen im Halbschatten bereits am späten Nachmittag bei gutem Fotolicht hochinteressant.",
+    "Metallisches Klicken am Stativ oder laute Verschlussgeräusche unbedingt vermeiden – Schwarzwild reagiert extrem misstrauisch auf fremde hohe Töne.",
+    "Frisches Gebräch (aufgewühlter Waldboden mit noch feuchter, dunkler Erde und unberegneten Erdkrümeln) zeigt an, dass die Rotte erst in der vergangenen Nacht vor Ort war.",
+    "Sicherheitsregel im Frühjahr (März–Mai): Führende Bachen mit gestreiften Frischlingen niemals in dichtem Schilf oder Brombeerverhau bedrängen – immer aus sicherer Distanz oder vom Hochsitz/Tarnzelt am Rand fotografieren."
+  ]
+}
