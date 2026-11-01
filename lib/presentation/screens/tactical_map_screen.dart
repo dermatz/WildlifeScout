@@ -424,6 +424,127 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
     );
   }
 
+  void _showTelemetryExplainerSheet({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required List<({String heading, String description, IconData icon})> points,
+  }) {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        decoration: BoxDecoration(
+          color: WildScoutTheme.surfaceGlass,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: WildScoutTheme.borderSubtle),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black87,
+              blurRadius: 30,
+              offset: Offset(0, -6),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: iconColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: WildScoutTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: WildScoutTheme.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            for (final p in points) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(p.icon, size: 16, color: iconColor),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            p.heading,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: WildScoutTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            p.description,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              height: 1.35,
+                              color: WildScoutTheme.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   void _openWindCompassSheet() {
     final primary = _primarySpecies;
     if (primary == null) return;
@@ -1364,86 +1485,57 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
                           color: WildScoutTheme.textMuted,
                         ),
                       ),
-                      const SizedBox(height: 3),
-                      // Zeile 3: Ansitz / Session Status
-                      InkWell(
-                        onTap: () {
-                          if (severeWeatherAlert != null) {
+                      if (severeWeatherAlert != null) ...[
+                        const SizedBox(height: 3),
+                        InkWell(
+                          onTap: () {
                             SevereWeatherAlertSheet.show(
                               context,
                               alert: severeWeatherAlert,
                               onEndSession: () =>
                                   setState(() => _isSessionActive = false),
                             );
-                          } else {
-                            _toggleSessionStatus();
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 1.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: severeWeatherAlert != null
-                                ? severeWeatherAlert.accentColor
-                                    .withValues(alpha: 0.25)
-                                : (_isSessionActive
-                                    ? WildScoutTheme.emeraldBio
-                                        .withValues(alpha: 0.16)
-                                    : Colors.white12),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: severeWeatherAlert != null
-                                  ? severeWeatherAlert.accentColor
-                                      .withValues(alpha: 0.6)
-                                  : (_isSessionActive
-                                      ? WildScoutTheme.emeraldBio
-                                      .withValues(alpha: 0.35)
-                                      : Colors.white24),
+                          },
+                          borderRadius: BorderRadius.circular(4),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: severeWeatherAlert.accentColor
+                                  .withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: severeWeatherAlert.accentColor
+                                    .withValues(alpha: 0.6),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  severeWeatherAlert.icon,
+                                  size: 9.5,
+                                  color: severeWeatherAlert.accentColor,
+                                ),
+                                const SizedBox(width: 2.5),
+                                Text(
+                                  severeWeatherAlert.isDanger
+                                      ? 'ALARM'
+                                      : 'UNWETTER',
+                                  style: TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.3,
+                                    color: severeWeatherAlert.accentColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                severeWeatherAlert != null
-                                    ? severeWeatherAlert.icon
-                                    : (_isSessionActive
-                                        ? Icons.shield_rounded
-                                        : Icons.pause_circle_outline),
-                                size: 9.5,
-                                color: severeWeatherAlert != null
-                                    ? severeWeatherAlert.accentColor
-                                    : (_isSessionActive
-                                        ? WildScoutTheme.emeraldBio
-                                        : WildScoutTheme.textMuted),
-                              ),
-                              const SizedBox(width: 2.5),
-                              Text(
-                                severeWeatherAlert != null
-                                    ? (severeWeatherAlert.isDanger
-                                        ? 'ALARM'
-                                        : 'UNWETTER')
-                                    : (_isSessionActive
-                                        ? 'ANSITZ'
-                                        : 'PAUSE'),
-                                style: TextStyle(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.3,
-                                  color: severeWeatherAlert != null
-                                      ? severeWeatherAlert.accentColor
-                                      : (_isSessionActive
-                                          ? WildScoutTheme.emeraldBio
-                                          : WildScoutTheme.textMuted),
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -1462,16 +1554,28 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
                       _openSpeciesMultiSelectSheet();
                     },
                     child: Container(
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color:
-                            primarySpecies.accentColor.withValues(alpha: 0.22),
+                      foregroundDecoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color:
-                              primarySpecies.accentColor.withValues(alpha: 0.65),
-                          width: 1.2,
+                          color: primarySpecies.accentColor.withValues(alpha: 0.85),
+                          width: 1.5,
                         ),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: WildScoutTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          const BoxShadow(
+                            color: Colors.black45,
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
+                          BoxShadow(
+                            color: primarySpecies.accentColor.withValues(alpha: 0.20),
+                            blurRadius: 6,
+                          ),
+                        ],
                       ),
                       child: Stack(
                         alignment: Alignment.center,
@@ -1484,7 +1588,7 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.black.withValues(alpha: 0.62),
+                                    Colors.black.withValues(alpha: 0.65),
                                     Colors.black.withValues(alpha: 0.52),
                                   ],
                                   begin: Alignment.centerLeft,
@@ -2650,40 +2754,87 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
         Icons.trending_down_rounded,
         WildScoutTheme.amberGold,
         valStr,
-        '⚡ Fällt (${delta.toStringAsFixed(1)})',
+        '⚡ Fällt (${delta.toStringAsFixed(1)}) • Fress-Schub',
       );
     } else if (delta <= -0.7) {
       return (
         Icons.trending_down_rounded,
         WildScoutTheme.amberGold,
         valStr,
-        'Fällt (${delta.toStringAsFixed(1)})',
+        'Fällt (${delta.toStringAsFixed(1)}) • Mehr Aktivität',
       );
     } else if (delta >= 1.5) {
       return (
         Icons.trending_up_rounded,
         WildScoutTheme.cyanWater,
         valStr,
-        'Steigt (+${delta.toStringAsFixed(1)})',
+        'Steigt (+${delta.toStringAsFixed(1)}) • Ruhiges Wild',
       );
     } else {
       return (
         Icons.trending_flat_rounded,
         WildScoutTheme.textMuted,
         valStr,
-        'Stabil',
+        'Stabil • Gewohnter Rhythmus',
       );
     }
   }
 
   (IconData icon, Color color, String val, String detail) _getAstroTelemetry(
     SunMoonPosition astro,
+    WeatherFrame weather,
   ) {
-    if (astro.isGoldenHour) {
+    final isMorning = weather.time.hour < 12;
+
+    // Berechnung der optischen Wahrscheinlichkeit für Abendrot / Morgenrot (Rayleigh-Streuung an Wolkenuntergrenzen):
+    // 1. Sonnenhöhe: Peak bei -1° bis +2° (Maximum bei 0.5°), fällt zu den Rändern (-4° und +5°) ab.
+    // 2. Bewölkung: Ideal sind 30% bis 60% lockere Bewölkung (Faktor 1.0). Bei 0% kein Wolkenschirm, bei >80% Grauschleier.
+    // 3. Niederschlag: Regen/starke Trübung reduziert die Sichtbarkeit drastisch.
+    int calculateAlpenglowProbability() {
+      if (astro.sunElevationDegrees < -4.0 || astro.sunElevationDegrees > 5.0) {
+        return 0;
+      }
+      if (weather.precipitationMm > 0.2 || weather.isFog) {
+        return 0;
+      }
+
+      // Sonnenhöhen-Faktor (0.0 bis 1.0)
+      final elevDist = (astro.sunElevationDegrees - 0.5).abs();
+      final elevFactor = (1.0 - (elevDist / 4.5)).clamp(0.0, 1.0);
+
+      // Wolken-Faktor (Ideal: ca. 45% Bewölkung)
+      final cloud = weather.cloudCoverPercent;
+      double cloudFactor = 0.0;
+      if (cloud >= 10 && cloud <= 80) {
+        if (cloud >= 30 && cloud <= 60) {
+          cloudFactor = 1.0;
+        } else if (cloud < 30) {
+          cloudFactor = (cloud - 10) / 20.0;
+        } else {
+          cloudFactor = 1.0 - ((cloud - 60) / 20.0);
+        }
+      }
+
+      final prob = (elevFactor * cloudFactor * 100.0).round();
+      return prob.clamp(0, 95);
+    }
+
+    final alpenglowProb = calculateAlpenglowProbability();
+
+    if (alpenglowProb >= 25) {
+      return (
+        Icons.wb_twilight_rounded,
+        const Color(0xFFFF6B6B), // Sanftes Korallrot / Morgenrot / Abendrot
+        isMorning ? 'Morgenrot ($alpenglowProb%)' : 'Abendrot ($alpenglowProb%)',
+        isMorning
+            ? 'Ost • ${astro.sunElevationDegrees.toStringAsFixed(0)}° Horizont'
+            : 'West • ${astro.sunElevationDegrees.toStringAsFixed(0)}° Horizont',
+      );
+    } else if (astro.isGoldenHour) {
       return (
         Icons.wb_twilight_rounded,
         WildScoutTheme.amberGold,
-        'Goldene Std.',
+        isMorning ? 'Morgen-Gold' : 'Abend-Gold',
         '${astro.sunElevationDegrees.toStringAsFixed(0)}° Streiflicht',
       );
     } else if (astro.isBlueHour) {
@@ -2691,14 +2842,15 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
         Icons.wb_twilight_rounded,
         WildScoutTheme.cyanWater,
         'Blaue Std.',
-        'Dämmerung',
+        isMorning ? 'Frühdämmerung' : 'Spätdämmerung',
       );
     } else if (astro.currentPeriod == ActivityPeriod.night) {
+      final moonPct = (astro.moonIlluminationFraction * 100).round();
       return (
         Icons.nightlight_round,
         const Color(0xFFC7D2FE),
-        '${(astro.moonIlluminationFraction * 100).round()}% Mond',
-        'Nacht',
+        '$moonPct% Mond',
+        astro.moonPhaseName,
       );
     } else if (astro.sunElevationDegrees > 25) {
       return (
@@ -2727,6 +2879,13 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
         WildScoutTheme.cyanWater,
         '${weather.precipitationMm.toStringAsFixed(1)} mm',
         'Regen',
+      );
+    } else if (weather.isFog) {
+      return (
+        Icons.cloud_queue_rounded,
+        const Color(0xFFCBD5E1),
+        'Nebel',
+        'Sicht < 1 km',
       );
     } else if (weather.cloudCoverPercent >= 75) {
       return (
@@ -3091,7 +3250,7 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
         _colorForActivityScore(assessment.activityScorePercent);
 
     final baroInfo = _getBarometerTelemetry(weather);
-    final astroInfo = _getAstroTelemetry(astro);
+    final astroInfo = _getAstroTelemetry(astro, weather);
     final skyInfo = _getSkyTelemetry(weather, astro);
     final windInfo = _getWindTelemetry(weather);
 
@@ -3617,6 +3776,31 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
                                       detailColor: baroInfo.$2,
                                       tooltipMessage:
                                           assessment.barometerInsight,
+                                      onTap: () {
+                                        _showTelemetryExplainerSheet(
+                                          title: 'Luftdruck & Wildaktivität',
+                                          subtitle: '${weather.surfacePressureHpa.round()} hPa • Trend: ${weather.pressureDelta6hHpa >= 0 ? "+" : ""}${weather.pressureDelta6hHpa.toStringAsFixed(1)} hPa in 6h',
+                                          icon: Icons.compress_rounded,
+                                          iconColor: WildScoutTheme.amberGold,
+                                          points: [
+                                            (
+                                              heading: 'Fress-Trigger bei Druckabfall',
+                                              description: 'Fällt der Luftdruck vor einer Schlechtwetterfront rasch ab (Delta < -1.5 hPa), treten Rehe und Hirsche oft 1–2 Stunden früher auf Lichtungen aus, um vor dem Regen zu äsen.',
+                                              icon: Icons.trending_down_rounded,
+                                            ),
+                                            (
+                                              heading: 'Ruhiges Verhalten im Hochdruck',
+                                              description: 'Bei beständigem Hochdruck (>1015 hPa) fühlt sich das Wild sicher, bleibt länger in der Deckung und zieht meist erst in der späten Dämmerung heraus.',
+                                              icon: Icons.sunny,
+                                            ),
+                                            (
+                                              heading: 'Optik & Frühnebel-Chancen',
+                                              description: 'Klare Hochdrucknächte kühlen stark aus und erzeugen idealen Bodennebel in Tälern für atmosphärische Gegenlichtaufnahmen.',
+                                              icon: Icons.foggy,
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -3629,6 +3813,31 @@ class _TacticalMapScreenState extends State<TacticalMapScreen>
                                       detail: astroInfo.$4,
                                       tooltipMessage:
                                           assessment.lightQualityAdvice,
+                                      onTap: () {
+                                        _showTelemetryExplainerSheet(
+                                          title: 'Licht & Solunar-Phase',
+                                          subtitle: '${astro.sunElevationDegrees.toStringAsFixed(1)}° Sonnenhöhe • ${astro.lightPhaseLabel}',
+                                          icon: astroInfo.$1,
+                                          iconColor: astroInfo.$2,
+                                          points: [
+                                            (
+                                              heading: 'Morgenrot / Abendrot',
+                                              description: 'Flaches Streulicht an Wolkenunterkanten (-4° bis +5° Elevation). Perfekt für farbintensive Silhouetten und weiche Reflexe.',
+                                              icon: Icons.wb_twilight_rounded,
+                                            ),
+                                            (
+                                              heading: 'Goldene & Blaue Stunde',
+                                              description: 'Klassisches warmes Streiflicht oder kühles Dämmerungslicht mit minimierten Schlagschatten für plastische Fellstrukturen.',
+                                              icon: Icons.auto_awesome_rounded,
+                                            ),
+                                            (
+                                              heading: 'Mondphase: ${astro.moonPhaseName}',
+                                              description: '${(astro.moonIlluminationFraction * 100).round()}% Illumination. Nach dunklen Neumondnächten zieht Wild morgens besonders hungrig und länger im Hellen heraus.',
+                                              icon: Icons.nightlight_round,
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ),
                                 ],

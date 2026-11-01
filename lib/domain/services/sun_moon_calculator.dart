@@ -5,6 +5,7 @@ class SunMoonPosition {
   final double sunAzimuthDegrees; // 0 = Nord, 90 = Ost, 180 = Süd, 270 = West
   final double sunElevationDegrees; // < 0 = unter Horizont
   final double moonIlluminationFraction; // 0.0 (Neumond) bis 1.0 (Vollmond)
+  final String moonPhaseName; // z.B. Neumond, Zunehmende Sichel, Erstes Viertel, etc.
   final ActivityPeriod currentPeriod;
   final String lightPhaseLabel;
   final bool isGoldenHour;
@@ -14,6 +15,7 @@ class SunMoonPosition {
     required this.sunAzimuthDegrees,
     required this.sunElevationDegrees,
     required this.moonIlluminationFraction,
+    required this.moonPhaseName,
     required this.currentPeriod,
     required this.lightPhaseLabel,
     required this.isGoldenHour,
@@ -83,6 +85,26 @@ class SunMoonCalculator {
         (lunarAge < 0 ? lunarAge + 29.53058867 : lunarAge) / 29.53058867;
     final moonIllum = 0.5 * (1.0 - math.cos(2.0 * math.pi * normalizedAge));
 
+    // Exakte astronomische Mondphase
+    final String phaseName;
+    if (normalizedAge < 0.03 || normalizedAge >= 0.97) {
+      phaseName = 'Neumond';
+    } else if (normalizedAge < 0.22) {
+      phaseName = 'Zunehmende Sichel';
+    } else if (normalizedAge < 0.28) {
+      phaseName = 'Erstes Viertel';
+    } else if (normalizedAge < 0.47) {
+      phaseName = 'Zunehmender Mond';
+    } else if (normalizedAge < 0.53) {
+      phaseName = 'Vollmond';
+    } else if (normalizedAge < 0.72) {
+      phaseName = 'Abnehmender Mond';
+    } else if (normalizedAge < 0.78) {
+      phaseName = 'Letztes Viertel';
+    } else {
+      phaseName = 'Abnehmende Sichel';
+    }
+
     // Lichtphasen-Klassifikation für Naturfotografen
     final isMorning = dateTime.hour < 12;
     final bool isGolden = elevation >= -1.0 && elevation <= 6.5;
@@ -115,6 +137,7 @@ class SunMoonCalculator {
       sunAzimuthDegrees: azimuth,
       sunElevationDegrees: elevation,
       moonIlluminationFraction: moonIllum,
+      moonPhaseName: phaseName,
       currentPeriod: period,
       lightPhaseLabel: phaseLabel,
       isGoldenHour: isGolden,

@@ -23,6 +23,9 @@ class WeatherFrame {
     this.weatherCode = 0,
   });
 
+  /// True, wenn WMO Weather Code auf Nebel oder Raureifnebel hinweist (WMO 45, 48).
+  bool get isFog => weatherCode == 45 || weatherCode == 48;
+
   /// True, wenn WMO Weather Code auf Gewitter oder Blitze hinweist (WMO 95, 96, 99).
   bool get isThunderstorm => weatherCode >= 95 && weatherCode <= 99;
 

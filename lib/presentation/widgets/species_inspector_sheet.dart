@@ -38,136 +38,144 @@ class SpeciesInspectorSheet extends StatelessWidget {
           top: BorderSide(color: WildScoutTheme.borderSubtle, width: 1),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        14,
+        20,
+        MediaQuery.of(context).padding.bottom + 20,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 42,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 44),
+                Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
-              ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    size: 22,
+                    color: WildScoutTheme.textMuted,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Schließen',
+                  constraints:
+                      const BoxConstraints(minWidth: 44, minHeight: 44),
+                ),
+              ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
 
-            // 1. Großes lizenzfreies Unsplash-Tierfoto (Hero-Card)
+            // 1. Großes, immersives Tierfoto (Hero-Card)
             Stack(
               children: [
                 SpeciesPhotoAvatar(
                   species: species,
                   width: double.infinity,
-                  height: 195,
-                  borderRadius: 20,
-                  borderWidth: 1.5,
+                  height: 270,
+                  borderRadius: 22,
+                  borderWidth: 2.0,
                 ),
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(22),
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.25),
+                          Colors.black.withValues(alpha: 0.35),
                           Colors.transparent,
+                          Colors.black.withValues(alpha: 0.15),
                           Colors.black.withValues(alpha: 0.88),
                         ],
-                        stops: const [0.0, 0.38, 1.0],
+                        stops: const [0.0, 0.28, 0.65, 1.0],
                       ),
-                    ),
-                  ),
-                ),
-                // Lizenzfrei-Badge oben rechts
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: WildScoutTheme.emeraldBio.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.verified_outlined,
-                          size: 13,
-                          color: WildScoutTheme.emeraldBio,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Unsplash • Lizenzfrei (${species.imageAuthor})',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ),
                 // Kategorie-Badge oben links
                 Positioned(
-                  top: 10,
-                  left: 10,
+                  top: 12,
+                  left: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                      horizontal: 11,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.72),
+                      color: Colors.black.withValues(alpha: 0.76),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: species.accentColor.withValues(alpha: 0.7),
+                        color: species.accentColor.withValues(alpha: 0.75),
                       ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black45,
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       species.category.label,
                       style: TextStyle(
                         color: species.accentColor,
                         fontWeight: FontWeight.w800,
-                        fontSize: 11,
+                        fontSize: 11.5,
+                        letterSpacing: 0.4,
                       ),
                     ),
                   ),
                 ),
                 // Artname & Wissenschaftlicher Name unten im Hero-Bild
                 Positioned(
-                  left: 14,
-                  right: 14,
-                  bottom: 12,
+                  left: 16,
+                  right: 16,
+                  bottom: 14,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         species.name,
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 24,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
+                          letterSpacing: 0.3,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black87,
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         '${species.scientificName} • ${species.openData.taxonomy}',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           fontStyle: FontStyle.italic,
-                          color: Colors.white70,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black87,
+                              blurRadius: 6,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
                         ),
                       ),
                     ],
