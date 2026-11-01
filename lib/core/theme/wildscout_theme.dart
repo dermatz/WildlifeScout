@@ -17,6 +17,26 @@ class WildScoutTheme {
   static const Color textPrimary = Color(0xFFF3F7F5);
   static const Color textMuted = Color(0xFF94A89E);
 
+  /// Wiederverwendbare Liquid Glass Dekoration nach Apple HIG Standard
+  static BoxDecoration glassDecoration({
+    Color? color,
+    Color? borderColor,
+    double borderRadius = 18,
+    double borderWidth = 1.0,
+    List<BoxShadow>? shadows,
+  }) {
+    return BoxDecoration(
+      color: color ?? surfaceGlass,
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(
+        color: borderColor ?? borderSubtle,
+        width: borderWidth,
+      ),
+      boxShadow: shadows,
+    );
+  }
+
+
   /// Echter Tarnzelt-Rotlicht-Farbfilter (Night-Vision Red Mode).
   /// Wandelt alle hellen Grün-/Blau-Anteile in dunkles Monochrom-Rot um,
   /// damit die Dunkeladaption der Augen im finsteren Wald um 04:30 Uhr

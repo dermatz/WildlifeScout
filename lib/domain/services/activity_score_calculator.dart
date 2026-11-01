@@ -109,9 +109,9 @@ class ActivityScoreCalculator {
     } else if (finalScore >= 62) {
       ratingLabel = 'Gute Austrittschance';
     } else if (finalScore >= 42) {
-      ratingLabel = 'Mäßige Aktivität (Einstand)';
+      ratingLabel = 'Mäßige Tieraktivität';
     } else {
-      ratingLabel = 'Geringe Aktivität (Ruhephase)';
+      ratingLabel = 'Geringe Tieraktivität';
     }
 
     // 5. Witterungs-Kollisionsprüfung (Weht unser Geruch in eine Top-Habitat-Zone?)
