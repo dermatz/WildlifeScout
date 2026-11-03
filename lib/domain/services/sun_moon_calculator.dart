@@ -23,6 +23,16 @@ class SunMoonPosition {
   });
 }
 
+class SunTimes {
+  final DateTime? sunrise;
+  final DateTime? sunset;
+
+  const SunTimes({
+    this.sunrise,
+    this.sunset,
+  });
+}
+
 /// Reiner, 100% offlinefähiger Astronomie-Rechner für Sonnenstand, Dämmerung
 /// (Blaue Stunde / Golden Hour) und Mondphase basierend auf NOAA/Meeus-Gleichungen.
 class SunMoonCalculator {
@@ -143,5 +153,95 @@ class SunMoonCalculator {
       isGoldenHour: isGolden,
       isBlueHour: isBlue,
     );
+  }
+
+  /// Berechnet Sonnenaufgang und Sonnenuntergang für das gegebene Datum und die Koordinaten.
+  static SunTimes calculateSunTimes({
+    required DateTime date,
+    required double latitude,
+    required double longitude,
+  }) {
+    // Astronomischer Standard-Horizontwinkel: -0.833° (Sonnendurchmesser 32' + atmosphärische Refraktion 34')
+    const double horizonElevation = -0.833;
+
+    final baseDate = DateTime(date.year, date.month, date.day);
+
+    // 1. Suche nach Sonnenaufgang (Vormittag 00:00 bis 12:00)
+    DateTime? sunrise;
+    double prevElev = calculate(
+      dateTime: baseDate,
+      latitude: latitude,
+      longitude: longitude,
+    ).sunElevationDegrees;
+
+    for (int m = 15; m <= 12 * 60; m += 15) {
+      final t = baseDate.add(Duration(minutes: m));
+      final elev = calculate(
+        dateTime: t,
+        latitude: latitude,
+        longitude: longitude,
+      ).sunElevationDegrees;
+
+      if (prevElev <= horizonElevation && elev >= horizonElevation) {
+        int lowMin = m - 15;
+        int highMin = m;
+        for (int step = 0; step < 6; step++) {
+          final midMin = (lowMin + highMin) ~/ 2;
+          final midElev = calculate(
+            dateTime: baseDate.add(Duration(minutes: midMin)),
+            latitude: latitude,
+            longitude: longitude,
+          ).sunElevationDegrees;
+          if (midElev < horizonElevation) {
+            lowMin = midMin;
+          } else {
+            highMin = midMin;
+          }
+        }
+        sunrise = baseDate.add(Duration(minutes: (lowMin + highMin) ~/ 2));
+        break;
+      }
+      prevElev = elev;
+    }
+
+    // 2. Suche nach Sonnenuntergang (Nachmittag 12:00 bis 24:00)
+    DateTime? sunset;
+    prevElev = calculate(
+      dateTime: baseDate.add(const Duration(hours: 12)),
+      latitude: latitude,
+      longitude: longitude,
+    ).sunElevationDegrees;
+
+    for (int m = 12 * 60 + 15; m <= 24 * 60; m += 15) {
+      final t = baseDate.add(Duration(minutes: m));
+      final elev = calculate(
+        dateTime: t,
+        latitude: latitude,
+        longitude: longitude,
+      ).sunElevationDegrees;
+
+      if (prevElev >= horizonElevation && elev <= horizonElevation) {
+        int lowMin = m - 15;
+        int highMin = m;
+        for (int step = 0; step < 6; step++) {
+          final midMin = (lowMin + highMin) ~/ 2;
+          final midElev = calculate(
+            dateTime: baseDate.add(Duration(minutes: midMin)),
+            latitude: latitude,
+            longitude: longitude,
+          ).sunElevationDegrees;
+          if (midElev > horizonElevation) {
+            lowMin = midMin;
+          } else {
+            highMin = midMin;
+          }
+        }
+        sunset = baseDate.add(Duration(minutes: (lowMin + highMin) ~/ 2));
+        break;
+      }
+      prevElev = elev;
+    }
+
+    return SunTimes(sunrise: sunrise, sunset: sunset);
   }
 }

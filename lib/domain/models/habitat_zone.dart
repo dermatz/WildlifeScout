@@ -25,6 +25,7 @@ class HabitatZone {
   final double distanceToForestMeters;
   final List<LatLng> polygonPoints;
   final LatLng center;
+  final double? facingBearingDegrees; // Ausrichtung der Kante/Bucht ins Freie (0..360°)
 
   const HabitatZone({
     required this.id,
@@ -41,9 +42,48 @@ class HabitatZone {
     required this.distanceToForestMeters,
     required this.polygonPoints,
     required this.center,
+    this.facingBearingDegrees,
   });
 
   bool get isDisturbance => type == HabitatZoneType.disturbanceBuffer;
+
+  HabitatZone copyWith({
+    String? id,
+    String? osmId,
+    String? osmTag,
+    String? speciesId,
+    String? speciesName,
+    String? title,
+    String? subtitle,
+    HabitatZoneType? type,
+    double? suitabilityScore,
+    double? distanceToNearestTrailMeters,
+    double? distanceToWaterMeters,
+    double? distanceToForestMeters,
+    List<LatLng>? polygonPoints,
+    LatLng? center,
+    double? facingBearingDegrees,
+  }) {
+    return HabitatZone(
+      id: id ?? this.id,
+      osmId: osmId ?? this.osmId,
+      osmTag: osmTag ?? this.osmTag,
+      speciesId: speciesId ?? this.speciesId,
+      speciesName: speciesName ?? this.speciesName,
+      title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
+      type: type ?? this.type,
+      suitabilityScore: suitabilityScore ?? this.suitabilityScore,
+      distanceToNearestTrailMeters:
+          distanceToNearestTrailMeters ?? this.distanceToNearestTrailMeters,
+      distanceToWaterMeters: distanceToWaterMeters ?? this.distanceToWaterMeters,
+      distanceToForestMeters:
+          distanceToForestMeters ?? this.distanceToForestMeters,
+      polygonPoints: polygonPoints ?? this.polygonPoints,
+      center: center ?? this.center,
+      facingBearingDegrees: facingBearingDegrees ?? this.facingBearingDegrees,
+    );
+  }
 }
 
 class DisturbanceTrail {

@@ -33,6 +33,10 @@ class AppSettings {
   /// Ob der Wind- & Geruchskegel auf der Karte angezeigt werden soll.
   final bool showWindScentCone;
 
+  /// Ob rot markierte Störwege & Pufferzonen (Wanderpfade, Forst- & Wirtschaftswege)
+  /// auf der Karte angezeigt werden sollen. Standardwert: false (nur wenn aktiv eingeschaltet).
+  final bool showDisturbanceLayer;
+
   /// Ob der Kompass-Peilstrahl auf den realen optischen Bildwinkel (FOV)
   /// des konfigurierten Foto-Objektivs angepasst werden soll.
   final bool showLensFieldOfView;
@@ -58,6 +62,7 @@ class AppSettings {
   /// Standardwerte für Sensorik, Optik & Einheiten
   static const bool defaultShowCompassHeadingBeam = true;
   static const bool defaultShowWindScentCone = true;
+  static const bool defaultShowDisturbanceLayer = false;
   static const bool defaultShowLensFieldOfView = true;
   static const String defaultWindSpeedUnit = 'kmh';
   static const String defaultDistanceUnit = 'metric';
@@ -72,6 +77,7 @@ class AppSettings {
     this.severeWeatherSoundAndHaptics = defaultSevereWeatherSoundAndHaptics,
     this.showCompassHeadingBeam = defaultShowCompassHeadingBeam,
     this.showWindScentCone = defaultShowWindScentCone,
+    this.showDisturbanceLayer = defaultShowDisturbanceLayer,
     this.showLensFieldOfView = defaultShowLensFieldOfView,
     this.windSpeedUnit = defaultWindSpeedUnit,
     this.distanceUnit = defaultDistanceUnit,
@@ -87,6 +93,7 @@ class AppSettings {
     bool? severeWeatherSoundAndHaptics,
     bool? showCompassHeadingBeam,
     bool? showWindScentCone,
+    bool? showDisturbanceLayer,
     bool? showLensFieldOfView,
     String? windSpeedUnit,
     String? distanceUnit,
@@ -106,6 +113,7 @@ class AppSettings {
       showCompassHeadingBeam:
           showCompassHeadingBeam ?? this.showCompassHeadingBeam,
       showWindScentCone: showWindScentCone ?? this.showWindScentCone,
+      showDisturbanceLayer: showDisturbanceLayer ?? this.showDisturbanceLayer,
       showLensFieldOfView: showLensFieldOfView ?? this.showLensFieldOfView,
       windSpeedUnit: windSpeedUnit ?? this.windSpeedUnit,
       distanceUnit: distanceUnit ?? this.distanceUnit,
@@ -130,6 +138,8 @@ class AppSettingsService {
       'wildlifescout_show_compass_beam_v1';
   static const String _keyShowWindScentCone =
       'wildlifescout_show_wind_scent_cone_v1';
+  static const String _keyShowDisturbanceLayer =
+      'wildlifescout_show_disturbance_layer_v1';
   static const String _keyShowLensFieldOfView =
       'wildlifescout_show_lens_field_of_view_v1';
   static const String _keyWindSpeedUnit =
@@ -147,6 +157,7 @@ class AppSettingsService {
   static const String _legacyKeySevereWeatherHaptics = 'wildscout_severe_weather_haptics_v1';
   static const String _legacyKeyShowCompassBeam = 'wildscout_show_compass_beam_v1';
   static const String _legacyKeyShowWindScentCone = 'wildscout_show_wind_scent_cone_v1';
+  static const String _legacyKeyShowDisturbanceLayer = 'wildscout_show_disturbance_layer_v1';
   static const String _legacyKeyShowLensFieldOfView = 'wildscout_show_lens_field_of_view_v1';
   static const String _legacyKeyWindSpeedUnit = 'wildscout_wind_speed_unit_v1';
   static const String _legacyKeyDistanceUnit = 'wildscout_distance_unit_v1';
@@ -191,6 +202,9 @@ class AppSettingsService {
       final showWindScentCone = prefs.getBool(_keyShowWindScentCone) ??
           prefs.getBool(_legacyKeyShowWindScentCone) ??
           AppSettings.defaultShowWindScentCone;
+      final showDisturbanceLayer = prefs.getBool(_keyShowDisturbanceLayer) ??
+          prefs.getBool(_legacyKeyShowDisturbanceLayer) ??
+          AppSettings.defaultShowDisturbanceLayer;
       final showLensFov = prefs.getBool(_keyShowLensFieldOfView) ??
           prefs.getBool(_legacyKeyShowLensFieldOfView) ??
           AppSettings.defaultShowLensFieldOfView;
@@ -223,6 +237,7 @@ class AppSettingsService {
         severeWeatherSoundAndHaptics: soundHaptics,
         showCompassHeadingBeam: showCompassBeam,
         showWindScentCone: showWindScentCone,
+        showDisturbanceLayer: showDisturbanceLayer,
         showLensFieldOfView: showLensFov,
         windSpeedUnit: windSpeedUnit,
         distanceUnit: distanceUnit,
@@ -288,6 +303,10 @@ class AppSettingsService {
         adjusted.showWindScentCone,
       );
       await prefs.setBool(
+        _keyShowDisturbanceLayer,
+        adjusted.showDisturbanceLayer,
+      );
+      await prefs.setBool(
         _keyShowLensFieldOfView,
         adjusted.showLensFieldOfView,
       );
@@ -306,6 +325,20 @@ class AppSettingsService {
   static Future<void> setWarnSevereWeather(bool enabled) async {
     final current = settingsNotifier.value;
     final updated = current.copyWith(warnSevereWeatherDuringAnsitz: enabled);
+    await saveSettings(updated);
+  }
+
+  /// Ändert spezifisch die Anzeige der rot markierten Störwege & Pufferzonen und speichert sie persistent.
+  static Future<void> setShowDisturbanceLayer(bool enabled) async {
+    final current = settingsNotifier.value;
+    final updated = current.copyWith(showDisturbanceLayer: enabled);
+    await saveSettings(updated);
+  }
+
+  /// Ändert spezifisch die Anzeige des DWD Niederschlags- & Gewitterradars und speichert sie persistent.
+  static Future<void> setShowRainRadarLayer(bool enabled) async {
+    final current = settingsNotifier.value;
+    final updated = current.copyWith(showRainRadarLayer: enabled);
     await saveSettings(updated);
   }
 

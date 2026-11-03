@@ -594,7 +594,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                                           ? '+${tc.stopLossEv.round()} Blende'
                                           : 'Volles Licht',
                                       style: const TextStyle(
-                                        fontSize: 10.5,
+                                        fontSize: 11.5,
                                         color: WildlifeScoutTheme.textMuted,
                                       ),
                                     ),
@@ -737,7 +737,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       const Text(
                         'KB-Äquivalent',
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
@@ -753,7 +753,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       Text(
                         '${gear.focalLengthMm.round()} mm × ${gear.sensorFormat.cropFactor}x',
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                           color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
@@ -775,7 +775,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                       const Text(
                         'Effektive Blende',
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
@@ -793,7 +793,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
                             ? 'inkl. ${gear.teleconverter.factor}x Konverter'
                             : 'Nativ ohne Lichtverlust',
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                           color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
@@ -858,7 +858,7 @@ class _PhotoGearSheetState extends State<PhotoGearSheet> {
         Text(
           distance,
           style: const TextStyle(
-            fontSize: 10,
+            fontSize: 11.5,
             color: WildlifeScoutTheme.textMuted,
           ),
         ),

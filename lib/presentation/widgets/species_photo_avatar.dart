@@ -140,7 +140,7 @@ class SpeciesPhotoAvatar extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 8.5,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w800,
                       color: WildlifeScoutTheme.emeraldBio,
                       letterSpacing: 0.2,

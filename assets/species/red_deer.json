@@ -6,10 +6,10 @@
   "shortDescription": "Extrem störungsempfindliches Großwild und Charaktertier weiter Wald- und Heidelandschaften. Lebt in nach Geschlechtern getrennten Rudeln und zieht meist erst in tiefer Dämmerung auf ungestörte Äsungsflächen.",
   "accentColorHex": "#F59E0B",
   "imageAssetPath": "assets/species/images/red_deer.jpg",
-  "imageUrl": "https://images.unsplash.com/photo-1792851683452-9a61fc028ba6?auto=format&fit=crop&w=800&q=80",
+  "imageUrl": "https://images.unsplash.com/photo-1792851683437-e3ef9f4e369c?auto=format&fit=crop&w=800&q=80",
   "imageAuthor": "Tim Schmidbauer",
   "imageLicense": "Unsplash License (Lizenzfrei & frei nutzbar)",
-  "imageSourceUrl": "https://unsplash.com/photos/red-deer-stag-with-antlers-G8zyqTPhAJ0",
+  "imageSourceUrl": "https://unsplash.com/photos/a-red-deer-stag-with-large-antlers-in-a-dense-coniferous-forest-1792851683437-e3ef9f4e369c",
   "behavior": {
     "scentSensitivityMeters": 450,
     "scentConeAngleDegrees": 50,

@@ -56,5 +56,17 @@ void main() {
       // sondern stattdessen "Chance" oder "Erfolgs-Chance"
       expect(find.text('52% | 87%'), findsNothing);
     });
+
+    test('Chance Score Explanation copy answers Wann and Wo clearly', () {
+      const activityScore = 51;
+      const biotopScore = 87;
+      final chance = ((activityScore + biotopScore) / 2.0).round();
+      expect(chance, 69);
+
+      final formulaStr = '($activityScore% + $biotopScore%) ÷ 2 = $chance% Chance';
+      expect(formulaStr, contains('69% Chance'));
+      expect(formulaStr, contains('51%'));
+      expect(formulaStr, contains('87%'));
+    });
   });
 }

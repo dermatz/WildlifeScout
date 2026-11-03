@@ -9,6 +9,7 @@ import '../../data/api/soil_and_terrain_client.dart';
 import '../models/habitat_zone.dart';
 import '../models/soil_substrate_profile.dart';
 import '../models/species_profile.dart';
+import 'disturbance_matrix_service.dart';
 
 class HabitatAnalysisResult {
   final List<HabitatZone> habitatZones;
@@ -33,6 +34,7 @@ enum _OsmKind {
   meadow, // Wiese / Grünland
   farmland, // Ackerfläche
   scrub, // Dickung / Hecke / Verjüngung
+  treeRow, // Lineare Baumreihe / Windschutzstreifen (kein Einstand für Schalenwild)
   wetland, // Suhle / Feuchtgebiet / Moor
   waterStream, // Bachlauf / Teich
   trailHigh, // Wanderpfad / Fußweg / Radweg (hohe Störung)
@@ -54,6 +56,7 @@ class _ParsedOsmWay {
   final double maxLat;
   final double minLon;
   final double maxLon;
+  final double? facingBearingDegrees;
 
   const _ParsedOsmWay._({
     required this.osmId,
@@ -69,6 +72,7 @@ class _ParsedOsmWay {
     required this.maxLat,
     required this.minLon,
     required this.maxLon,
+    this.facingBearingDegrees,
   });
 
   factory _ParsedOsmWay({
@@ -81,6 +85,7 @@ class _ParsedOsmWay {
     required bool isClosedPolygon,
     required double areaHectares,
     required double maxSpanMeters,
+    double? facingBearingDegrees,
   }) {
     double minLat = 90.0, maxLat = -90.0, minLon = 180.0, maxLon = -180.0;
     for (final p in points) {
@@ -103,6 +108,7 @@ class _ParsedOsmWay {
       maxLat: maxLat,
       minLon: minLon,
       maxLon: maxLon,
+      facingBearingDegrees: facingBearingDegrees,
     );
   }
 
@@ -116,6 +122,7 @@ class _ParsedOsmWay {
     required bool isClosedPolygon,
     required double areaHectares,
     required double maxSpanMeters,
+    double? facingBearingDegrees,
   }) = _ParsedOsmWay;
 }
 
@@ -297,6 +304,11 @@ class HabitatSuitabilityEngine {
       final updatedSubtitle =
           '${z.subtitle} • ${slopeSample.compactLabel}';
 
+      double? facing = z.facingBearingDegrees;
+      if (facing == null && slopeSample.slopeDegrees >= 3.0) {
+        facing = _cardinalToDegrees(slopeSample.aspectCardinal);
+      }
+
       updatedZones.add(
         HabitatZone(
           id: z.id,
@@ -313,6 +325,7 @@ class HabitatSuitabilityEngine {
           distanceToForestMeters: z.distanceToForestMeters,
           polygonPoints: z.polygonPoints,
           center: z.center,
+          facingBearingDegrees: facing,
         ),
       );
     }
@@ -334,12 +347,12 @@ class HabitatSuitabilityEngine {
   static Future<List<Map<String, dynamic>>> _fetchSectorElementsFromOsm(
     LatLng origin,
   ) async {
-    // Kompakter, schneller Beobachtungs-Sektor (~1,6 km Durchmesser, <50.000 Nodes selbst am Stadtrand)
+    // Erweiterter Beobachtungs-Sektor (+50% Radius: ~2,4 km Durchmesser)
     final bbox = CoordinateGuard.buildPrivacyBoundingBoxForOsm(
       origin.latitude,
       origin.longitude,
-      latHalfSpan: 0.0070,
-      lonHalfSpan: 0.0100,
+      latHalfSpan: 0.0105,
+      lonHalfSpan: 0.0150,
     );
 
     // 1. Primärer Abruf: Offizielle OpenStreetMap API v0.6 (JSON)
@@ -408,13 +421,13 @@ class HabitatSuitabilityEngine {
       }
     } catch (_) {}
 
-    // 3. Fallback: Noch kompakterer 900m-Kern-Radius um den Ansitz
+    // 3. Fallback: Kompakterer Kern-Radius um den Ansitz
     try {
       final microBbox = CoordinateGuard.buildPrivacyBoundingBoxForOsm(
         origin.latitude,
         origin.longitude,
-        latHalfSpan: 0.0040,
-        lonHalfSpan: 0.0060,
+        latHalfSpan: 0.0060,
+        lonHalfSpan: 0.0090,
       );
       final uri = Uri.https('api.openstreetmap.org', '/api/0.6/map.json', {
         'bbox':
@@ -762,7 +775,7 @@ class HabitatSuitabilityEngine {
           _distance.as(LengthUnit.Meter, pts.first, pts.last) < 40.0;
       final computedHa = isClosed
           ? _computePolygonAreaHectares(pts)
-          : (span > 350.0 ? 25.0 : 0.4);
+          : (span > 350.0 ? 25.0 : math.max(0.02, (span * 8.0) / 10000.0));
       final effectiveHa = math.max(computedHa, minAreaOverrideHa);
 
       // WICHTIGE WILDBIOLOGISCHE TRENNUNG:
@@ -799,6 +812,9 @@ class HabitatSuitabilityEngine {
           farmlands.add(parsed);
         case _OsmKind.scrub:
           scrubs.add(parsed);
+        case _OsmKind.treeRow:
+          // Lineare Baumreihen bilden keine selbstständigen Habitate für Schalenwild
+          break;
         case _OsmKind.wetland:
           wetlands.add(parsed);
         case _OsmKind.waterStream:
@@ -825,12 +841,10 @@ class HabitatSuitabilityEngine {
 
       if (highway != null) {
         if (const {
-          'path',
-          'footway',
           'cycleway',
+          'pedestrian',
           'bridleway',
           'steps',
-          'pedestrian',
         }.contains(highway)) {
           registerCategorizedWay(
             idStr: idStr,
@@ -839,12 +853,69 @@ class HabitatSuitabilityEngine {
             rawKind: _OsmKind.trailHigh,
             pts: pts,
           );
+        } else if (highway == 'path' || highway == 'footway') {
+          // Differenzierung: Stark frequentierter Wander-/Spazierweg VS. unbedeutender Trampelpfad
+          final isExplicitRecreationTrail =
+              name != null ||
+              tags['footway'] == 'designated' ||
+              tags['bicycle'] == 'designated' ||
+              tags['sac_scale'] != null ||
+              tags['route'] == 'hiking' ||
+              tags['hiking'] == 'yes' ||
+              const {'asphalt', 'paved', 'concrete', 'sett'}.contains(tags['surface']);
+
+          final isInformalOrUnpaved =
+              tags['informal'] == 'yes' ||
+              const {'bad', 'horrible', 'intermediate', 'no'}.contains(tags['trail_visibility']) ||
+              const {'ground', 'dirt', 'grass', 'earth', 'mud', 'sand'}.contains(tags['surface']);
+
+          if (isExplicitRecreationTrail && !isInformalOrUnpaved) {
+            registerCategorizedWay(
+              idStr: idStr,
+              primaryTag: 'highway=$highway',
+              name: name,
+              rawKind: _OsmKind.trailHigh,
+              pts: pts,
+            );
+          } else {
+            // Natürlicher Trampelpfad / Feld- & Waldpfad: kaum menschliche Bewegung,
+            // von Wildtieren oft selbst als Wechsel genutzt.
+            registerCategorizedWay(
+              idStr: idStr,
+              primaryTag: 'highway=$highway',
+              name: name,
+              rawKind: _OsmKind.trailTrack,
+              pts: pts,
+            );
+          }
         } else if (highway == 'track' || highway == 'service') {
+          // Differenzierung für Wirtschaftswege:
+          // 1. Benannte Wirtschaftswege (z.B. "Esslinger Weg", "Kurzwiesenäcker", "Ohmenkehl"):
+          //    Wichtige Verbindungswege, die intensiv von Radfahrern, E-Bikern und Spaziergängern genutzt werden!
+          // 2. Befestigte/asphaltierte Flurwege (tracktype=grade1, surface=asphalt/paved/concrete/compacted)
+          //    oder ausgewiesene Fahrradrouten (bicycle=yes/designated, route=bicycle):
+          //    Beliebte Radwege und Zubringer mit echtem Freizeitdruck.
+          // 3. Namenlose Acker- & Wiesenraine, Erdspuren (name=null, tracktype=grade3/4/5, unbefestigt):
+          //    Reine landwirtschaftliche Fahrspuren ohne nennenswerten Freizeitverkehr.
+          final hasName = name != null && name.trim().isNotEmpty;
+          final isPavedOrCycle =
+              tags['tracktype'] == 'grade1' ||
+              tags['bicycle'] == 'yes' ||
+              tags['bicycle'] == 'designated' ||
+              tags['route'] == 'bicycle' ||
+              const {'asphalt', 'paved', 'concrete', 'compacted'}.contains(tags['surface']);
+
+          final isFrequentedWirtschaftsweg = hasName || isPavedOrCycle;
+
           registerCategorizedWay(
             idStr: idStr,
-            primaryTag: 'highway=$highway',
+            primaryTag: isFrequentedWirtschaftsweg
+                ? 'highway=$highway;frequented=yes'
+                : 'highway=$highway',
             name: name,
-            rawKind: _OsmKind.trailTrack,
+            rawKind: isFrequentedWirtschaftsweg
+                ? _OsmKind.trailHigh
+                : _OsmKind.trailTrack,
             pts: pts,
           );
         } else if (const {
@@ -893,8 +964,15 @@ class HabitatSuitabilityEngine {
           rawKind: _OsmKind.farmland,
           pts: pts,
         );
+      } else if (natural == 'tree_row') {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: 'natural=tree_row',
+          name: name,
+          rawKind: _OsmKind.treeRow,
+          pts: pts,
+        );
       } else if (natural == 'scrub' ||
-          natural == 'tree_row' ||
           natural == 'earth_bank' ||
           natural == 'cliff' ||
           tags['man_made'] == 'embankment' ||
@@ -951,61 +1029,33 @@ class HabitatSuitabilityEngine {
       );
     }
 
-    // 1. Störungswege aufbauen (auf kreisförmigen 1.750m-Radius begrenzt & geglättet
-    //    für flüssige 60-FPS-Kartendarstellung ohne tausende Stadtstraßen-Polylines)
-    final pathPenaltyRadius = _penaltyRadiusForTag(
-      species,
-      'highway=path',
-      fallback: 90.0,
-    );
-    final cyclePenaltyRadius = _penaltyRadiusForTag(
-      species,
-      'highway=cycleway',
-      fallback: 120.0,
-    );
-    final trackPenaltyRadius = _penaltyRadiusForTag(
-      species,
-      'highway=track',
-      fallback: 60.0,
-    );
-
+    // 1. Störungswege aufbauen anhand der wissenschaftlichen Störungsmatrix (YAML/Config)
     final candidateTrailWays = <({double dist, _ParsedOsmWay way})>[];
-    for (final w in [...trailsHigh, ...trailsTrack, ...roadsAndSettlements]) {
-      if (w.primaryTag == 'highway=service' ||
-          w.primaryTag == 'highway=living_street' ||
-          w.primaryTag == 'highway=steps') {
+    for (final w in [...trailsHigh, ...roadsAndSettlements]) {
+      // Nur Wege aufnehmen, die laut Matrix als rote Störungskorridore definiert sind
+      if (!DisturbanceMatrixService.shouldRenderRedLine(w.primaryTag)) {
         continue;
       }
       final distFromOrigin = _distance.as(LengthUnit.Meter, origin, w.centroid);
-      if (distFromOrigin <= 2350.0) {
+      if (distFromOrigin <= DisturbanceMatrixService.displayDistanceMeters) {
         candidateTrailWays.add((dist: distFromOrigin, way: w));
       }
     }
     candidateTrailWays.sort((a, b) => a.dist.compareTo(b.dist));
 
     final disturbanceTrails = <DisturbanceTrail>[];
-    for (final entry in candidateTrailWays.take(280)) {
+    for (final entry in candidateTrailWays.take(DisturbanceMatrixService.maxRenderWays)) {
       final w = entry.way;
-      final isCycle = w.primaryTag.contains('cycleway');
-      final isRoad = w.kind == _OsmKind.roadSettlement;
-      final isTrack = w.kind == _OsmKind.trailTrack;
-
-      final double radius;
-      if (isRoad) {
-        radius = cyclePenaltyRadius * 1.15;
-      } else if (isCycle) {
-        radius = cyclePenaltyRadius;
-      } else if (isTrack) {
-        radius = trackPenaltyRadius;
-      } else {
-        radius = pathPenaltyRadius;
-      }
+      final radius = DisturbanceMatrixService.getRadius(
+        w.primaryTag,
+        speciesId: species.id,
+      );
 
       disturbanceTrails.add(
         DisturbanceTrail(
           id: 'trail_${w.osmId}',
           osmId: w.osmId,
-          name: w.name ?? 'OSM ${_germanLabelForTag(w.primaryTag)}',
+          name: w.name ?? 'OSM ${DisturbanceMatrixService.getGermanLabel(w.primaryTag)}',
           trailType: w.primaryTag,
           bufferRadiusMeters: radius,
           pathPoints: _simplifyPolylinePoints(w.points, maxVertices: 24),
@@ -1023,7 +1073,14 @@ class HabitatSuitabilityEngine {
       ...roadsAndSettlements,
     ];
     final allWaterWays = [...wetlands, ...waterStreams];
-    final allForestsAndWoodlots = [...largeForests, ...smallWoodlots];
+    final substantialForests = [
+      ...largeForests,
+      ...smallWoodlots.where((w) => w.areaHectares >= 0.75),
+    ];
+    final allForestsAndWoodlots = [
+      ...largeForests,
+      ...smallWoodlots.where((w) => w.areaHectares >= 0.35),
+    ];
 
     // 2. Echte Waldrand-Austrittskanten UND Tiefen-Ruhezonen an Wäldern extrahieren!
     final forestEdgeAndDeepZones = <_ParsedOsmWay>[];
@@ -1060,6 +1117,9 @@ class HabitatSuitabilityEngine {
         );
         if (corridor.length >= 4) {
           lastAddedEdgeCenter = segCenter;
+          // Ausrichtung der Waldkante nach außen (vom Waldschwerpunkt zum Kantenabschnitt)
+          final facingBearing =
+              (_distance.bearing(forest.centroid, segCenter) + 360.0) % 360.0;
           forestEdgeAndDeepZones.add(
             _ParsedOsmWay.withBounds(
               osmId: '${forest.osmId}_edge_${edgeIdx++}',
@@ -1071,6 +1131,7 @@ class HabitatSuitabilityEngine {
               isClosedPolygon: true,
               areaHectares: forest.areaHectares,
               maxSpanMeters: forest.maxSpanMeters,
+              facingBearingDegrees: facingBearing,
             ),
           );
         }
@@ -1140,6 +1201,17 @@ class HabitatSuitabilityEngine {
               maxSearchMeters: 220.0,
             );
 
+      // Abstand zum nächsten substanziellen Wald oder Feldgehölz (>= 0.75 ha) für Waldrand-Austritte
+      final distToSubstantialForest = cand.kind == _OsmKind.largeForest ||
+              (cand.kind == _OsmKind.smallWoodlot && cand.areaHectares >= 0.75) ||
+              (cand.kind == _OsmKind.forestEdgeBay && cand.areaHectares >= 0.75)
+          ? 0.0
+          : _minSegmentDistanceToWaysMeters(
+              cand.centroid,
+              substantialForests,
+              maxSearchMeters: 220.0,
+            );
+
       // Abstand zum nächsten Wald oder Feldgehölz (wichtig für Rehwild)
       final distToAnyForest = cand.kind == _OsmKind.largeForest ||
               cand.kind == _OsmKind.smallWoodlot ||
@@ -1175,7 +1247,7 @@ class HabitatSuitabilityEngine {
         final evaluation = _scoreCandidateBiologically(
           candidate: cand,
           species: sp,
-          distToNearestTrailMeters: trailStats.minDistanceToAnyTrail,
+          distToNearestTrailMeters: trailStats.minDistanceToHighTrail,
           distToHighTrailMeters: trailStats.minDistanceToHighTrail,
           distToTrackMeters: trailStats.minDistanceToTrack,
           distToNearestRoadMeters: trailStats.minDistanceToRoad,
@@ -1183,6 +1255,7 @@ class HabitatSuitabilityEngine {
               trailStats.surroundingHighTrailQuadrants,
           distToWaterMeters: distToWater,
           distToLargeForestMeters: distToLargeForest,
+          distToSubstantialForestMeters: distToSubstantialForest,
           distToAnyForestMeters: distToAnyForest,
           distToMeadowMeters: distToMeadow,
           distToFarmlandMeters: distToFarmland,
@@ -1204,11 +1277,12 @@ class HabitatSuitabilityEngine {
             subtitle: evaluation.subtitle,
             type: evaluation.zoneType,
             suitabilityScore: evaluation.score,
-            distanceToNearestTrailMeters: trailStats.minDistanceToAnyTrail,
+            distanceToNearestTrailMeters: trailStats.minDistanceToHighTrail,
             distanceToWaterMeters: distToWater,
             distanceToForestMeters: distToAnyForest,
             polygonPoints: cand.points,
             center: cand.centroid,
+            facingBearingDegrees: cand.facingBearingDegrees,
           ),
         ));
       }
@@ -1256,6 +1330,7 @@ class HabitatSuitabilityEngine {
           distanceToForestMeters: z.distanceToForestMeters,
           polygonPoints: polygonPts,
           center: _computeCentroid(polygonPts),
+          facingBearingDegrees: z.facingBearingDegrees,
         ),
       );
       if (deduplicatedZones.length >= 14) break;
@@ -1294,6 +1369,7 @@ class HabitatSuitabilityEngine {
     required int surroundingHighTrailQuadrants,
     required double distToWaterMeters,
     required double distToLargeForestMeters,
+    required double distToSubstantialForestMeters,
     required double distToAnyForestMeters,
     required double distToMeadowMeters,
     required double distToFarmlandMeters,
@@ -1313,23 +1389,29 @@ class HabitatSuitabilityEngine {
 
     if (id == 'roe_deer') {
       // FOKUS-ART REHWILD (Capreolus capreolus):
-      // - Klassischer Konzentratselektierer & Kulturfolger der Wald-Feld-Kanten!
-      // - Forst- und Feldwege (`highway=track`) an Waldkanten oder Wiesen sind
-      //   KEIN Ausschlussgrund, sondern typische Äsungsstreifen & Pirschwege!
-      // - Selbst Wander-/Fußwege (`trailHigh`) löschen ein Rehwild-Habitat nicht
-      //   pauschal aus, sondern reduzieren den Score nur moderat je nach Nähe,
-      //   damit auch in wegereichen Revieren verlässlich Einstände und
-      //   Austrittskanten gefunden werden.
+      // - Klassischer Konzentratselektierer & Schlüpfertyp der Wald-Feld-Kanten.
+      // - Waldränder, Wiesen und lichte Waldbuchten bilden Top-Äsungs- und Einstandsflächen.
+      // - Einstandsqualität (Tageseinstände):
+      //   * Echte Hochwälder (largeForest) und Waldrandbuchten (forestEdgeBay) sind Top-Einstände.
+      //   * Kleine Feldgehölze (smallWoodlot) bieten nur dann verlässliche Deckung und Ruhe, wenn
+      //     sie eine geschlossene Fläche mit Mindestgröße (>= 0.55 ha isoliert, bzw. >= 0.35 ha waldfolgend)
+      //     aufweisen und nicht durch extrem langgestreckte Form (< 0.75 ha bei span > 190m)
+      //     nur eine winddurchzogene Baumreihe darstellen.
+      //   * Dichte Dickungen (scrub wie Schwarzdorn/Brombeere) müssen kompakte geschlossene
+      //     Flächen (>= 0.40 ha) sein.
+      //   * Lineare Baumreihen (tree_row) bieten weder Bodendeckung noch Sichtschutz und
+      //     werden niemals als Einstand gewählt.
+      //   * Störung an Wegen: In kleinen Gehölzen (< 1.5 ha) meidet Rehwild unmittelbare Wegnähe (< 18m).
 
       // Sanfter Ruhe-/Störungsfaktor für Rehwild:
       // - Hauptwege (Fuß-/Radwege): bis +9 Punkte Bonus bei Ruhe, max -6 Punkte nah am Weg
-      // - Forst-/Feldwege (track): fast neutral (+2 Punkte bei Ruhe, max -1.5 Punkte direkt am Weg)
+      // - Forst-/Feldwege (track): fast neutral (+2 Punkte bei Ruhe, max -2.5 Punkte direkt am Weg)
       final highTrailFactor = distToHighTrailMeters >= 35.0
           ? (distToHighTrailMeters.clamp(35.0, 220.0) - 35.0) * 0.048
           : -((35.0 - distToHighTrailMeters) / 35.0) * 6.0;
       final trackFactor = distToTrackMeters >= 20.0
           ? (distToTrackMeters.clamp(20.0, 140.0) - 20.0) * 0.018
-          : -((20.0 - distToTrackMeters) / 20.0) * 1.5;
+          : -((20.0 - distToTrackMeters) / 20.0) * 2.5;
       final quietAdjust = highTrailFactor + trackFactor;
 
       if (candidate.kind == _OsmKind.forestEdgeBay) {
@@ -1348,12 +1430,12 @@ class HabitatSuitabilityEngine {
                   ? 'Wald-Feld-Austrittskante'
                   : 'Waldrand-Saum');
       } else if (candidate.kind == _OsmKind.meadow &&
-          distToAnyForestMeters <= 150.0) {
+          distToSubstantialForestMeters <= 150.0) {
         final forestProximityBonus =
-            6.5 - (distToAnyForestMeters.clamp(0.0, 150.0) * 0.035);
+            6.5 - (distToSubstantialForestMeters.clamp(0.0, 150.0) * 0.035);
         score = 71.0 + forestProximityBonus + quietAdjust;
         zoneType = HabitatZoneType.optimalEdge;
-        title = distToAnyForestMeters <= 65.0
+        title = distToSubstantialForestMeters <= 65.0
             ? 'Äsungswiese am Waldrand'
             : 'Waldnahe Äsungswiese';
       } else if (candidate.kind == _OsmKind.largeForest &&
@@ -1362,20 +1444,64 @@ class HabitatSuitabilityEngine {
         score = 69.0 + areaBonus + quietAdjust;
         zoneType = HabitatZoneType.coreRefuge;
         title = 'Waldeinstand (${candidate.areaHectares.round()} ha)';
-      } else if ((candidate.kind == _OsmKind.scrub ||
-              candidate.kind == _OsmKind.smallWoodlot) &&
-          candidate.areaHectares >= 0.18) {
-        final forestBonus = distToAnyForestMeters <= 120.0 ? 3.5 : 1.0;
-        score = 67.5 + forestBonus + quietAdjust;
+      } else if (candidate.kind == _OsmKind.smallWoodlot) {
+        // Feldgehölz / Remise:
+        // Muss zwingend ein geschlossenes Flächen-Polygon sein (keine bloße Linie)
+        if (!candidate.isClosedPolygon) return null;
+
+        final isIsolated = distToLargeForestMeters > 70.0;
+        final minHa = isIsolated ? 0.55 : 0.35;
+        if (candidate.areaHectares < minHa) return null;
+
+        // Extrem schmale, langgezogene Baumstreifen filtern (kein Kernbereich)
+        if (candidate.areaHectares < 0.75 && candidate.maxSpanMeters > 190.0) {
+          return null;
+        }
+
+        // In kleinen Gehölzen (< 1.5 ha) führt direkte Wegnähe (< 18m) zu Fluchtunruhe
+        if (candidate.areaHectares < 1.5 && distToNearestTrailMeters < 18.0) {
+          return null;
+        }
+
+        final trailBufferPenalty =
+            (candidate.areaHectares < 1.5 && distToNearestTrailMeters < 32.0)
+                ? ((32.0 - distToNearestTrailMeters) / 32.0) * 3.5
+                : 0.0;
+
+        final forestBonus = distToLargeForestMeters <= 70.0 ? 3.0 : 0.5;
+        score = 62.5 +
+            (candidate.areaHectares.clamp(0.4, 2.5) * 2.2) +
+            forestBonus +
+            quietAdjust -
+            trailBufferPenalty;
         zoneType = HabitatZoneType.coreRefuge;
-        title = candidate.kind == _OsmKind.scrub
-            ? 'Dickung / Hecken-Einstand (${candidate.areaHectares.toStringAsFixed(1)} ha)'
-            : 'Feldgehölz-Einstand (${candidate.areaHectares.toStringAsFixed(1)} ha)';
+        title =
+            'Feldgehölz-Einstand (${candidate.areaHectares.toStringAsFixed(1)} ha)';
+      } else if (candidate.kind == _OsmKind.scrub) {
+        // Dichte Dickung (Schwarzdorn, Brombeere, Verjüngungskegel)
+        if (!candidate.isClosedPolygon) return null;
+        if (candidate.areaHectares < 0.40) return null;
+        if (candidate.areaHectares < 0.75 && candidate.maxSpanMeters > 180.0) {
+          return null;
+        }
+        if (distToNearestTrailMeters < 18.0) return null;
+
+        final trailBufferPenalty = distToNearestTrailMeters < 30.0
+            ? ((30.0 - distToNearestTrailMeters) / 30.0) * 3.0
+            : 0.0;
+
+        final forestBonus =
+            distToSubstantialForestMeters <= 100.0 ? 2.5 : 0.0;
+        score = 63.5 + forestBonus + quietAdjust - trailBufferPenalty;
+        zoneType = HabitatZoneType.coreRefuge;
+        title =
+            'Dickungs-Einstand (${candidate.areaHectares.toStringAsFixed(1)} ha)';
       } else if (candidate.kind == _OsmKind.farmland &&
-          distToAnyForestMeters <= 55.0) {
-        score = 66.5 + quietAdjust;
+          distToSubstantialForestMeters <= 50.0) {
+        final isOrchard = candidate.primaryTag == 'landuse=orchard';
+        score = (isOrchard ? 67.5 : 63.5) + quietAdjust;
         zoneType = HabitatZoneType.optimalEdge;
-        title = 'Wald-Feld-Äsungskante';
+        title = isOrchard ? 'Streuobstwiesen-Äsung' : 'Wald-Feld-Äsungskante';
       } else {
         return null;
       }
@@ -1606,7 +1732,7 @@ class HabitatSuitabilityEngine {
     final clampedScore = score.clamp(35.0, 93.0);
     if (clampedScore < 58.0) return null;
 
-    final trailInfo = '${distToNearestTrailMeters.round()}m zum nächsten Weg';
+    final trailInfo = '${distToNearestTrailMeters.round()}m zum nächsten Wanderweg';
     final densityInfo = surroundingHighTrailQuadrants <= 1
         ? 'Ruhige Lage'
         : 'Wege in $surroundingHighTrailQuadrants Richtungen';
@@ -2170,31 +2296,29 @@ class HabitatSuitabilityEngine {
     return LatLng(latSum / pts.length, lonSum / pts.length);
   }
 
-  static double _penaltyRadiusForTag(
-    SpeciesProfile species,
-    String tag, {
-    required double fallback,
-  }) {
-    for (final rule in species.habitatRules.disturbancePenalties) {
-      if (rule.osmTag == tag) return rule.radiusMeters;
-    }
-    return fallback;
-  }
-
-  static String _germanLabelForTag(String tag) {
-    switch (tag) {
-      case 'highway=path':
-        return 'Wanderpfad';
-      case 'highway=footway':
-        return 'Fußweg';
-      case 'highway=cycleway':
-        return 'Radweg';
-      case 'highway=track':
-        return 'Forst-/Feldweg';
-      case 'highway=service':
-        return 'Wirtschaftsweg';
+  static double? _cardinalToDegrees(String cardinal) {
+    switch (cardinal.toUpperCase()) {
+      case 'N':
+        return 0.0;
+      case 'NO':
+      case 'NE':
+        return 45.0;
+      case 'O':
+      case 'E':
+        return 90.0;
+      case 'SO':
+      case 'SE':
+        return 135.0;
+      case 'S':
+        return 180.0;
+      case 'SW':
+        return 225.0;
+      case 'W':
+        return 270.0;
+      case 'NW':
+        return 315.0;
       default:
-        return tag;
+        return null;
     }
   }
 

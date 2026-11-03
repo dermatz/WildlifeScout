@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,11 +63,21 @@ class DeviceLocationService {
   }
 
   /// Ermittelt den aktuellen Standort:
-  /// 1. Primär über echte Geräte-/Browser-Geolocation (GPS / WLAN).
-  /// 2. Falls im Browser/OS blockiert oder nicht verfügbar: grobe IP-basierte
-  ///    Standortbestimmung als Fallback, damit man nicht an einem fremden
-  ///    Dummy-Ort landet.
+  /// 1. Primär über echte Hardware-GPS-Sensoren (Android / iOS via Geolocator).
+  /// 2. Sekundär über Browser-Geolocation (Flutter Web).
+  /// 3. Falls im OS blockiert oder ohne GPS-Fix: grobe IP-basierte
+  ///    Standortbestimmung als Notfall-Fallback.
   static Future<DeviceLocationResult?> determineCurrentLocation() async {
+    // 1. Echte Hardware-GPS-Ortung des Smartphones
+    final nativeGps = await _getNativeGpsLocation();
+    if (nativeGps != null) {
+      return DeviceLocationResult(
+        coordinate: nativeGps,
+        isExactGps: true,
+      );
+    }
+
+    // 2. Web-Browser-Ortung
     final gpsCoord = await getBrowserGeolocation();
     if (gpsCoord != null &&
         CoordinateGuard.isValidCoordinate(
@@ -78,11 +90,66 @@ class DeviceLocationService {
       );
     }
 
+    // 3. Notfall-Fallback: IP-basierte Grob-Ortung
     final ipFallback = await _fetchApproximateIpLocation();
     if (ipFallback != null) {
       return ipFallback;
     }
 
+    return null;
+  }
+
+  static Future<LatLng?> _getNativeGpsLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        debugPrint('[DeviceLocationService] Location service disabled on device');
+        return null;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          debugPrint('[DeviceLocationService] Location permission denied by user');
+          return null;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        debugPrint('[DeviceLocationService] Location permission denied forever');
+        return null;
+      }
+
+      // 1. Letzte bekannte Position vorab prüfen
+      Position? position;
+      try {
+        position = await Geolocator.getLastKnownPosition();
+      } catch (_) {}
+
+      // 2. Frische, genaue GPS-Position ermitteln
+      try {
+        final fresh = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 7),
+          ),
+        );
+        position = fresh;
+      } catch (e) {
+        debugPrint('[DeviceLocationService] getCurrentPosition error: $e');
+      }
+
+      if (position != null &&
+          CoordinateGuard.isValidCoordinate(
+            position.latitude,
+            position.longitude,
+          )) {
+        return LatLng(position.latitude, position.longitude);
+      }
+    } catch (e) {
+      debugPrint('[DeviceLocationService] Native GPS exception: $e');
+    }
     return null;
   }
 

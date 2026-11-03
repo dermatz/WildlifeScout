@@ -271,7 +271,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                             child: Text(
                               _useLiveHeading ? 'VISIER' : 'NORDEN',
                               style: const TextStyle(
-                                fontSize: 8.5,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.black,
                                 letterSpacing: 0.5,
@@ -402,7 +402,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                             : 'Kein Sensor aktiv')
                         : 'Feste Nordung (Kartenmodus)',
                     style: TextStyle(
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: _useLiveHeading
                           ? WildlifeScoutTheme.cyanWater
@@ -451,7 +451,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       Text(
                         'Live',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: _useLiveHeading
                               ? Colors.white
@@ -496,7 +496,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       Text(
                         'Nord',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: !_useLiveHeading
                               ? Colors.white
@@ -575,7 +575,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 Text(
                   _useLiveHeading ? label : 'WINDLAGE (KARTENMODUS)',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.4,
                     color: accentColor,
@@ -587,7 +587,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                       ? description
                       : 'Wind kommt aus ${widget.weather.windCardinalLabel} (${windDir.round()}°), Geruch zieht nach ${_cardinalFromDegrees(scentDir)} (${scentDir.round()}°).',
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                     color: WildlifeScoutTheme.textPrimary,
                     height: 1.3,
@@ -741,7 +741,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         Text(
                           'WITTERUNGSKEGEL',
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.4,
                             color: WildlifeScoutTheme.crimsonScent,
@@ -753,7 +753,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                     Text(
                       '${scentDir.round()}° (${_cardinalFromDegrees(scentDir)})',
                       style: const TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                       ),
@@ -762,7 +762,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                     Text(
                       '±${(coneAngle / 2).round()}° • bis ${scentDist.round()} m',
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFFFB4C0),
                       ),
@@ -799,7 +799,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         Text(
                           'SICHERE ANNÄHERUNG',
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.4,
                             color: WildlifeScoutTheme.emeraldBio,
@@ -811,7 +811,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                     Text(
                       '${windDir.round()}° (${widget.weather.windCardinalLabel})',
                       style: const TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                       ),
@@ -820,7 +820,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                     const Text(
                       'Gegenwind bläst nach hinten',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: WildlifeScoutTheme.emeraldBio,
                       ),
@@ -981,7 +981,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                   Text(
                     'WIND-DREHUNG IM TAGESGANG',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.4,
                       color: WildlifeScoutTheme.textMuted,
@@ -1063,7 +1063,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
           child: Text(
             'PEILUNG ZU SPOTS & BIOTOPEN',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 11.5,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
               color: WildlifeScoutTheme.textMuted,
@@ -1155,7 +1155,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                         child: const Text(
                           'FOKUS',
                           style: TextStyle(
-                            fontSize: 8.5,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w900,
                             color: WildlifeScoutTheme.amberGold,
                           ),
@@ -1168,7 +1168,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
                 Text(
                   'Peilung ${info.bearingDeg.round()}° (${_cardinalFromDegrees(info.bearingDeg)}) • ${info.distanceMeters.round()} m',
                   style: const TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: WildlifeScoutTheme.textMuted,
                   ),
@@ -1186,7 +1186,7 @@ class _WindScentCompassSheetState extends State<WindScentCompassSheet> {
             child: Text(
               badgeText,
               style: TextStyle(
-                fontSize: 8.5,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w900,
                 color: badgeColor,
                 letterSpacing: 0.4,
@@ -1242,7 +1242,7 @@ class _TimePresetButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 11.5,
               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               color: isSelected ? Colors.white : WildlifeScoutTheme.textMuted,
             ),
@@ -1490,13 +1490,13 @@ class _FieldCompassPainter extends CustomPainter {
           canvas: canvas,
           text: '$deg°',
           center: Offset(
-            center.dx + (radius - 17) * math.cos(rad),
-            center.dy + (radius - 17) * math.sin(rad),
+            center.dx + (radius - 18) * math.cos(rad),
+            center.dy + (radius - 18) * math.sin(rad),
           ),
           style: TextStyle(
-            fontSize: 7.5,
+            fontSize: 9.0,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.45),
+            color: Colors.white.withValues(alpha: 0.55),
           ),
         );
       }
@@ -1504,14 +1504,14 @@ class _FieldCompassPainter extends CustomPainter {
 
     // Kardinal-Punkte N, O, S, W & Zwischenkardinäle NO, SO, SW, NW
     final cardinals = [
-      (0, 'N', WildlifeScoutTheme.crimsonScent, 13.0, FontWeight.w900),
-      (45, 'NO', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
-      (90, 'O', Colors.white, 12.0, FontWeight.w800),
-      (135, 'SO', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
-      (180, 'S', Colors.white, 12.0, FontWeight.w800),
-      (225, 'SW', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
-      (270, 'W', Colors.white, 12.0, FontWeight.w800),
-      (315, 'NW', WildlifeScoutTheme.textMuted, 9.5, FontWeight.w700),
+      (0, 'N', WildlifeScoutTheme.crimsonScent, 13.5, FontWeight.w900),
+      (45, 'NO', WildlifeScoutTheme.textMuted, 11.0, FontWeight.w700),
+      (90, 'O', Colors.white, 12.5, FontWeight.w800),
+      (135, 'SO', WildlifeScoutTheme.textMuted, 11.0, FontWeight.w700),
+      (180, 'S', Colors.white, 12.5, FontWeight.w800),
+      (225, 'SW', WildlifeScoutTheme.textMuted, 11.0, FontWeight.w700),
+      (270, 'W', Colors.white, 12.5, FontWeight.w800),
+      (315, 'NW', WildlifeScoutTheme.textMuted, 11.0, FontWeight.w700),
     ];
 
     for (final (deg, label, color, fontSize, weight) in cardinals) {

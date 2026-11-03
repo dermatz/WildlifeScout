@@ -1,0 +1,220 @@
+# ==============================================================================
+# WildlifeScout – Wildbiologische Störungs- & Wegenetz-Matrix (OSM)
+# ==============================================================================
+# Wissenschaftliche Grundlage:
+# - Wildtierökologische Raum-Zeit-Modelle (Suchant / FVA Baden-Württemberg)
+# - Flucht- & Meidedistanzen (Flight Initiation Distance - FID) von Schalenwild
+# - Freizeitdruck-Untersuchungen (Brieger et al., Forstliche Versuchsberichte)
+#
+# Parameter-Erklärung:
+# - radius_meters:         Akustischer & optischer Pufferkreis (in Metern).
+#                          Bestimmt die Breite des roten Störungsbandes auf der Karte.
+# - max_penalty_percent:   Maximaler prozentualer Abzug vom Biotop-/Aktivitäts-Score
+#                          bei direktem Ansitz unmittelbar am Weg (0 Meter).
+# - quiet_bonus_distance:  Distanz in Metern, ab der der Weg keinen Störeffekt mehr hat
+#                          und der volle Ruhe-Bonus für das Wild greift.
+# - renders_red_line:      true  = Wird als sichtbarer Störungskorridor in Rot gezeichnet.
+#                          false = Bleibt dezent im Hintergrund (z.B. ruhige Feldraine).
+# ==============================================================================
+
+version: "1.0"
+source: "FVA Baden-Württemberg / Wildbiologische Habitatmodelle"
+
+# Standard-Klassen des OpenStreetMap-Wegenetzes (highway=*)
+ways:
+  # ----------------------------------------------------------------------------
+  # 1. Schwerer KFZ-Verkehr (Permanentlärm, Zerschneidungswirkung, Kollisionsrisiko)
+  # ----------------------------------------------------------------------------
+  "highway=motorway":
+    label: "Autobahn"
+    description: "Permanenter Schallteppich, massive Zerschneidung, Zäune"
+    radius_meters: 150
+    max_penalty_percent: -25.0
+    quiet_bonus_distance: 350
+    renders_red_line: true
+
+  "highway=trunk":
+    label: "Schnellstraße / Kraftfahrstraße"
+    description: "Hohe Fahrgeschwindigkeiten, stetiger Verkehrsfluss"
+    radius_meters: 110
+    max_penalty_percent: -20.0
+    quiet_bonus_distance: 280
+    renders_red_line: true
+
+  "highway=primary":
+    label: "Bundesstraße (z.B. B313)"
+    description: "Starker Berufs- & Schwerlastverkehr"
+    radius_meters: 85
+    max_penalty_percent: -16.0
+    quiet_bonus_distance: 220
+    renders_red_line: true
+
+  "highway=secondary":
+    label: "Landesstraße / Staatsstraße"
+    description: "Regelmäßiger Durchgangsverkehr"
+    radius_meters: 70
+    max_penalty_percent: -13.0
+    quiet_bonus_distance: 180
+    renders_red_line: true
+
+  "highway=tertiary":
+    label: "Kreisstraße"
+    description: "Mäßiger lokaler Durchgangsverkehr"
+    radius_meters: 55
+    max_penalty_percent: -10.0
+    quiet_bonus_distance: 150
+    renders_red_line: true
+
+  "highway=unclassified":
+    label: "Verbindungsstraße (Gemeindeverbindungsstraße)"
+    description: "Asphaltierte öffentliche Verbindung zwischen Weilern/Ortsteilen"
+    radius_meters: 45
+    max_penalty_percent: -8.0
+    quiet_bonus_distance: 120
+    renders_red_line: true
+
+  "highway=residential":
+    label: "Wohnstraße (Siedlungsrand)"
+    description: "Anwohnerverkehr, Fußgänger, Hunde am Ortsrand"
+    radius_meters: 40
+    max_penalty_percent: -7.0
+    quiet_bonus_distance: 110
+    renders_red_line: true
+
+  # ----------------------------------------------------------------------------
+  # 2. Freizeit- & Radverkehr (Hohe Geschwindigkeit, Überraschungseffekt)
+  # ----------------------------------------------------------------------------
+  "highway=cycleway":
+    label: "Ausgewiesener Radweg (asphaltiert)"
+    description: "Schneller Rad- & E-Bike-Verkehr, überrascht Wildtiere oft lautlos"
+    radius_meters: 65
+    max_penalty_percent: -9.0
+    quiet_bonus_distance: 160
+    renders_red_line: true
+
+  "highway=bridleway":
+    label: "Reitweg"
+    description: "Pferdeverkehr, Geruch & Bodenerschütterung"
+    radius_meters: 35
+    max_penalty_percent: -4.0
+    quiet_bonus_distance: 90
+    renders_red_line: true
+
+  # ----------------------------------------------------------------------------
+  # 3. Fußgänger- & Wanderverkehr (Hunde- & Trittschallbelastung)
+  # ----------------------------------------------------------------------------
+  "highway=path":
+    label: "Frequentierter Wander- & Spazierpfad"
+    description: "Regelmäßiger Fußverkehr, Spaziergänger mit teils unangeleinten Hunden"
+    radius_meters: 45
+    max_penalty_percent: -6.5
+    quiet_bonus_distance: 130
+    renders_red_line: true
+
+  "highway=footway":
+    label: "Ausgewiesener Fußweg"
+    description: "Spazierweg, Trittschall & menschliche Witterung"
+    radius_meters: 40
+    max_penalty_percent: -6.0
+    quiet_bonus_distance: 120
+    renders_red_line: true
+
+  # ----------------------------------------------------------------------------
+  # 4. Land- & forstwirtschaftliche Wirtschaftswege
+  # ----------------------------------------------------------------------------
+  "highway=track;frequented=yes":
+    label: "Befestigter / Benannter Wirtschaftsweg"
+    description: "Asphaltierte/benannte Flurwege (z.B. Esslinger Weg) mit Rad- & Gassigeher-Verkehr"
+    radius_meters: 28
+    max_penalty_percent: -4.5
+    quiet_bonus_distance: 85
+    renders_red_line: true
+
+  "highway=track":
+    label: "Ruhiger Feldrain / Unbefestigte Ackerfahrspur"
+    description: "Reine Parzellengrenzen & Traktorspuren ohne Freizeitverkehr; vom Wild als Wechsel genutzt"
+    radius_meters: 0
+    max_penalty_percent: 0.0
+    quiet_bonus_distance: 20
+    renders_red_line: false
+
+  "highway=service":
+    label: "Zufahrts- & Wirtschaftshofweg"
+    description: "Zufahrten zu Aussiedlerhöfen, Schuppen oder Forsthütten"
+    radius_meters: 25
+    max_penalty_percent: -3.5
+    quiet_bonus_distance: 70
+    renders_red_line: false
+
+  "highway=living_street":
+    label: "Verkehrsberuhigter Bereich / Spielstraße"
+    description: "Schritttempo, Naherholungsbereich am Siedlungsrand"
+    radius_meters: 30
+    max_penalty_percent: -4.0
+    quiet_bonus_distance: 80
+    renders_red_line: false
+
+# ------------------------------------------------------------------------------
+# 5. Wildbiologische Empfindlichkeits-Faktoren der Tierarten (Multiplikatoren)
+# ------------------------------------------------------------------------------
+# 1.0 = Normal (Basis-Berechnung)
+# > 1.0 = Extrem scheu / anthropophob (reagiert stärker auf Wegenähe)
+# < 1.0 = Kulturfolger / anpassungsfähig (toleriert Wegenähe besser)
+species_sensitivity:
+  red_deer:
+    name: "Rotwild"
+    sensitivity_multiplier: 1.85
+    hard_avoidance_distance_meters: 55.0
+    note: "Hochgradig scheues Steppentier; meidet Wege im Freiland extrem konsequent."
+
+  roe_deer:
+    name: "Rehwild"
+    sensitivity_multiplier: 1.0
+    hard_avoidance_distance_meters: 18.0
+    note: "Schlüpfertyp; toleriert berechenbaren Verkehr, solange Fluchtdeckung nah ist."
+
+  wild_boar:
+    name: "Schwarzwild"
+    sensitivity_multiplier: 0.9
+    hard_avoidance_distance_meters: 25.0
+    note: "Tageseinstand in Dickung fast weg-unempfindlich, flieht erst bei Querfeldein-Störung."
+
+  red_fox:
+    name: "Rotfuchs"
+    sensitivity_multiplier: 0.65
+    hard_avoidance_distance_meters: 12.0
+    note: "Kulturfolger; nutzt Wege in der Dämmerung aktiv als bequeme Schnürpfade."
+
+  badger:
+    name: "Dachs"
+    sensitivity_multiplier: 1.15
+    hard_avoidance_distance_meters: 20.0
+    note: "Trittschallempfindlich am Bau; liebt nachts ruhige Wald- und Wiesenränder."
+
+  kingfisher:
+    name: "Eisvogel"
+    sensitivity_multiplier: 1.3
+    hard_avoidance_distance_meters: 30.0
+    note: "Flieht bei Annäherung von Fußgängern, Hunden oder Paddlern am Gewässersaum."
+
+# ------------------------------------------------------------------------------
+# 6. Tageszeit- & Wochentags-Modulatoren (Zeitlicher Freizeitdruck)
+# ------------------------------------------------------------------------------
+time_modulation:
+  # Faktoren auf die Störungsintensität je nach Situation:
+  weekend_afternoon: 1.45   # Samstag/Sonntag 11:00-17:00 (Rush-Hour der Spaziergänger & Biker)
+  weekday_daytime: 0.90     # Mo-Fr 09:00-16:00 (Normale Grundbelastung)
+  weekday_rushhour: 1.15    # Mo-Fr 16:30-18:30 (Feierabend-Jogger & Gassigeher)
+  dawn_and_dusk: 0.25       # Morgen-/Abenddämmerung (Sehr ruhige Wege, Wild tritt heraus)
+  nighttime: 0.08           # Nachts (Nahezu keine menschliche Bewegung auf Feld- & Waldwegen)
+
+# ------------------------------------------------------------------------------
+# 7. Geografischer Anzeige-Radius & Wegenetz-Reichweite auf der Karte
+# ------------------------------------------------------------------------------
+map_display:
+  # Geografischer Umland-Radius um den Ansitz für rote Störungswege (in Metern)
+  # Um 50% vergrößert (vorher ca. 2.350m -> jetzt 3.500m für weites Herauszoomen)
+  display_distance_meters: 3500.0
+  # Maximale Anzahl gerenderter Wege (erhöht von 280 auf 450 für lückenlose Vektor-Abdeckung)
+  max_render_ways: 450
+

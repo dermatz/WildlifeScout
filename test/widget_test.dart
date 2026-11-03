@@ -240,6 +240,118 @@ void main() {
       }
     });
 
+    test('Rehwild (roe_deer) excludes mini tree rows (tree_row) and tiny isolated woodlots from being false habitats', () {
+      final roeDeer = SpeciesProfile.fromJson({
+        'id': 'roe_deer',
+        'name': 'Rehwild',
+        'scientificName': 'Capreolus capreolus',
+        'category': 'ungulate',
+        'shortDescription': 'Konzentratselektierer',
+        'accentColorHex': '#10B981',
+        'behavior': {
+          'scentSensitivityMeters': 250,
+          'scentConeAngleDegrees': 45,
+          'primaryActivityPeriods': ['dawn', 'dusk'],
+          'barometerDropSensitivity': 0.75,
+          'maxToleratedWindSpeedKmh': 40,
+          'flightDistanceMeters': 80,
+        },
+        'habitatRules': {
+          'edgePreferences': [],
+          'landuseWeights': [],
+          'disturbancePenalties': [
+            {
+              'osmTag': 'highway=path',
+              'radiusMeters': 45,
+              'penaltyScore': -2.5,
+              'label': 'Wanderpfad',
+            },
+          ],
+          'waterProximity': {'maxDistanceMeters': 350, 'scoreBoost': 1.5},
+          'minContiguousAreaHectares': 2.0,
+        },
+        'fieldTips': ['Tipp 1'],
+      });
+
+      // Szenario: Offene Feldflur mit Ackerfläche, Feldweg, schmaler Baumreihe (natural=tree_row)
+      // und einem echten Hochwald 450m westlich
+      final osmScenario = [
+        // 1. Echter großer Hochwald (>= 3 ha)
+        {
+          'type': 'way',
+          'id': 7001,
+          'tags': {'landuse': 'forest'},
+          'geometry': [
+            {'lat': 52.9700, 'lon': 13.7480},
+            {'lat': 52.9730, 'lon': 13.7480},
+            {'lat': 52.9730, 'lon': 13.7520},
+            {'lat': 52.9700, 'lon': 13.7520},
+            {'lat': 52.9700, 'lon': 13.7480},
+          ],
+        },
+        // 2. Lineare Baumreihe entlang des Ackers (natural=tree_row)
+        {
+          'type': 'way',
+          'id': 7002,
+          'tags': {'natural': 'tree_row'},
+          'geometry': [
+            {'lat': 52.9740, 'lon': 13.7560},
+            {'lat': 52.9740, 'lon': 13.7580},
+            {'lat': 52.9740, 'lon': 13.7600},
+          ],
+        },
+        // 3. Ackerfläche direkt neben der Baumreihe (weit weg vom Hochwald)
+        {
+          'type': 'way',
+          'id': 7003,
+          'tags': {'landuse': 'farmland'},
+          'geometry': [
+            {'lat': 52.9741, 'lon': 13.7560},
+            {'lat': 52.9755, 'lon': 13.7560},
+            {'lat': 52.9755, 'lon': 13.7600},
+            {'lat': 52.9741, 'lon': 13.7600},
+            {'lat': 52.9741, 'lon': 13.7560},
+          ],
+        },
+        // 4. Feldweg direkt an der Baumreihe
+        {
+          'type': 'way',
+          'id': 7004,
+          'tags': {'highway': 'track'},
+          'geometry': [
+            {'lat': 52.9739, 'lon': 13.7550},
+            {'lat': 52.9739, 'lon': 13.7610},
+          ],
+        },
+      ];
+
+      const origin = LatLng(52.9730, 13.7550);
+      final result = HabitatSuitabilityEngine.evaluateRealOsmElements(
+        rawElements: osmScenario,
+        origin: origin,
+        species: roeDeer,
+        sourceLabel: 'TreeRow Test',
+      );
+
+      // Die Baumreihe (7002) darf KEIN Habitat für Rehwild sein
+      expect(
+        result.habitatZones.any((z) => z.osmId == '7002' || z.osmTag == 'natural=tree_row'),
+        isFalse,
+      );
+
+      // Die Ackerfläche weit weg vom Hochwald darf nicht fälschlich als Wald-Feld-Äsungskante deklariert werden
+      expect(
+        result.habitatZones.any((z) => z.osmId == '7003'),
+        isFalse,
+      );
+
+      // Der echte Hochwald (7001) muss hingegen weiterhin als valides Habitat erkannt werden
+      expect(
+        result.habitatZones.any((z) => z.osmId.contains('7001')),
+        isTrue,
+      );
+    });
+
     test('WeatherFrame provides directional cardinal labels and telemetry', () {
       final forecast = OpenMeteoClient.buildOfflineFallbackForecast();
       expect(forecast, hasLength(24 * 7));
@@ -401,6 +513,22 @@ void main() {
         expect(sp.behaviorTraits.length, greaterThanOrEqualTo(3));
         expect(sp.fieldTips.length, greaterThanOrEqualTo(5));
       }
+    });
+
+    test('SunMoonCalculator accurately calculates sunrise and sunset times (offline NOAA)', () {
+      final times = SunMoonCalculator.calculateSunTimes(
+        date: DateTime(2026, 11, 3),
+        latitude: 52.52,
+        longitude: 13.405,
+      );
+
+      expect(times.sunrise, isNotNull);
+      expect(times.sunset, isNotNull);
+      // In Berlin on Nov 3, sunrise is ~07:05 and sunset is ~16:34
+      expect(times.sunrise!.hour, equals(7));
+      expect(times.sunrise!.minute, inInclusiveRange(0, 15));
+      expect(times.sunset!.hour, equals(16));
+      expect(times.sunset!.minute, inInclusiveRange(25, 40));
     });
   });
 }

@@ -593,7 +593,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
-                                            fontSize: 11.5,
+                                            fontSize: 12,
                                             color: WildlifeScoutTheme.textMuted,
                                           ),
                                         ),
@@ -612,7 +612,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                                     child: Text(
                                       item.categoryLabel,
                                       style: const TextStyle(
-                                        fontSize: 10.5,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.w600,
                                         color: WildlifeScoutTheme.amberGold,
                                       ),

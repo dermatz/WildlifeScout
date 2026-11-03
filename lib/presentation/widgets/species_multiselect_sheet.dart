@@ -297,7 +297,7 @@ class _SpeciesMultiSelectSheetState extends State<SpeciesMultiSelectSheet> {
                 child: Text(
                   '${_selectedIds.length} aktiv',
                   style: const TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                     color: WildlifeScoutTheme.emeraldBio,
                   ),
@@ -613,7 +613,7 @@ class _SpeciesMultiSelectSheetState extends State<SpeciesMultiSelectSheet> {
                                     const Text(
                                       'OFFENE WILDBIOLOGIE-DATEN (OPEN DATA)',
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.w900,
                                         letterSpacing: 0.6,
                                         color: WildlifeScoutTheme.cyanWater,
@@ -659,7 +659,7 @@ class _SpeciesMultiSelectSheetState extends State<SpeciesMultiSelectSheet> {
                                       const Text(
                                         'TYPISCHE VERHALTENSWEISEN',
                                         style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: 11.5,
                                           fontWeight: FontWeight.w900,
                                           letterSpacing: 0.6,
                                           color: WildlifeScoutTheme.emeraldBio,
@@ -706,7 +706,7 @@ class _SpeciesMultiSelectSheetState extends State<SpeciesMultiSelectSheet> {
                                                     child: Text(
                                                       trait.tag,
                                                       style: TextStyle(
-                                                        fontSize: 9,
+                                                        fontSize: 10.5,
                                                         fontWeight:
                                                             FontWeight.w800,
                                                         color: sp.accentColor,
@@ -749,7 +749,7 @@ class _SpeciesMultiSelectSheetState extends State<SpeciesMultiSelectSheet> {
                                       const Text(
                                         'WERTVOLLE PRAXIS- & FOTO-TIPPS FÜR DEN ANSITZ',
                                         style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: 11.5,
                                           fontWeight: FontWeight.w900,
                                           letterSpacing: 0.6,
                                           color: WildlifeScoutTheme.amberGold,
@@ -780,7 +780,7 @@ class _SpeciesMultiSelectSheetState extends State<SpeciesMultiSelectSheet> {
                                                 child: Text(
                                                   tip,
                                                   style: const TextStyle(
-                                                    fontSize: 11,
+                                                    fontSize: 12,
                                                     color: WildlifeScoutTheme
                                                         .textPrimary,
                                                     height: 1.3,
@@ -825,7 +825,7 @@ class _SpeciesMultiSelectSheetState extends State<SpeciesMultiSelectSheet> {
                                             child: Text(
                                               'Tierfoto: ${sp.imageAuthor} • ${sp.imageLicense}',
                                               style: const TextStyle(
-                                                fontSize: 10,
+                                                fontSize: 11.5,
                                                 color: WildlifeScoutTheme.textMuted,
                                               ),
                                             ),
@@ -973,12 +973,12 @@ class _QuickFactPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: color),
-          const SizedBox(width: 3.5),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 9.5,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
               color: WildlifeScoutTheme.textPrimary,
             ),
@@ -1004,11 +1004,11 @@ class _OpenDataRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 98,
+            width: 104,
             child: Text(
               '$label:',
               style: const TextStyle(
-                fontSize: 10.5,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w700,
                 color: WildlifeScoutTheme.textMuted,
               ),
@@ -1018,7 +1018,7 @@ class _OpenDataRow extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 color: WildlifeScoutTheme.textPrimary,
                 height: 1.25,
               ),

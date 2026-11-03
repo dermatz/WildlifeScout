@@ -29,6 +29,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
   bool _showRainRadar = false;
   bool _showCompassBeam = AppSettings.defaultShowCompassHeadingBeam;
   bool _showWindScentCone = AppSettings.defaultShowWindScentCone;
+  bool _showDisturbanceLayer = AppSettings.defaultShowDisturbanceLayer;
   bool _showLensFieldOfView = AppSettings.defaultShowLensFieldOfView;
   bool _warnSevereWeather = AppSettings.defaultWarnSevereWeather;
   double _gustThresholdKmh = AppSettings.defaultWindGustThresholdKmh;
@@ -67,6 +68,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
       _showRainRadar = settings.showRainRadarLayer;
       _showCompassBeam = settings.showCompassHeadingBeam;
       _showWindScentCone = settings.showWindScentCone;
+      _showDisturbanceLayer = settings.showDisturbanceLayer;
       _showLensFieldOfView = settings.showLensFieldOfView;
       _warnSevereWeather = settings.warnSevereWeatherDuringAnsitz;
       _gustThresholdKmh = settings.severeWeatherWindGustThresholdKmh;
@@ -149,6 +151,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
     HapticFeedback.selectionClick();
     setState(() {
       _showWindScentCone = val;
+    });
+    await _saveFullSettings();
+  }
+
+  Future<void> _updateShowDisturbanceLayer(bool val) async {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _showDisturbanceLayer = val;
     });
     await _saveFullSettings();
   }
@@ -250,6 +260,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
       severeWeatherSoundAndHaptics: _severeWeatherHaptics,
       showCompassHeadingBeam: _showCompassBeam,
       showWindScentCone: _showWindScentCone,
+      showDisturbanceLayer: _showDisturbanceLayer,
       showLensFieldOfView: _showLensFieldOfView,
       windSpeedUnit: _windSpeedUnit,
       distanceUnit: _distanceUnit,
@@ -267,6 +278,8 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
       _showRainRadar = false;
       _showCompassBeam = AppSettings.defaultShowCompassHeadingBeam;
       _showWindScentCone = AppSettings.defaultShowWindScentCone;
+      _showDisturbanceLayer = AppSettings.defaultShowDisturbanceLayer;
+      _showLensFieldOfView = AppSettings.defaultShowLensFieldOfView;
       _warnSevereWeather = AppSettings.defaultWarnSevereWeather;
       _gustThresholdKmh = AppSettings.defaultWindGustThresholdKmh;
       _severeWeatherHaptics = AppSettings.defaultSevereWeatherSoundAndHaptics;
@@ -390,16 +403,20 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
           // Sub-Header: Steuerung "Alle aufklappen / zuklappen"
           Row(
             children: [
-              const Text(
-                'EINSTELLUNGS-BEREICHE',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: WildlifeScoutTheme.textMuted,
-                  letterSpacing: 0.6,
+              const Expanded(
+                child: Text(
+                  'EINSTELLUNGS-BEREICHE',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: WildlifeScoutTheme.textMuted,
+                    letterSpacing: 0.6,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               TextButton.icon(
                 onPressed: _toggleAllSections,
                 icon: Icon(
@@ -516,7 +533,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             const Text(
                               '10 km',
                               style: TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.w600,
                                 color: WildlifeScoutTheme.textMuted,
                               ),
@@ -547,7 +564,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                             const Text(
                               '200 km',
                               style: TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.w600,
                                 color: WildlifeScoutTheme.textMuted,
                               ),
@@ -749,7 +766,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               const Text(
                                 '45 km/h',
                                 style: TextStyle(
-                                  fontSize: 10.5,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                   color: WildlifeScoutTheme.textMuted,
                                 ),
@@ -781,7 +798,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               const Text(
                                 '90 km/h',
                                 style: TextStyle(
-                                  fontSize: 10.5,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                   color: WildlifeScoutTheme.textMuted,
                                 ),
@@ -906,7 +923,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                                   child: Text(
                                     'Wald-Sicherheit: Ab 60 km/h (Bft 8) brechen größere Äste ab. Auf erhöhten Plattformen besteht Lebensgefahr. Bei Gewitter offenes Gelände umgehend verlassen.',
                                     style: TextStyle(
-                                      fontSize: 10.5,
+                                      fontSize: 11.5,
                                       color: WildlifeScoutTheme.textPrimary,
                                       height: 1.35,
                                     ),
@@ -1116,6 +1133,45 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           value: _showWindScentCone,
                           activeTrackColor: WildlifeScoutTheme.crimsonScent,
                           onChanged: _updateShowWindScentCone,
+                        ),
+                        const Divider(
+                          height: 1,
+                          color: WildlifeScoutTheme.borderSubtle,
+                        ),
+
+                        // Rot markierte Störwege (OSM)
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          secondary: Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: WildlifeScoutTheme.crimsonScent
+                                  .withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.directions_bike,
+                              size: 16,
+                              color: WildlifeScoutTheme.crimsonScent,
+                            ),
+                          ),
+                          title: const Text(
+                            'Rot markierte Störwege (OSM)',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'Wanderpfade, Forstwege und Störradien rot auf der Karte hervorheben.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: WildlifeScoutTheme.textMuted,
+                            ),
+                          ),
+                          value: _showDisturbanceLayer,
+                          activeTrackColor: WildlifeScoutTheme.crimsonScent,
+                          onChanged: _updateShowDisturbanceLayer,
                         ),
                         const Divider(
                           height: 1,
@@ -1416,7 +1472,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                               child: const Text(
                                 'OFFLINE',
                                 style: TextStyle(
-                                  fontSize: 9.5,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w800,
                                   color: WildlifeScoutTheme.textMuted,
                                 ),
@@ -1551,7 +1607,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                       child: Text(
                         summaryBadge,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: badgeColor ?? iconColor,
                         ),

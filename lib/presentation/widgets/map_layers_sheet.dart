@@ -9,11 +9,13 @@ class MapLayersSheet extends StatelessWidget {
   final bool useSatelliteLayer;
   final bool showHabitatLayer;
   final bool showDisturbanceLayer;
+  final bool showRainRadarLayer;
   final bool showScentCone;
   final bool isNightVisionRedMode;
   final ValueChanged<bool> onChangedSatellite;
   final ValueChanged<bool> onChangedHabitat;
   final ValueChanged<bool> onChangedDisturbance;
+  final ValueChanged<bool> onChangedRainRadar;
   final ValueChanged<bool> onChangedScentCone;
   final ValueChanged<bool> onChangedNightVision;
   final VoidCallback onScanCurrentMapCenter;
@@ -26,11 +28,13 @@ class MapLayersSheet extends StatelessWidget {
     required this.useSatelliteLayer,
     required this.showHabitatLayer,
     required this.showDisturbanceLayer,
+    required this.showRainRadarLayer,
     required this.showScentCone,
     required this.isNightVisionRedMode,
     required this.onChangedSatellite,
     required this.onChangedHabitat,
     required this.onChangedDisturbance,
+    required this.onChangedRainRadar,
     required this.onChangedScentCone,
     required this.onChangedNightVision,
     required this.onScanCurrentMapCenter,
@@ -46,11 +50,18 @@ class MapLayersSheet extends StatelessWidget {
           top: BorderSide(color: WildlifeScoutTheme.borderSubtle, width: 1),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      padding: EdgeInsets.fromLTRB(
+        20,
+        14,
+        20,
+        MediaQuery.of(context).padding.bottom + 20,
+      ),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Center(
             child: Container(
               width: 42,
@@ -145,10 +156,20 @@ class MapLayersSheet extends StatelessWidget {
             icon: Icons.directions_bike,
             title: 'OSM Störwege & Pufferzonen ($trailCount)',
             subtitle:
-                'Wanderpfade, Radwege, Forst- & Wirtschaftswege inkl. Störradius',
+                'Rot markierte Wanderpfade, Rad- & Forstwege inkl. Störradius',
             value: showDisturbanceLayer,
             activeColor: WildlifeScoutTheme.crimsonScent,
             onChanged: onChangedDisturbance,
+          ),
+          const SizedBox(height: 8),
+          _LayerToggleRow(
+            icon: Icons.grain,
+            title: 'DWD Niederschlags- & Gewitterradar',
+            subtitle:
+                'Amtlicher Live-Radarfilm des Deutschen Wetterdienstes (Open Data / WMS)',
+            value: showRainRadarLayer,
+            activeColor: WildlifeScoutTheme.cyanWater,
+            onChanged: onChangedRainRadar,
           ),
           if (primarySpecies.behavior.scentSensitivityMeters > 0) ...[
             const SizedBox(height: 8),
@@ -205,7 +226,8 @@ class MapLayersSheet extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 
@@ -260,7 +282,7 @@ class _BaseMapOptionCard extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w800,
                       color: isSelected
                           ? WildlifeScoutTheme.textPrimary
@@ -272,7 +294,7 @@ class _BaseMapOptionCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 10.5,
+                      fontSize: 11.5,
                       color: WildlifeScoutTheme.textMuted,
                     ),
                   ),
@@ -341,7 +363,7 @@ class _LayerToggleRow extends StatelessWidget {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
                       color: WildlifeScoutTheme.textMuted,
                     ),
                   ),

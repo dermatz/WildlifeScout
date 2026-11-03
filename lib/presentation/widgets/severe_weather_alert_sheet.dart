@@ -134,7 +134,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                                         ? 'AKUTE LEBENSGEFAHR'
                                         : 'UNWETTER-WARNUNG'),
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w900,
                                   color: themeColor,
                                   letterSpacing: 0.5,
@@ -145,7 +145,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                             Text(
                               alert.timeLabel,
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: WildlifeScoutTheme.textMuted,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -441,7 +441,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     color: WildlifeScoutTheme.textMuted,
                     fontWeight: FontWeight.w600,
                   ),
@@ -453,7 +453,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.5,
               fontWeight: FontWeight.w800,
               color: color,
             ),
@@ -464,7 +464,7 @@ class SevereWeatherAlertSheet extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 9.5,
+              fontSize: 11,
               color: WildlifeScoutTheme.textMuted,
             ),
           ),

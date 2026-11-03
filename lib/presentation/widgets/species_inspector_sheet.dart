@@ -357,7 +357,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                             child: Text(
                               trait.tag,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 color: species.accentColor,
                               ),
@@ -870,7 +870,7 @@ class _MetricTile extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 10.5,
+              fontSize: 11.5,
               color: WildlifeScoutTheme.textMuted,
             ),
           ),
@@ -909,7 +909,7 @@ class _PhotoMetricTile extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -919,7 +919,7 @@ class _PhotoMetricTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 9.5,
+              fontSize: 11,
               color: WildlifeScoutTheme.textMuted,
             ),
           ),
@@ -953,7 +953,7 @@ class _ShutterChip extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 10,
+              fontSize: 11,
               color: WildlifeScoutTheme.textMuted,
             ),
           ),
@@ -961,7 +961,7 @@ class _ShutterChip extends StatelessWidget {
           Text(
             speed,
             style: const TextStyle(
-              fontSize: 11.5,
+              fontSize: 12.5,
               fontWeight: FontWeight.w700,
               color: WildlifeScoutTheme.emeraldBio,
             ),

@@ -3,6 +3,7 @@ import '../models/habitat_zone.dart';
 import '../models/species_profile.dart';
 import '../models/weather_frame.dart';
 import 'sun_moon_calculator.dart';
+import 'wildlife_phenology_service.dart';
 
 class FieldAssessment {
   final int activityScorePercent; // 0 bis 100
@@ -12,6 +13,7 @@ class FieldAssessment {
   final String lightQualityAdvice;
   final bool hasScentCollision;
   final String? scentCollisionWarning;
+  final WildlifePhenologyPhase? phenologyPhase;
 
   const FieldAssessment({
     required this.activityScorePercent,
@@ -21,6 +23,7 @@ class FieldAssessment {
     required this.lightQualityAdvice,
     required this.hasScentCollision,
     this.scentCollisionWarning,
+    this.phenologyPhase,
   });
 
   /// Rückwärtskompatibler Getter für bisherigen Zugriff
@@ -45,15 +48,24 @@ class ActivityScoreCalculator {
     required LatLng hidePosition,
     required List<HabitatZone> habitatZones,
   }) {
-    // 1. Tageszeit-Gewichtung (45 % Gewicht)
+    // 1. Phänologie & Jahreszeit (Brunft, Blattzeit, Setzzeit, Winterruhe)
+    final phenology = WildlifePhenologyService.evaluate(
+      speciesId: species.id,
+      dateTime: weather.time,
+    );
+
+    // 2. Tageszeit-Gewichtung (45 % Gewicht)
     double timeFactor = 0.25;
     if (species.behavior.primaryActivityPeriods.contains(astro.currentPeriod)) {
       timeFactor = astro.isGoldenHour || astro.isBlueHour ? 1.0 : 0.85;
     } else if (astro.isGoldenHour) {
       timeFactor = 0.75;
+    } else if (phenology.relaxesMiddayDip && timeFactor < 0.55) {
+      // In der Blattzeit / Brunft sind z. B. Rehböcke auch am helllichten Tag auf den Läufen
+      timeFactor = 0.55;
     }
 
-    // 2. Barometer-Trend (30 % Gewicht)
+    // 3. Barometer-Trend (30 % Gewicht)
     // Fallender Luftdruck (< -1.5 hPa in 6h) triggert Äsungsaktivität vor Wetterumschwung
     double baroFactor = 0.55;
     String baroInsight;
@@ -76,7 +88,7 @@ class ActivityScoreCalculator {
           'Stabiler Luftdruck (${weather.surfacePressureHpa.round()} hPa)';
     }
 
-    // 3. Wind-Komfortfaktor (15 % Gewicht)
+    // 4. Wind-Komfortfaktor (15 % Gewicht)
     final maxWind = species.behavior.maxToleratedWindSpeedKmh;
     double windFactor;
     if (weather.windSpeedKmh <= 4.0) {
@@ -92,7 +104,7 @@ class ActivityScoreCalculator {
       windFactor = 0.15;
     }
 
-    // 4. Solunar / Mond-Faktor (10 % Gewicht)
+    // 5. Solunar / Mond-Faktor (10 % Gewicht)
     double solunarFactor = 0.6;
     if (astro.currentPeriod == ActivityPeriod.night) {
       solunarFactor = 0.35 + (astro.moonIlluminationFraction * 0.65);
@@ -105,7 +117,8 @@ class ActivityScoreCalculator {
         (timeFactor * 45.0) +
         (baroFactor.clamp(0.0, 1.0) * 30.0) +
         (windFactor * 15.0) +
-        (solunarFactor * 10.0);
+        (solunarFactor * 10.0) +
+        (phenology.activityBonus * 0.65);
 
     final finalScore = rawScore.round().clamp(8, 99);
 
@@ -194,6 +207,7 @@ class ActivityScoreCalculator {
       lightQualityAdvice: lightAdvice,
       hasScentCollision: hasCollision,
       scentCollisionWarning: collisionMessage,
+      phenologyPhase: phenology,
     );
   }
 
