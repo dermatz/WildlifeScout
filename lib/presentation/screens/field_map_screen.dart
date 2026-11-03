@@ -29,14 +29,17 @@ import '../../domain/services/sun_moon_calculator.dart';
 import '../../domain/services/wildlife_tactical_engine.dart';
 import '../widgets/app_settings_sheet.dart';
 import '../widgets/device_heading_beam.dart';
+import '../widgets/hud_compass_tape.dart';
 import '../widgets/location_search_sheet.dart';
 import '../widgets/map_layers_sheet.dart';
 import '../widgets/photo_gear_sheet.dart';
 import '../widgets/severe_weather_alert_sheet.dart';
 import '../widgets/species_inspector_sheet.dart';
 import '../widgets/species_multiselect_sheet.dart';
+import '../widgets/species_photo_avatar.dart';
 import '../widgets/spot_vault_sheet.dart';
 import '../widgets/field_overlay_builder.dart';
+import '../widgets/tactical_windy_weather_sheet.dart';
 import '../widgets/wind_scent_compass_sheet.dart';
 
 enum _ThumbCluster {
@@ -472,8 +475,30 @@ class _FieldMapScreenState extends State<FieldMapScreen>
               setSheetState(() {});
             },
             onScanCurrentMapCenter: _scanCurrentMapCenterAsNewTerritory,
+            onOpenTacticalWindy: () => _openTacticalWindySheet(
+              initialMode: WindyOverlayMode.clouds,
+            ),
           );
         },
+      ),
+    );
+  }
+
+  void _openTacticalWindySheet({
+    WindyOverlayMode initialMode = WindyOverlayMode.clouds,
+  }) {
+    final currentWeather = _hourlyForecast.isNotEmpty
+        ? _hourlyForecast[_activeForecastIndex]
+        : OpenMeteoClient.buildOfflineFallbackForecast()[0];
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TacticalWindyWeatherSheet(
+        coordinate: _hidePinPosition,
+        currentWeather: currentWeather,
+        initialMode: initialMode,
       ),
     );
   }
@@ -773,6 +798,13 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       if (sp.id == id) return sp.accentColor;
     }
     return WildlifeScoutTheme.emeraldBio;
+  }
+
+  SpeciesProfile? _speciesForId(String id) {
+    for (final sp in _speciesList) {
+      if (sp.id == id) return sp;
+    }
+    return _primarySpecies;
   }
 
   Color _colorForActivityScore(int score) {
@@ -1403,10 +1435,10 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                       final dx = (hideOffset.dx - zoneOffset.dx).abs();
 
                       final collidesWithHidePin =
-                          dy < 0 && dy > -150 && dx < 145;
-                      final tooCloseToTop = zoneOffset.dy < 170;
+                          dy < 0 && dy > -180 && dx < 160;
+                      final tooCloseToTop = zoneOffset.dy < 190;
                       final hasSpaceBelow = zoneOffset.dy <
-                          (_mapController.camera.size.height - 150);
+                          (_mapController.camera.size.height - 180);
 
                       if ((collidesWithHidePin || tooCloseToTop) &&
                           hasSpaceBelow) {
@@ -1426,12 +1458,12 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                     return [
                       Marker(
                         point: zone.center,
-                        width: 268,
-                        height: 154,
+                        width: 304,
+                        height: 196,
                         rotate: true,
                         alignment: openDownward
-                            ? const Alignment(0.0, -0.58)
-                            : const Alignment(0.0, 0.435),
+                            ? const Alignment(0.0, -0.755)
+                            : const Alignment(0.0, 0.755),
                         child: _buildHabitatMarker(
                           zone,
                           zoneAssessment,
@@ -1506,8 +1538,11 @@ class _FieldMapScreenState extends State<FieldMapScreen>
             curve: Curves.easeOutCubic,
             right: 14,
             bottom: (_isDeckExpanded
-                    ? (isMobile ? 480.0 : 420.0)
-                    : (isMobile ? 260.0 : 210.0)) +
+                    ? (isMobile ? 524.0 : 440.0)
+                    : (isMobile
+                        ? (260.0 +
+                            (_appSettings.showHudCompassTape ? 44.0 : 0.0))
+                        : 250.0)) +
                 MediaQuery.of(context).padding.bottom,
             child: _buildFloatingFieldIsland(currentWeather),
           ),
@@ -1519,17 +1554,33 @@ class _FieldMapScreenState extends State<FieldMapScreen>
               top: false,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  isMobile ? 10 : 14,
+                  isMobile ? 10 : 16,
                   0,
+                  isMobile ? 10 : 16,
                   isMobile ? 10 : 14,
-                  10,
                 ),
-                child: _buildBottomControlDeck(
-                  species: activeSpecies,
-                  weather: currentWeather,
-                  astro: astro,
-                  assessment: assessment,
-                  severeWeatherAlert: severeWeatherAlert,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 880),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isMobile && _appSettings.showHudCompassTape) ...[
+                        HudCompassTape(
+                          currentWeather: currentWeather,
+                          initialHeading: _deviceHeading,
+                          onTap: _openWindCompassSheet,
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                      _buildBottomControlDeck(
+                        species: activeSpecies,
+                        weather: currentWeather,
+                        astro: astro,
+                        assessment: assessment,
+                        severeWeatherAlert: severeWeatherAlert,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -2107,23 +2158,24 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       zone: zone,
       zoneAssessment: zoneAssessment,
     );
-    final effectiveSuitability = tactical.effectiveSuitabilityScore;
     final chanceScore = tactical.situationalChanceScore;
     final chanceColor = _colorForChanceScore(chanceScore);
+    final species = _speciesForId(zone.speciesId);
+    final chanceRating = _ratingForChanceScore(chanceScore);
 
     if (isSelected) {
       // Ausgewähltes Habitat: Vertikaler Callout-Pin mit Aufklapp-Details (Aktivität & Biotop)
       // Je nach Platzierung schwebt die Karte oberhalb oder unterhalb des Pins,
       // um Kollisionen mit dem Ansitz-Pin oder dem Bildschirmrand zu verhindern.
       return SizedBox(
-        width: 292,
-        height: 172,
+        width: 304,
+        height: 196,
         child: Stack(
           alignment: Alignment.center,
           children: [
             // 1. Text-Callout über oder unter dem Pin
             Positioned(
-              top: openDownward ? 56 : 0,
+              top: openDownward ? 50 : 0,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
@@ -2136,29 +2188,28 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                   );
                 },
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 286),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  width: 300,
+                  padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
                     color: WildlifeScoutTheme.bgObsidian.withValues(alpha: 0.96),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isBestChance
                           ? WildlifeScoutTheme.amberGold
-                          : Colors.white,
+                          : Colors.white.withValues(alpha: 0.85),
                       width: 1.6,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.85),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
                       ),
                       BoxShadow(
                         color: (isBestChance
                                 ? WildlifeScoutTheme.amberGold
                                 : chanceColor)
-                            .withValues(alpha: 0.5),
+                            .withValues(alpha: 0.38),
                         blurRadius: 12,
                         spreadRadius: 1,
                       ),
@@ -2168,104 +2219,220 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header-Zeile mit Spot-Titel
+                      // Header: Tier-Foto + Titel + Spezies-Badge + Schließen-Button
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(
-                              color: accentColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              zone.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ),
-                          if (isBestChance) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: WildlifeScoutTheme.amberGold
-                                    .withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: WildlifeScoutTheme.amberGold
-                                      .withValues(alpha: 0.8),
-                                  width: 1.0,
+                          if (species != null)
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                _openSpeciesInspectorFor(species);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(11),
+                                  border: Border.all(
+                                    color: isBestChance
+                                        ? WildlifeScoutTheme.amberGold
+                                        : accentColor.withValues(alpha: 0.6),
+                                    width: 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: accentColor.withValues(alpha: 0.25),
+                                      blurRadius: 6,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: SpeciesPhotoAvatar(
+                                    species: species,
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: 10,
+                                    borderWidth: 0,
+                                  ),
                                 ),
                               ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.auto_awesome,
-                                    size: 11,
-                                    color: WildlifeScoutTheme.amberGold,
-                                  ),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'Beste Chance',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w900,
-                                      color: WildlifeScoutTheme.amberGold,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
-                          ],
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              setState(() => _selectedZoneInfo = null);
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Icon(
-                                Icons.close_rounded,
-                                size: 16,
-                                color: Colors.white60,
-                              ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Oberste Zeile: Tag / Badge & Close
+                                Row(
+                                  children: [
+                                    if (isBestChance) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: WildlifeScoutTheme.amberGold
+                                              .withValues(alpha: 0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          border: Border.all(
+                                            color: WildlifeScoutTheme.amberGold,
+                                            width: 0.9,
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.auto_awesome,
+                                              size: 9.5,
+                                              color:
+                                                  WildlifeScoutTheme.amberGold,
+                                            ),
+                                            SizedBox(width: 2.5),
+                                            Text(
+                                              'BESTE CHANCE',
+                                              style: TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w900,
+                                                color: WildlifeScoutTheme
+                                                    .amberGold,
+                                                letterSpacing: 0.3,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ] else if (species != null) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: accentColor
+                                              .withValues(alpha: 0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          border: Border.all(
+                                            color: accentColor
+                                                .withValues(alpha: 0.4),
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          species.name,
+                                          style: TextStyle(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: accentColor,
+                                            letterSpacing: 0.2,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    const Spacer(),
+                                    GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        HapticFeedback.lightImpact();
+                                        setState(
+                                            () => _selectedZoneInfo = null);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2.5),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.close_rounded,
+                                          size: 14,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+
+                                // Spot-Titel
+                                Text(
+                                  zone.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: 0.1,
+                                  ),
+                                ),
+                                const SizedBox(height: 1),
+
+                                // Chance & Rating Zeile
+                                Row(
+                                  children: [
+                                    Icon(
+                                      isBestChance
+                                          ? Icons.auto_awesome
+                                          : Icons.track_changes_rounded,
+                                      size: 11.5,
+                                      color: isBestChance
+                                          ? WildlifeScoutTheme.amberGold
+                                          : chanceColor,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '$chanceScore% Chance',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900,
+                                        color: isBestChance
+                                            ? WildlifeScoutTheme.amberGold
+                                            : chanceColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '•  $chanceRating',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: WildlifeScoutTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 7),
 
-                      // Aufklapp-Details: Aufschlüsselung in Aktivität & Biotop
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            // Faktor 1: Live-Aktivität
-                            Expanded(
+                      // Wichtige Kern-Faktoren (Tieraktivität & Biotop-Güte)
+                      Row(
+                        children: [
+                          // Faktor 1: Live-Aktivität
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: activityColor.withValues(alpha: 0.25),
+                                  width: 0.8,
+                                ),
+                              ),
                               child: Row(
                                 children: [
                                   Icon(
@@ -2273,26 +2440,28 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                     size: 14,
                                     color: activityColor,
                                   ),
-                                  const SizedBox(width: 3),
+                                  const SizedBox(width: 3.5),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '$activityScore% Tieraktivität',
+                                          '$activityScore% Aktivität',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            fontSize: 11.5,
+                                            fontSize: 10.5,
                                             fontWeight: FontWeight.w800,
                                             color: activityColor,
                                           ),
                                         ),
                                         const Text(
                                           'Zeit & Wetter',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            fontSize: 10.5,
+                                            fontSize: 9.5,
                                             fontWeight: FontWeight.w500,
                                             color: WildlifeScoutTheme.textMuted,
                                           ),
@@ -2303,15 +2472,24 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                 ],
                               ),
                             ),
-                            Container(
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 4),
-                              width: 1,
-                              height: 24,
-                              color: Colors.white12,
-                            ),
-                            // Faktor 2: Biotop-Eignung
-                            Expanded(
+                          ),
+                          const SizedBox(width: 5),
+
+                          // Faktor 2: Biotop-Eignung
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: accentColor.withValues(alpha: 0.25),
+                                  width: 0.8,
+                                ),
+                              ),
                               child: Row(
                                 children: [
                                   Icon(
@@ -2321,7 +2499,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                     size: 14,
                                     color: accentColor,
                                   ),
-                                  const SizedBox(width: 3),
+                                  const SizedBox(width: 3.5),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -2329,16 +2507,20 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                       children: [
                                         Text(
                                           '${zone.suitabilityScore.round()}% Biotop',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            fontSize: 11.5,
+                                            fontSize: 10.5,
                                             fontWeight: FontWeight.w800,
                                             color: accentColor,
                                           ),
                                         ),
                                         const Text(
-                                          'Gelände-Güte',
+                                          'Gelände & Äsung',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            fontSize: 10.5,
+                                            fontSize: 9.5,
                                             fontWeight: FontWeight.w500,
                                             color: WildlifeScoutTheme.textMuted,
                                           ),
@@ -2349,20 +2531,20 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 6),
 
-                      // Anschauliche Chance-Formel & Info-Hinweis
+                      // Interaktiver Detail-Aufruf (Ersetzt die alte Rechenformel)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3.5,
+                          horizontal: 8,
+                          vertical: 4.5,
                         ),
                         decoration: BoxDecoration(
                           color: chanceColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(7),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: chanceColor.withValues(alpha: 0.35),
                             width: 0.8,
@@ -2371,27 +2553,31 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                         child: Row(
                           children: [
                             Icon(
-                              Icons.calculate_rounded,
+                              Icons.insights_rounded,
                               size: 13,
                               color: chanceColor,
                             ),
                             const SizedBox(width: 5),
                             Expanded(
                               child: Text(
-                                '($activityScore% + ${effectiveSuitability.round()}%) ÷ 2 = $chanceScore% Chance',
+                                tactical.badges.isNotEmpty
+                                    ? '${tactical.badges.first.icon} ${tactical.badges.first.title}'
+                                    : 'Vor-Ort-Faktoren & Taktik',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
                                   color: chanceColor,
                                   letterSpacing: 0.1,
                                 ),
                               ),
                             ),
                             Text(
-                              'Erklärung',
+                              'Details anzeigen',
                               style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
                                 color: chanceColor.withValues(alpha: 0.95),
                               ),
                             ),
@@ -2399,7 +2585,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                             Icon(
                               Icons.chevron_right_rounded,
                               size: 13,
-                              color: chanceColor.withValues(alpha: 0.8),
+                              color: chanceColor.withValues(alpha: 0.85),
                             ),
                           ],
                         ),
@@ -2412,7 +2598,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
 
             // 2. Kleiner Verbindungszeiger (oben oder unten)
             Positioned(
-              top: openDownward ? 46 : 104,
+              top: openDownward ? 40 : 146,
               child: Container(
                 width: 2,
                 height: 10,
@@ -2422,7 +2608,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
 
             // 3. Highlighted Pin (exakt zentriert auf der Koordinate)
             Positioned(
-              top: openDownward ? 12 : 114,
+              top: openDownward ? 8 : 156,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
@@ -2796,6 +2982,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
     final accent = zone.type == HabitatZoneType.waterSuhle
         ? WildlifeScoutTheme.cyanWater
         : _accentForSpeciesId(zone.speciesId);
+    final species = _speciesForId(zone.speciesId);
     final activityScore = zoneAssessment.activityScorePercent;
     final activityColor = _colorForActivityScore(activityScore);
     final tactical = tacticalAssessment ??
@@ -2807,6 +2994,24 @@ class _FieldMapScreenState extends State<FieldMapScreen>
     final finalChanceScore = tactical.situationalChanceScore;
     final chanceColor = _colorForChanceScore(finalChanceScore);
     final chanceRating = _ratingForChanceScore(finalChanceScore);
+
+    final currentWeather = _hourlyForecast[_activeForecastIndex];
+    final astro = SunMoonCalculator.calculate(
+      dateTime: currentWeather.time,
+      latitude: _hidePinPosition.latitude,
+      longitude: _hidePinPosition.longitude,
+    );
+
+    String? soilDetail;
+    String? slopeDetail;
+    for (final part in zone.subtitle.split(' • ')) {
+      final trimmed = part.trim();
+      if (trimmed.startsWith('Boden:') || trimmed.contains('Boden')) {
+        soilDetail = trimmed.replaceFirst('Boden:', '').trim();
+      } else if (trimmed.startsWith('Hang') || trimmed.contains('Hang')) {
+        slopeDetail = trimmed;
+      }
+    }
 
     showModalBottomSheet<void>(
       context: context,
@@ -2853,39 +3058,94 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                 ),
                 const SizedBox(height: 16),
 
-                // Header: Icon + Titel + Chance Badge
+                // Header: Tier-Foto + Titel + Chance Badge
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: chanceColor.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                        border:
-                            Border.all(color: chanceColor.withValues(alpha: 0.4)),
+                    if (species != null)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          _openSpeciesInspectorFor(species);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(13),
+                            border: Border.all(
+                              color: accent.withValues(alpha: 0.6),
+                              width: 1.3,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SpeciesPhotoAvatar(
+                              species: species,
+                              width: 48,
+                              height: 48,
+                              borderRadius: 12,
+                              borderWidth: 0,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: chanceColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: chanceColor.withValues(alpha: 0.4)),
+                        ),
+                        child: Icon(
+                          Icons.track_changes_rounded,
+                          color: chanceColor,
+                          size: 20,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.track_changes_rounded,
-                        color: chanceColor,
-                        size: 20,
-                      ),
-                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Erfolgs-Chance: $finalChanceScore%',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              color: chanceColor,
-                              letterSpacing: -0.2,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                'Sichtungs-Chance: $finalChanceScore%',
+                                style: TextStyle(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: chanceColor,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: chanceColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: chanceColor.withValues(alpha: 0.4),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  chanceRating,
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: chanceColor,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 2),
                           Text(
-                            '$chanceRating • ${zone.title}',
+                            '${species?.name ?? 'Wildart'} • ${zone.title}',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -2906,6 +3166,94 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                   ],
                 ),
                 const SizedBox(height: 14),
+
+                // Button: Voller Steckbrief
+                if (species != null) ...[
+                  InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      _openSpeciesInspectorFor(species);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.45),
+                          width: 1.1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.auto_stories_rounded,
+                            size: 18,
+                            color: accent,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Voller Steckbrief: ${species.name}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: accent,
+                                  ),
+                                ),
+                                const SizedBox(height: 1.5),
+                                const Text(
+                                  'Biologie, Sinne, Fluchtdistanz, Äsung & Foto-Tipps',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    color: WildlifeScoutTheme.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: accent.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Öffnen',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: accent,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 11,
+                                  color: accent,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
                 // Erklärung: Was bedeutet die Chance?
                 Container(
@@ -2959,32 +3307,32 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                     border:
                         Border.all(color: activityColor.withValues(alpha: 0.35)),
                   ),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: activityColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          Icons.bolt_rounded,
-                          color: activityColor,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: activityColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.bolt_rounded,
+                              color: activityColor,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Row(
                               children: [
                                 Text(
                                   '1. Live-Wildaktivität: $activityScore%',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 13.5,
                                     fontWeight: FontWeight.w800,
                                     color: activityColor,
                                   ),
@@ -3000,17 +3348,85 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Berechnet aus Dämmerungs- & Sonnenstand, Temperatur, Windverhältnissen, Luftdruck und Mondphase. Zeigt, wie aktiv das Wild zu dieser Stunde unterwegs ist.',
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                height: 1.3,
-                                color: WildlifeScoutTheme.textMuted,
-                              ),
-                            ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Konkrete Einflussfaktoren zu dieser Stunde (${currentWeather.time.hour.toString().padLeft(2, '0')}:00 Uhr):',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Aufzählung aller Aktivitäts-Faktoren:
+                      _buildFactorRow(
+                        icon: Icons.wb_twilight_rounded,
+                        iconColor: activityColor,
+                        label: 'Dämmerung & Tageszeit',
+                        value:
+                            '${astro.lightPhaseLabel}${astro.isGoldenHour ? ' (Goldene Stunde)' : astro.isBlueHour ? ' (Blaue Stunde)' : ''}',
+                        detail: species != null &&
+                                species.behavior.primaryActivityPeriods
+                                    .contains(astro.currentPeriod)
+                            ? 'Hauptaktivitätsphase für ${species.name} (hohe Austrittschance)'
+                            : 'Nebenzeiten (typische Einstands- und Ruhephase)',
+                      ),
+                      _buildFactorRow(
+                        icon: Icons.speed_rounded,
+                        iconColor: activityColor,
+                        label: 'Luftdruck & Barometer',
+                        value:
+                            '${currentWeather.surfacePressureHpa.round()} hPa (${currentWeather.pressureDelta6hHpa >= 0 ? '+' : ''}${currentWeather.pressureDelta6hHpa.toStringAsFixed(1)} hPa in 6h)',
+                        detail: zoneAssessment.barometerInsight.isNotEmpty
+                            ? zoneAssessment.barometerInsight
+                            : 'Stabiler Luftdrucktrend',
+                      ),
+                      _buildFactorRow(
+                        icon: Icons.air_rounded,
+                        iconColor: activityColor,
+                        label: 'Wind & Wind-Komfort',
+                        value:
+                            '${currentWeather.windSpeedKmh.round()} km/h aus ${currentWeather.windCardinalLabel} (Böen: ${currentWeather.windGustsKmh.round()} km/h)',
+                        detail: zoneAssessment.windAdvice,
+                      ),
+                      _buildFactorRow(
+                        icon: Icons.thermostat_rounded,
+                        iconColor: activityColor,
+                        label: 'Temperatur',
+                        value:
+                            '${currentWeather.temperatureCelsius.toStringAsFixed(1)} °C',
+                        detail: currentWeather.temperatureCelsius >= 8 &&
+                                currentWeather.temperatureCelsius <= 22
+                            ? 'Angenehme Wohlfühltemperatur für das Wild'
+                            : currentWeather.temperatureCelsius < 8
+                                ? 'Kühle Witterung regt die Nahrungsaufnahme an'
+                                : 'Warme Witterung, Wild meidet pralle Sonne',
+                      ),
+                      _buildFactorRow(
+                        icon: Icons.nightlight_round,
+                        iconColor: activityColor,
+                        label: 'Mondphase & Nachtlicht',
+                        value:
+                            '${astro.moonPhaseName} (${(astro.moonIlluminationFraction * 100).round()}% Licht)',
+                        detail: astro.moonIlluminationFraction < 0.25
+                            ? 'Dunkle Neumondnacht: Wild zieht morgens früher und hungriger auf Freiflächen'
+                            : 'Helles Mondlicht begünstigt Nachtäsungszyklen',
+                      ),
+                      _buildFactorRow(
+                        icon: Icons.cloud_outlined,
+                        iconColor: activityColor,
+                        label: 'Bewölkung & Niederschlag',
+                        value: '${currentWeather.cloudCoverPercent}% Bewölkung',
+                        detail: currentWeather.isHeavyRain
+                            ? 'Starkregen hemmt Bewegung (Wild meidet offenes Gelände)'
+                            : currentWeather.precipitationMm > 0
+                                ? 'Leichter Niederschlag (${currentWeather.precipitationMm.toStringAsFixed(1)} mm) dämpft Geräusche'
+                                : 'Trockene Witterung begünstigt vertrauten Austritt',
+                        isLast: true,
                       ),
                     ],
                   ),
@@ -3025,34 +3441,34 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: accent.withValues(alpha: 0.35)),
                   ),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          zone.type == HabitatZoneType.waterSuhle
-                              ? Icons.water_drop_rounded
-                              : Icons.park_rounded,
-                          color: accent,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: accent.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              zone.type == HabitatZoneType.waterSuhle
+                                  ? Icons.water_drop_rounded
+                                  : Icons.park_rounded,
+                              color: accent,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Row(
                               children: [
                                 Text(
                                   '2. Biotop-Güte: ${zone.suitabilityScore.round()}%',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 13.5,
                                     fontWeight: FontWeight.w800,
                                     color: accent,
                                   ),
@@ -3068,18 +3484,75 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Bewertet das Gelände (${zone.subtitle}): Deckungsdichte, Nahrungsangebot (Äsung/Mast), Ruhe-Einstand und sicherer Pufferabstand zu Wander- & Radwegen.',
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                height: 1.3,
-                                color: WildlifeScoutTheme.textMuted,
-                              ),
-                            ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Gelände- & Habitatkriterien für diesen Spot (${zone.title}):',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: WildlifeScoutTheme.textMuted,
                         ),
                       ),
+                      const SizedBox(height: 8),
+
+                      // Aufzählung aller Biotop-Faktoren:
+                      _buildFactorRow(
+                        icon: Icons.directions_walk_rounded,
+                        iconColor: accent,
+                        label: 'Wanderweg-Abstand & Ruhelage',
+                        value:
+                            '${zone.distanceToNearestTrailMeters.round()} m zum Pfad',
+                        detail: zone.distanceToNearestTrailMeters >= 150
+                            ? 'Störungsarme Ruhelage: Großer Pufferabstand zu Freizeitwegen'
+                            : zone.distanceToNearestTrailMeters >= 80
+                                ? 'Moderater Abstand: Wild verhält sich vorsichtig sichernd'
+                                : 'Geringer Abstand: Fluchtrisiko bei Fußgängern und Hunden',
+                      ),
+                      _buildFactorRow(
+                        icon: Icons.water_drop_outlined,
+                        iconColor: accent,
+                        label: 'Wasserstelle & Suhlen',
+                        value: zone.distanceToWaterMeters < 15
+                            ? 'Direkt am Wasser (<15 m)'
+                            : '${zone.distanceToWaterMeters.round()} m zum Gewässer',
+                        detail: zone.distanceToWaterMeters <= 50
+                            ? 'Unmittelbare Tränke- & Suhlennähe (starker Anziehungspunkt)'
+                            : zone.distanceToWaterMeters <= 150
+                                ? 'Gute Erreichbarkeit im Nahbereich'
+                                : 'Größere Distanz, primär reiner Äsungsbereich',
+                      ),
+                      _buildFactorRow(
+                        icon: Icons.forest_outlined,
+                        iconColor: accent,
+                        label: 'Deckung & Waldgrenze',
+                        value:
+                            '${zone.distanceToForestMeters.round()} m zum Saum (${zone.type.label})',
+                        detail: zone.distanceToForestMeters <= 15
+                            ? 'Idealer Waldsaum: Schnelle Deckung im dichten Bestand'
+                            : 'Offeneres Feld mit längeren Fluchtwegen zum Bestand',
+                      ),
+                      if (slopeDetail != null)
+                        _buildFactorRow(
+                          icon: Icons.terrain_rounded,
+                          iconColor: accent,
+                          label: 'Topographie & Hang',
+                          value: slopeDetail,
+                          detail:
+                              'Hangprofil und Neigung bestimmen Witterungsschutz und Sonneneinstrahlung',
+                        ),
+                      if (soilDetail != null)
+                        _buildFactorRow(
+                          icon: Icons.layers_rounded,
+                          iconColor: accent,
+                          label: 'Boden-Substrat & Vegetation',
+                          value: soilDetail,
+                          detail:
+                              'Nährstoffreiches Substrat begünstigt schmackhafte Äsungspflanzen',
+                          isLast: true,
+                        ),
                     ],
                   ),
                 ),
@@ -3102,6 +3575,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
                             padding: const EdgeInsets.all(7),
@@ -3129,7 +3603,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                 Text(
                                   '3. Mikroklima & Taktik: ${tactical.tacticalScoreAdjustment >= 0 ? '+' : ''}${tactical.tacticalScoreAdjustment.round()}%',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 13.5,
                                     fontWeight: FontWeight.w800,
                                     color: tactical.tacticalScoreAdjustment >= 0
                                         ? WildlifeScoutTheme.emeraldBio
@@ -3142,7 +3616,8 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: (tactical.tacticalScoreAdjustment >= 0
+                                    color: (tactical.tacticalScoreAdjustment >=
+                                                0
                                             ? WildlifeScoutTheme.emeraldBio
                                             : WildlifeScoutTheme.amberGold)
                                         .withValues(alpha: 0.8),
@@ -3154,34 +3629,72 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                         ],
                       ),
                       const SizedBox(height: 8),
+                      Text(
+                        'Konkrete Vor-Ort-Einflüsse an dieser Kante:',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: WildlifeScoutTheme.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       if (tactical.badges.isNotEmpty)
                         ...tactical.badges.map(
                           (b) => Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.only(bottom: 7),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(b.icon, style: const TextStyle(fontSize: 13)),
-                                const SizedBox(width: 7),
+                                Container(
+                                  padding: const EdgeInsets.all(4.5),
+                                  decoration: BoxDecoration(
+                                    color: (b.isPositive
+                                            ? WildlifeScoutTheme.emeraldBio
+                                            : WildlifeScoutTheme.amberGold)
+                                        .withValues(alpha: 0.14),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    b.icon,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        '${b.title} (${b.deltaLabel})',
-                                        style: TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: b.isPositive
-                                              ? WildlifeScoutTheme.emeraldBio
-                                              : WildlifeScoutTheme.amberGold,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            b.title,
+                                            style: const TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            b.deltaLabel,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w900,
+                                              color: b.isPositive
+                                                  ? WildlifeScoutTheme
+                                                      .emeraldBio
+                                                  : WildlifeScoutTheme
+                                                      .amberGold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 1),
+                                      const SizedBox(height: 1.5),
                                       Text(
                                         b.description,
                                         style: const TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 10.5,
                                           height: 1.25,
                                           color: WildlifeScoutTheme.textMuted,
                                         ),
@@ -3194,20 +3707,32 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                           ),
                         )
                       else
-                        const Text(
-                          'Neutrale Bedingungen: Keine extremen Windeinflüsse oder akuten Störungen an diesem Kantenabschnitt.',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            height: 1.3,
-                            color: WildlifeScoutTheme.textMuted,
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 6),
+                          child: Text(
+                            'Neutrale Bedingungen: Keine extremen Windeinflüsse oder akuten Störungen an diesem Kantenabschnitt.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              height: 1.3,
+                              color: WildlifeScoutTheme.textMuted,
+                            ),
                           ),
                         ),
+                      _buildFactorRow(
+                        icon: Icons.calendar_month_rounded,
+                        iconColor: WildlifeScoutTheme.amberGold,
+                        label: 'Jahreszeitliche Phänologie',
+                        value:
+                            '${tactical.phenology.emoji} ${tactical.phenology.phaseName}',
+                        detail: tactical.phenology.description,
+                        isLast: true,
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                // Formel-Zusammenfassung
+                // Erfolgs-Synthese
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -3220,14 +3745,14 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                   child: Row(
                     children: [
                       Icon(
-                        Icons.info_outline_rounded,
+                        Icons.insights_rounded,
                         size: 15,
                         color: chanceColor,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Formel: ($activityScore% Aktivität + ${effectiveSuitability.round()}% Biotop & Taktik) ÷ 2 = $finalChanceScore% Chance',
+                          'Erfolgs-Synthese: Live-Wildaktivität ($activityScore%) & Vor-Ort-Biotop (${effectiveSuitability.round()}%) ergeben $finalChanceScore% Sichtungs-Chance.',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -3271,11 +3796,116 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                     ],
                   ),
                 ),
+                if (species != null) ...[
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        _openSpeciesInspectorFor(species);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accent.withValues(alpha: 0.18),
+                        foregroundColor: accent,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: accent.withValues(alpha: 0.5),
+                            width: 1.1,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.auto_stories_rounded, size: 18),
+                      label: Text(
+                        'Voller Steckbrief: ${species.name}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  static Widget _buildFactorRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required String detail,
+    bool isLast = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 7.5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4.5),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, size: 12.5, color: iconColor),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: iconColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 1.5),
+                Text(
+                  detail,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    height: 1.25,
+                    color: WildlifeScoutTheme.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -3360,10 +3990,15 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       final elevDist = (astro.sunElevationDegrees - 0.5).abs();
       final elevFactor = (1.0 - (elevDist / 4.5)).clamp(0.0, 1.0);
 
-      // Wolken-Faktor (Ideal: ca. 45% Bewölkung)
+      // Wolken-Faktor (Ideal: ca. 45% Bewölkung, besonders hohe Cirren begünstigen Streulicht)
       final cloud = weather.cloudCoverPercent;
       double cloudFactor = 0.0;
-      if (cloud >= 10 && cloud <= 80) {
+      if (weather.cloudCoverLowPercent >= 75) {
+        cloudFactor = 0.0; // Tiefe dichte Decke schluckt das Abendlicht
+      } else if (weather.cloudCoverHighPercent >= 35 &&
+          weather.cloudCoverLowPercent <= 30) {
+        cloudFactor = 1.0; // Perfekter Cirrus-Schleierschirm für feuerrotes Streulicht
+      } else if (cloud >= 10 && cloud <= 80) {
         if (cloud >= 30 && cloud <= 60) {
           cloudFactor = 1.0;
         } else if (cloud < 30) {
@@ -3438,26 +4073,39 @@ class _FieldMapScreenState extends State<FieldMapScreen>
         '${weather.precipitationMm.toStringAsFixed(1)} mm',
         'Regen',
       );
-    } else if (weather.isFog) {
+    } else if (weather.isFog ||
+        (weather.visibilityMeters != null && weather.visibilityMeters! < 1000)) {
       return (
         Icons.cloud_queue_rounded,
         const Color(0xFFCBD5E1),
         'Nebel',
-        'Sicht < 1 km',
+        weather.visibilityMeters != null
+            ? 'Sicht ${(weather.visibilityMeters! / 1000).toStringAsFixed(1)} km'
+            : 'Sicht < 1 km',
       );
     } else if (weather.cloudCoverPercent >= 75) {
+      final detailStr = weather.cloudCoverLowPercent >= 70
+          ? 'Tiefe Decke'
+          : weather.cloudCoverHighPercent >= 60
+              ? 'Cirrenschleier'
+              : 'Bedeckt';
       return (
         Icons.cloud_rounded,
         WildlifeScoutTheme.textMuted,
         '${weather.cloudCoverPercent}%',
-        'Bedeckt',
+        detailStr,
       );
     } else if (weather.cloudCoverPercent >= 25) {
+      final detailStr = weather.cloudCoverMidPercent >= 35
+          ? 'Softbox-Licht'
+          : weather.cloudCoverHighPercent >= 30
+              ? 'Streulicht'
+              : 'Leicht bewölkt';
       return (
         Icons.cloud_queue_rounded,
         const Color(0xFFBAE6FD),
         '${weather.cloudCoverPercent}%',
-        'Leicht bewölkt',
+        detailStr,
       );
     } else {
       return (
@@ -3468,7 +4116,9 @@ class _FieldMapScreenState extends State<FieldMapScreen>
             ? const Color(0xFFC7D2FE)
             : WildlifeScoutTheme.amberGold,
         'Klar',
-        '${weather.cloudCoverPercent}% Wolken',
+        astro.currentPeriod == ActivityPeriod.night
+            ? 'Klarer Sternenhimmel'
+            : 'Klares Sonnenlicht',
       );
     }
   }
@@ -3722,8 +4372,9 @@ class _FieldMapScreenState extends State<FieldMapScreen>
 
   Widget _buildWeatherTelemetryPill(
     WeatherFrame weather,
-    SunMoonPosition astro,
-  ) {
+    SunMoonPosition astro, {
+    bool isMobile = true,
+  }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -3733,9 +4384,10 @@ class _FieldMapScreenState extends State<FieldMapScreen>
           _openWindCompassSheet();
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 7,
-            vertical: 5.5,
+          constraints: BoxConstraints(minHeight: isMobile ? 36 : 38),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 7 : 9,
+            vertical: isMobile ? 5.5 : 6.5,
           ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.07),
@@ -3747,14 +4399,14 @@ class _FieldMapScreenState extends State<FieldMapScreen>
             children: [
               Icon(
                 _getWeatherIcon(weather, astro),
-                size: 14,
+                size: isMobile ? 14 : 16,
                 color: _getWeatherIconColor(weather, astro),
               ),
               const SizedBox(width: 4),
               Text(
                 '${weather.temperatureCelsius.toStringAsFixed(0)}°C',
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: isMobile ? 12 : 13,
                   fontWeight: FontWeight.w800,
                   color: WildlifeScoutTheme.textPrimary,
                 ),
@@ -3762,23 +4414,23 @@ class _FieldMapScreenState extends State<FieldMapScreen>
               const SizedBox(width: 6),
               Container(
                 width: 1,
-                height: 11,
+                height: isMobile ? 11 : 14,
                 color: WildlifeScoutTheme.borderSubtle,
               ),
               const SizedBox(width: 6),
               Transform.rotate(
                 angle: weather.scentBlowDirectionDegrees * (math.pi / 180.0),
-                child: const Icon(
+                child: Icon(
                   Icons.navigation_rounded,
-                  size: 11,
+                  size: isMobile ? 11 : 13,
                   color: WildlifeScoutTheme.emeraldBio,
                 ),
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: 3),
               Text(
                 weather.windCardinalLabel,
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TextStyle(
+                  fontSize: isMobile ? 11 : 12,
                   fontWeight: FontWeight.w800,
                   color: WildlifeScoutTheme.textMuted,
                 ),
@@ -3794,17 +4446,18 @@ class _FieldMapScreenState extends State<FieldMapScreen>
     BuildContext context, {
     required double? nowFraction,
     required DateTime referenceDate,
+    bool isMobile = true,
   }) {
     return SliderTheme.of(context).copyWith(
-      trackHeight: 14.0,
+      trackHeight: isMobile ? 14.0 : 16.0,
       thumbColor: WildlifeScoutTheme.amberGold,
       overlayColor: WildlifeScoutTheme.amberGold.withValues(alpha: 0.18),
-      thumbShape: const RoundSliderThumbShape(
-        enabledThumbRadius: 11.0,
+      thumbShape: RoundSliderThumbShape(
+        enabledThumbRadius: isMobile ? 11.0 : 12.0,
         elevation: 3.0,
         pressedElevation: 6.0,
       ),
-      overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0),
+      overlayShape: RoundSliderOverlayShape(overlayRadius: isMobile ? 20.0 : 22.0),
       tickMarkShape: const RoundSliderTickMarkShape(tickMarkRadius: 1.2),
       activeTickMarkColor: Colors.white.withValues(alpha: 0.40),
       inactiveTickMarkColor: Colors.white.withValues(alpha: 0.30),
@@ -3853,18 +4506,23 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                 setState(() => _isDeckExpanded = !_isDeckExpanded);
               },
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 8, 7),
+                padding: EdgeInsets.fromLTRB(
+                  isMobile ? 10 : 14,
+                  isMobile ? 8 : 10,
+                  isMobile ? 8 : 12,
+                  isMobile ? 7 : 9,
+                ),
                 child: Row(
                   children: [
                     // Kompakte Score-Badge mit farblichem Akzentpunkt
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2.5,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 7 : 9,
+                        vertical: isMobile ? 2.5 : 4,
                       ),
                       decoration: BoxDecoration(
                         color: scoreColor.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
                         border: Border.all(
                           color: scoreColor.withValues(alpha: 0.45),
                           width: 1,
@@ -3874,18 +4532,18 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 6,
-                            height: 6,
+                            width: isMobile ? 6 : 7,
+                            height: isMobile ? 6 : 7,
                             decoration: BoxDecoration(
                               color: scoreColor,
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 4.5),
+                          SizedBox(width: isMobile ? 4.5 : 6),
                           Text(
                             '${assessment.activityScorePercent}%',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: isMobile ? 13 : 14,
                               fontWeight: FontWeight.w900,
                               color: scoreColor,
                               letterSpacing: -0.2,
@@ -3894,7 +4552,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: isMobile ? 8 : 12),
 
                     // Bewertungs-Label in klarem, ruhigem Text
                     Expanded(
@@ -3902,25 +4560,26 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                         assessment.ratingLabel,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13.5,
+                        style: TextStyle(
+                          fontSize: isMobile ? 13.5 : 14.5,
                           fontWeight: FontWeight.w700,
                           color: WildlifeScoutTheme.textPrimary,
                           letterSpacing: -0.2,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
 
                     // Aufklapp-Button für erweiterte Wetter- & Umgebungs-Telemetrie
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                      constraints: BoxConstraints(minHeight: isMobile ? 28 : 36),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 8 : 12,
+                        vertical: isMobile ? 4 : 7,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
                         border: Border.all(
                           color: WildlifeScoutTheme.borderSubtle,
                         ),
@@ -3932,19 +4591,19 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                             _isDeckExpanded
                                 ? 'Weniger'
                                 : (isMobile ? 'Details' : 'Wetter & Details'),
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: isMobile ? 12 : 13,
                               fontWeight: FontWeight.w600,
                               color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
-                          const SizedBox(width: 3),
+                          const SizedBox(width: 4),
                           AnimatedRotation(
                             turns: _isDeckExpanded ? 0.5 : 0.0,
                             duration: const Duration(milliseconds: 250),
-                            child: const Icon(
+                            child: Icon(
                               Icons.keyboard_arrow_down_rounded,
-                              size: 16,
+                              size: isMobile ? 16 : 18,
                               color: WildlifeScoutTheme.textMuted,
                             ),
                           ),
@@ -3959,7 +4618,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
 
           // Feine Trennlinie (Hairline Divider)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 14),
             child: Divider(
               height: 1,
               thickness: 1,
@@ -3978,7 +4637,12 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                 _openWindCompassSheet();
               },
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 7, 8, 8),
+                padding: EdgeInsets.fromLTRB(
+                  isMobile ? 10 : 14,
+                  isMobile ? 7 : 9,
+                  isMobile ? 8 : 12,
+                  isMobile ? 8 : 10,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -3988,19 +4652,19 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                           : (weather.windSpeedKmh < 4.0
                               ? Icons.air_rounded
                               : Icons.check_circle_outline_rounded),
-                      size: 16,
+                      size: isMobile ? 16 : 18,
                       color: hasCollision
                           ? WildlifeScoutTheme.crimsonScent
                           : WildlifeScoutTheme.emeraldBio,
                     ),
-                    const SizedBox(width: 7),
+                    SizedBox(width: isMobile ? 7 : 10),
                     Expanded(
                       child: Text(
                         assessment.windAdvice,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: isMobile ? 12.5 : 13.5,
                           fontWeight: FontWeight.w600,
                           height: 1.3,
                           color: hasCollision
@@ -4010,11 +4674,12 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3,
+                      constraints: BoxConstraints(minHeight: isMobile ? 26 : 36),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 7 : 12,
+                        vertical: isMobile ? 3 : 7,
                       ),
                       decoration: BoxDecoration(
                         color: hasCollision
@@ -4022,7 +4687,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                 .withValues(alpha: 0.18)
                             : WildlifeScoutTheme.emeraldBio
                                 .withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(isMobile ? 6 : 10),
                         border: Border.all(
                           color: hasCollision
                               ? WildlifeScoutTheme.crimsonScent
@@ -4037,16 +4702,16 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                         children: [
                           Icon(
                             Icons.explore_rounded,
-                            size: 13,
+                            size: isMobile ? 13 : 16,
                             color: hasCollision
                                 ? WildlifeScoutTheme.crimsonScent
                                 : WildlifeScoutTheme.emeraldBio,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: isMobile ? 4 : 6),
                           Text(
                             'Kompass',
                             style: TextStyle(
-                              fontSize: 11.5,
+                              fontSize: isMobile ? 11.5 : 12.5,
                               fontWeight: FontWeight.w700,
                               color: hasCollision
                                   ? const Color(0xFFFFB4C0)
@@ -4094,10 +4759,10 @@ class _FieldMapScreenState extends State<FieldMapScreen>
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           padding: EdgeInsets.fromLTRB(
-            isMobile ? 12 : 16,
-            10,
-            isMobile ? 12 : 16,
-            12,
+            isMobile ? 12 : 18,
+            isMobile ? 10 : 12,
+            isMobile ? 12 : 18,
+            isMobile ? 12 : 14,
           ),
           decoration: WildlifeScoutTheme.glassDecoration(
             borderRadius: 24,
@@ -4125,11 +4790,11 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                   setState(() => _isDeckExpanded = !_isDeckExpanded);
                 },
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 7),
+                  padding: EdgeInsets.only(bottom: isMobile ? 7 : 9),
                   child: Center(
                     child: Container(
-                      width: 36,
-                      height: 4,
+                      width: isMobile ? 36 : 44,
+                      height: isMobile ? 4 : 5,
                       decoration: BoxDecoration(
                         color: Colors.white24,
                         borderRadius: BorderRadius.circular(4),
@@ -4142,7 +4807,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
               // Unwetter-Alarm Card im Deck (bei aktiver Fotosession und Sturm/Gewitter)
               if (_isSessionActive && severeWeatherAlert != null) ...[
                 _buildDeckSevereWeatherCard(severeWeatherAlert),
-                const SizedBox(height: 8),
+                SizedBox(height: isMobile ? 8 : 10),
               ],
 
               // Aufgeräumte Briefing-Card: Aktivitäts-Index & Witterungs-Lage konsolidiert
@@ -4152,7 +4817,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                 scoreColor: scoreColor,
                 isMobile: isMobile,
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: isMobile ? 8 : 12),
 
               // Tier 3: Zeitschieberegler (Time-Scrubber: Ergonomisch optimiert für Touchscreen)
               if (isMobile) ...[
@@ -4170,6 +4835,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                               icon: Icons.wb_twilight_rounded,
                               label: '06:00',
                               isSelected: _selectedHourOfDay == 6,
+                              isMobile: true,
                               onTap: () {
                                 HapticFeedback.selectionClick();
                                 setState(() => _selectedHourOfDay = 6);
@@ -4182,6 +4848,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                 label: 'Jetzt',
                                 isSelected:
                                     _selectedHourOfDay == DateTime.now().hour,
+                                isMobile: true,
                                 onTap: () {
                                   HapticFeedback.selectionClick();
                                   setState(() => _selectedHourOfDay =
@@ -4194,6 +4861,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                               icon: Icons.nightlight_round,
                               label: '18:00',
                               isSelected: _selectedHourOfDay == 18,
+                              isMobile: true,
                               onTap: () {
                                 HapticFeedback.selectionClick();
                                 setState(() => _selectedHourOfDay = 18);
@@ -4204,7 +4872,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                       ),
                     ),
                     const SizedBox(width: 6),
-                    _buildWeatherTelemetryPill(weather, astro),
+                    _buildWeatherTelemetryPill(weather, astro, isMobile: true),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -4252,6 +4920,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                       context,
                       nowFraction: nowFraction,
                       referenceDate: weather.time,
+                      isMobile: true,
                     ),
                     child: Slider(
                       value: _selectedHourOfDay.toDouble(),
@@ -4272,67 +4941,170 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                   ),
                 ),
               ] else ...[
-                // Desktop / Tablet: Einzeiliges Horizontallayout
+                // Desktop / Tablet: Ergonomisch optimiertes Layout mit Apple HIG Touch-Targets und klarer Trennung
+                // Zeile 1: Schnellauswahl-Tasten + Prominenter Live-Zeit Badge + Wetter-Telemetrie Pill
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _QuickTimeButton(
-                      icon: Icons.wb_twilight_rounded,
-                      label: '06:00',
-                      isSelected: _selectedHourOfDay == 6,
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _selectedHourOfDay = 6);
-                      },
-                    ),
-                    if (_selectedDayOffset == 0) ...[
-                      const SizedBox(width: 6),
-                      _QuickTimeButton(
-                        icon: Icons.schedule_rounded,
-                        label: 'Jetzt',
-                        isSelected: _selectedHourOfDay == DateTime.now().hour,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _selectedHourOfDay = DateTime.now().hour);
-                        },
-                      ),
-                    ],
-                    const SizedBox(width: 6),
-                    _QuickTimeButton(
-                      icon: Icons.nightlight_round,
-                      label: '18:00',
-                      isSelected: _selectedHourOfDay == 18,
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _selectedHourOfDay = 18);
-                      },
-                    ),
-                    Expanded(
-                      child: SliderTheme(
-                        data: _buildTimeSliderTheme(
-                          context,
-                          nowFraction: nowFraction,
-                          referenceDate: weather.time,
-                        ),
-                        child: Slider(
-                          value: _selectedHourOfDay.toDouble(),
-                          min: 0,
-                          max: 23,
-                          divisions: 23,
-                          label: '$dayLabel, $hourStr',
-                          onChanged: (val) {
-                            final newHour = val.round();
-                            if (newHour != _selectedHourOfDay) {
-                              HapticFeedback.selectionClick();
-                              setState(() {
-                                _selectedHourOfDay = newHour;
-                              });
-                            }
+                    // Schnellauswahl-Tasten für markante Zeiten
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _QuickTimeButton(
+                          icon: Icons.wb_twilight_rounded,
+                          label: '06:00',
+                          isSelected: _selectedHourOfDay == 6,
+                          isMobile: false,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _selectedHourOfDay = 6);
                           },
                         ),
+                        const SizedBox(width: 6),
+                        if (_selectedDayOffset == 0) ...[
+                          _QuickTimeButton(
+                            icon: Icons.schedule_rounded,
+                            label: 'Jetzt',
+                            isSelected:
+                                _selectedHourOfDay == DateTime.now().hour,
+                            isMobile: false,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedHourOfDay =
+                                  DateTime.now().hour);
+                            },
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        _QuickTimeButton(
+                          icon: Icons.nightlight_round,
+                          label: '18:00',
+                          isSelected: _selectedHourOfDay == 18,
+                          isMobile: false,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _selectedHourOfDay = 18);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 6),
+
+                    // Zentrierte Live-Zeitanzeige Badge für perfekte Ablesbarkeit auf dem Tablet
+                    Flexible(
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 38),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: WildlifeScoutTheme.amberGold.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: WildlifeScoutTheme.amberGold.withValues(alpha: 0.45),
+                            width: 1.1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.access_time_filled_rounded,
+                              size: 14,
+                              color: WildlifeScoutTheme.amberGold,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                '$dayLabel • $hourStr',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: WildlifeScoutTheme.amberGold,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    _buildWeatherTelemetryPill(weather, astro),
+                    const SizedBox(width: 6),
+
+                    // Wetter-Telemetrie Pill
+                    _buildWeatherTelemetryPill(weather, astro, isMobile: false),
                   ],
+                ),
+                const SizedBox(height: 10),
+
+                // Zeile 2: Skalen-Header mit Morgenfrühe, Mittag und Nacht
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '00:00 Morgenfrühe',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: WildlifeScoutTheme.textMuted,
+                        ),
+                      ),
+                      Text(
+                        '12:00 Mittag',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: WildlifeScoutTheme.textMuted,
+                        ),
+                      ),
+                      Text(
+                        '23:00 Nacht',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: WildlifeScoutTheme.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 3),
+
+                // Zeile 3: Volle Breite Zeitschieberegler mit ergonomischem Touch-Padding
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: SliderTheme(
+                      data: _buildTimeSliderTheme(
+                        context,
+                        nowFraction: nowFraction,
+                        referenceDate: weather.time,
+                        isMobile: false,
+                      ),
+                      child: Slider(
+                        value: _selectedHourOfDay.toDouble(),
+                        min: 0,
+                        max: 23,
+                        divisions: 23,
+                        label: '$dayLabel, $hourStr',
+                        onChanged: (val) {
+                          final newHour = val.round();
+                          if (newHour != _selectedHourOfDay) {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _selectedHourOfDay = newHour;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
                 ),
               ],
 
@@ -4543,8 +5315,11 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                                       value: skyInfo.$3,
                                       detail: skyInfo.$4,
                                       tooltipMessage: weather.precipitationMm > 0
-                                          ? '${weather.precipitationMm.toStringAsFixed(1)} mm Niederschlag'
-                                          : '${weather.cloudCoverPercent}% Wolkenbedeckung',
+                                          ? '${weather.precipitationMm.toStringAsFixed(1)} mm • Tippen für ECMWF-Film'
+                                          : '${weather.cloudStratificationSummary} • Tippen für ECMWF-Film',
+                                      onTap: () => _openTacticalWindySheet(
+                                        initialMode: WindyOverlayMode.clouds,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -5006,12 +5781,14 @@ class _QuickTimeButton extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isMobile;
 
   const _QuickTimeButton({
     this.icon,
     required this.label,
     required this.isSelected,
     required this.onTap,
+    this.isMobile = true,
   });
 
   @override
@@ -5020,8 +5797,11 @@ class _QuickTimeButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 36),
-        padding: const EdgeInsets.symmetric(horizontal: 7.5, vertical: 6),
+        constraints: BoxConstraints(minHeight: isMobile ? 36 : 38),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 7.5 : 9.5,
+          vertical: isMobile ? 6 : 6.5,
+        ),
         decoration: BoxDecoration(
           color: isSelected
               ? WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.25)
@@ -5040,7 +5820,7 @@ class _QuickTimeButton extends StatelessWidget {
             if (icon != null) ...[
               Icon(
                 icon,
-                size: 13,
+                size: isMobile ? 13 : 15,
                 color: isSelected
                     ? WildlifeScoutTheme.emeraldBio
                     : WildlifeScoutTheme.textMuted,
@@ -5050,7 +5830,7 @@ class _QuickTimeButton extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: isMobile ? 11.5 : 12.5,
                 fontWeight: FontWeight.w800,
                 color: isSelected
                     ? WildlifeScoutTheme.emeraldBio

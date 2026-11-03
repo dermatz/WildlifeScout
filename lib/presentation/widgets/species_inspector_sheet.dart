@@ -656,7 +656,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
 
             // 7. Aktive Geodaten- & Habitat-Regeln
             const Text(
-              'Aktive Geodaten- & Habitat-Regeln (JSON Profile Engine)',
+              'Aktive Geodaten- & Habitat-Regeln',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -677,7 +677,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${w.label} (${w.osmTag})',
+                        w.label,
                         style: const TextStyle(fontSize: 12.5),
                       ),
                     ),
@@ -706,7 +706,7 @@ class SpeciesInspectorSheet extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${p.label} • Puffer ${p.radiusMeters.round()}m (${p.osmTag})',
+                        '${p.label} • Puffer ${p.radiusMeters.round()}m',
                         style: const TextStyle(fontSize: 12.5),
                       ),
                     ),

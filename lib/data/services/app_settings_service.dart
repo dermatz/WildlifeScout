@@ -30,6 +30,9 @@ class AppSettings {
   /// Ob der Blickrichtungs-Peilstrahl (Geräte-Kompass) auf der Karte angezeigt werden soll.
   final bool showCompassHeadingBeam;
 
+  /// Ob das minimalistische 360°-Kompassband direkt auf dem HUD (Mobile) angezeigt werden soll.
+  final bool showHudCompassTape;
+
   /// Ob der Wind- & Geruchskegel auf der Karte angezeigt werden soll.
   final bool showWindScentCone;
 
@@ -61,6 +64,7 @@ class AppSettings {
 
   /// Standardwerte für Sensorik, Optik & Einheiten
   static const bool defaultShowCompassHeadingBeam = true;
+  static const bool defaultShowHudCompassTape = true;
   static const bool defaultShowWindScentCone = true;
   static const bool defaultShowDisturbanceLayer = false;
   static const bool defaultShowLensFieldOfView = true;
@@ -76,6 +80,7 @@ class AppSettings {
     this.severeWeatherWindGustThresholdKmh = defaultWindGustThresholdKmh,
     this.severeWeatherSoundAndHaptics = defaultSevereWeatherSoundAndHaptics,
     this.showCompassHeadingBeam = defaultShowCompassHeadingBeam,
+    this.showHudCompassTape = defaultShowHudCompassTape,
     this.showWindScentCone = defaultShowWindScentCone,
     this.showDisturbanceLayer = defaultShowDisturbanceLayer,
     this.showLensFieldOfView = defaultShowLensFieldOfView,
@@ -92,6 +97,7 @@ class AppSettings {
     double? severeWeatherWindGustThresholdKmh,
     bool? severeWeatherSoundAndHaptics,
     bool? showCompassHeadingBeam,
+    bool? showHudCompassTape,
     bool? showWindScentCone,
     bool? showDisturbanceLayer,
     bool? showLensFieldOfView,
@@ -112,6 +118,7 @@ class AppSettings {
           severeWeatherSoundAndHaptics ?? this.severeWeatherSoundAndHaptics,
       showCompassHeadingBeam:
           showCompassHeadingBeam ?? this.showCompassHeadingBeam,
+      showHudCompassTape: showHudCompassTape ?? this.showHudCompassTape,
       showWindScentCone: showWindScentCone ?? this.showWindScentCone,
       showDisturbanceLayer: showDisturbanceLayer ?? this.showDisturbanceLayer,
       showLensFieldOfView: showLensFieldOfView ?? this.showLensFieldOfView,
@@ -136,6 +143,8 @@ class AppSettingsService {
       'wildlifescout_severe_weather_haptics_v1';
   static const String _keyShowCompassBeam =
       'wildlifescout_show_compass_beam_v1';
+  static const String _keyShowHudCompassTape =
+      'wildlifescout_show_hud_compass_tape_v1';
   static const String _keyShowWindScentCone =
       'wildlifescout_show_wind_scent_cone_v1';
   static const String _keyShowDisturbanceLayer =
@@ -156,6 +165,7 @@ class AppSettingsService {
   static const String _legacyKeySevereWeatherGustThreshold = 'wildscout_severe_weather_gust_threshold_v1';
   static const String _legacyKeySevereWeatherHaptics = 'wildscout_severe_weather_haptics_v1';
   static const String _legacyKeyShowCompassBeam = 'wildscout_show_compass_beam_v1';
+  static const String _legacyKeyShowHudCompassTape = 'wildscout_show_hud_compass_tape_v1';
   static const String _legacyKeyShowWindScentCone = 'wildscout_show_wind_scent_cone_v1';
   static const String _legacyKeyShowDisturbanceLayer = 'wildscout_show_disturbance_layer_v1';
   static const String _legacyKeyShowLensFieldOfView = 'wildscout_show_lens_field_of_view_v1';
@@ -199,6 +209,9 @@ class AppSettingsService {
       final showCompassBeam = prefs.getBool(_keyShowCompassBeam) ??
           prefs.getBool(_legacyKeyShowCompassBeam) ??
           AppSettings.defaultShowCompassHeadingBeam;
+      final showHudCompassTape = prefs.getBool(_keyShowHudCompassTape) ??
+          prefs.getBool(_legacyKeyShowHudCompassTape) ??
+          AppSettings.defaultShowHudCompassTape;
       final showWindScentCone = prefs.getBool(_keyShowWindScentCone) ??
           prefs.getBool(_legacyKeyShowWindScentCone) ??
           AppSettings.defaultShowWindScentCone;
@@ -236,6 +249,7 @@ class AppSettingsService {
         severeWeatherWindGustThresholdKmh: safeGustThreshold,
         severeWeatherSoundAndHaptics: soundHaptics,
         showCompassHeadingBeam: showCompassBeam,
+        showHudCompassTape: showHudCompassTape,
         showWindScentCone: showWindScentCone,
         showDisturbanceLayer: showDisturbanceLayer,
         showLensFieldOfView: showLensFov,
@@ -297,6 +311,10 @@ class AppSettingsService {
       await prefs.setBool(
         _keyShowCompassBeam,
         adjusted.showCompassHeadingBeam,
+      );
+      await prefs.setBool(
+        _keyShowHudCompassTape,
+        adjusted.showHudCompassTape,
       );
       await prefs.setBool(
         _keyShowWindScentCone,

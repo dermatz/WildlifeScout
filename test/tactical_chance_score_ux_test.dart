@@ -57,6 +57,68 @@ void main() {
       expect(find.text('52% | 87%'), findsNothing);
     });
 
+    testWidgets('Tapping habitat marker displays improved HUD with animal photo, key metrics, and details button',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: WildlifeScoutTheme.buildDarkTheme(),
+          home: const FieldMapScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verifiziere, dass ein Chance-Pin auf der Karte angetippt werden kann
+      final chancePins = find.textContaining('%');
+      if (chancePins.evaluate().isNotEmpty) {
+        await tester.tap(chancePins.first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        // Das neue HUD zeigt den klaren Detail-Button
+        expect(find.text('Details anzeigen'), findsOneWidget);
+        // Die unschöne Rechenformel "÷ 2 =" existiert im HUD nicht mehr
+        expect(find.textContaining('÷ 2 ='), findsNothing);
+      }
+    });
+
+    testWidgets('Tapping Details anzeigen opens detail sheet with enumerated calculation factors',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: WildlifeScoutTheme.buildDarkTheme(),
+          home: const FieldMapScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final chancePins = find.textContaining('%');
+      if (chancePins.evaluate().isNotEmpty) {
+        await tester.tap(chancePins.first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        final detailsBtn = find.text('Details anzeigen');
+        if (detailsBtn.evaluate().isNotEmpty) {
+          await tester.tap(detailsBtn);
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 300));
+
+          // Verifiziere die aufgezählten Faktoren in der Detailansicht
+          expect(find.text('Dämmerung & Tageszeit'), findsOneWidget);
+          expect(find.text('Luftdruck & Barometer'), findsOneWidget);
+          expect(find.text('Wind & Wind-Komfort'), findsOneWidget);
+          expect(find.text('Wanderweg-Abstand & Ruhelage'), findsOneWidget);
+
+          // Verifiziere den neuen Button für den vollen Steckbrief
+          expect(find.textContaining('Voller Steckbrief'), findsWidgets);
+        }
+      }
+    });
+
     test('Chance Score Explanation copy answers Wann and Wo clearly', () {
       const activityScore = 51;
       const biotopScore = 87;

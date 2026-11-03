@@ -337,5 +337,60 @@ void main() {
       expect(find.textContaining('taktisch'), findsNothing);
       expect(find.textContaining('Taktisch'), findsNothing);
     });
+
+    testWidgets('SpeciesInspectorSheet does not render raw OSM tags or engine keywords', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final species = SpeciesProfile.fromJson({
+        'id': 'roe_deer',
+        'name': 'Rehwild',
+        'scientificName': 'Capreolus capreolus',
+        'category': 'ungulate',
+        'shortDescription': 'Konzentratselektierer.',
+        'accentColorHex': '#10B981',
+        'behavior': {
+          'flightDistanceMeters': 80,
+        },
+        'habitatRules': {
+          'landuseWeights': [
+            {'osmTag': 'natural=scrub', 'score': 4.2, 'label': 'Verjüngung & Hecken'},
+            {'osmTag': 'landuse=meadow', 'score': 3.5, 'label': 'Kräuterreiche Waldwiese'},
+          ],
+          'disturbancePenalties': [
+            {'osmTag': 'highway=path', 'radiusMeters': 45, 'penaltyScore': -2.5, 'label': 'Spazier-/Wanderpfad'},
+            {'osmTag': 'highway=cycleway', 'radiusMeters': 65, 'penaltyScore': -4.0, 'label': 'Radweg'},
+          ],
+        },
+      });
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: WildlifeScoutTheme.buildDarkTheme(),
+          home: Scaffold(
+            body: SpeciesInspectorSheet(
+              species: species,
+              obfuscatedLat: 51.16,
+              obfuscatedLon: 10.45,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Clean German labels are rendered
+      expect(find.text('Verjüngung & Hecken'), findsOneWidget);
+      expect(find.text('Kräuterreiche Waldwiese'), findsOneWidget);
+      expect(find.textContaining('Spazier-/Wanderpfad • Puffer 45m'), findsOneWidget);
+      expect(find.textContaining('Radweg • Puffer 65m'), findsOneWidget);
+
+      // Raw technical OSM tags and engine buzzwords are suppressed
+      expect(find.textContaining('natural=scrub'), findsNothing);
+      expect(find.textContaining('landuse=meadow'), findsNothing);
+      expect(find.textContaining('highway=path'), findsNothing);
+      expect(find.textContaining('highway=cycleway'), findsNothing);
+      expect(find.textContaining('JSON Profile Engine'), findsNothing);
+    });
   });
 }

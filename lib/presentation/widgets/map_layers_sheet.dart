@@ -19,6 +19,7 @@ class MapLayersSheet extends StatelessWidget {
   final ValueChanged<bool> onChangedScentCone;
   final ValueChanged<bool> onChangedNightVision;
   final VoidCallback onScanCurrentMapCenter;
+  final VoidCallback? onOpenTacticalWindy;
 
   const MapLayersSheet({
     super.key,
@@ -38,6 +39,7 @@ class MapLayersSheet extends StatelessWidget {
     required this.onChangedScentCone,
     required this.onChangedNightVision,
     required this.onScanCurrentMapCenter,
+    this.onOpenTacticalWindy,
   });
 
   @override
@@ -171,6 +173,108 @@ class MapLayersSheet extends StatelessWidget {
             activeColor: WildlifeScoutTheme.cyanWater,
             onChanged: onChangedRainRadar,
           ),
+          if (onOpenTacticalWindy != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.35),
+                  width: 1,
+                ),
+              ),
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.air_rounded,
+                      color: WildlifeScoutTheme.cyanWater,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Großwetter- & Windfilm',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: WildlifeScoutTheme.emeraldBio.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'ECMWF',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: WildlifeScoutTheme.emeraldBio,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Wolkenbänder & animierte Windpartikel (Windy)',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: WildlifeScoutTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: WildlifeScoutTheme.cyanWater,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      onOpenTacticalWindy!();
+                    },
+                    child: const Text(
+                      'Öffnen',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (primarySpecies.behavior.scentSensitivityMeters > 0) ...[
             const SizedBox(height: 8),
             _LayerToggleRow(

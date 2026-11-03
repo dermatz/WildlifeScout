@@ -25,7 +25,7 @@ class OpenMeteoClient {
       'latitude': obfuscated.lat.toStringAsFixed(2),
       'longitude': obfuscated.lon.toStringAsFixed(2),
       'hourly':
-          'temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cloud_cover,precipitation,weather_code',
+          'temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,precipitation,weather_code',
       'timezone': 'auto',
       'forecast_days': '7',
     });
@@ -50,6 +50,10 @@ class OpenMeteoClient {
       final gusts = (hourly['wind_gusts_10m'] as List<dynamic>? ?? []);
       final pressures = (hourly['surface_pressure'] as List<dynamic>? ?? []);
       final clouds = (hourly['cloud_cover'] as List<dynamic>? ?? []);
+      final cloudsLow = (hourly['cloud_cover_low'] as List<dynamic>? ?? []);
+      final cloudsMid = (hourly['cloud_cover_mid'] as List<dynamic>? ?? []);
+      final cloudsHigh = (hourly['cloud_cover_high'] as List<dynamic>? ?? []);
+      final visibilities = (hourly['visibility'] as List<dynamic>? ?? []);
       final precip = (hourly['precipitation'] as List<dynamic>? ?? []);
       final weatherCodes = (hourly['weather_code'] as List<dynamic>? ?? []);
 
@@ -74,6 +78,24 @@ class OpenMeteoClient {
             ? -1.8
             : rawDelta;
 
+        final totalCloud =
+            (clouds.length > i ? (clouds[i] as num?)?.toInt() : null) ?? 35;
+        final lowCloud = (cloudsLow.length > i
+                ? (cloudsLow[i] as num?)?.toInt()
+                : null) ??
+            (totalCloud * 0.35).round();
+        final midCloud = (cloudsMid.length > i
+                ? (cloudsMid[i] as num?)?.toInt()
+                : null) ??
+            (totalCloud * 0.45).round();
+        final highCloud = (cloudsHigh.length > i
+                ? (cloudsHigh[i] as num?)?.toInt()
+                : null) ??
+            (totalCloud * 0.55).round();
+        final visMeters = visibilities.length > i
+            ? (visibilities[i] as num?)?.toDouble()
+            : null;
+
         frames.add(
           WeatherFrame(
             time: DateTime.tryParse(times[i].toString()) ??
@@ -92,8 +114,12 @@ class OpenMeteoClient {
                 235.0,
             surfacePressureHpa: currentPressure,
             pressureDelta6hHpa: effectiveDelta,
-            cloudCoverPercent:
-                (clouds.length > i ? (clouds[i] as num?)?.toInt() : null) ?? 35,
+            cloudCoverPercent: totalCloud,
+            cloudCoverLowPercent: lowCloud,
+            cloudCoverMidPercent: midCloud,
+            cloudCoverHighPercent: highCloud,
+            visibilityMeters: visMeters,
+            meteorologicalModel: 'ECMWF IFS & Open-Meteo',
             precipitationMm:
                 (precip.length > i ? (precip[i] as num?)?.toDouble() : null) ??
                 0.0,
@@ -141,6 +167,11 @@ class OpenMeteoClient {
           surfacePressureHpa: 1012.5 + pressureDelta,
           pressureDelta6hHpa: pressureDelta,
           cloudCoverPercent: 28,
+          cloudCoverLowPercent: (hOfDay <= 7 || hOfDay >= 21) ? 22 : 10,
+          cloudCoverMidPercent: 35,
+          cloudCoverHighPercent: 40,
+          visibilityMeters: (hOfDay <= 7) ? 3500.0 : 12000.0,
+          meteorologicalModel: 'ECMWF IFS (Offline Cache)',
           precipitationMm: 0.0,
         ),
       );

@@ -28,6 +28,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
   bool _showPlaceNames = true;
   bool _showRainRadar = false;
   bool _showCompassBeam = AppSettings.defaultShowCompassHeadingBeam;
+  bool _showHudCompassTape = AppSettings.defaultShowHudCompassTape;
   bool _showWindScentCone = AppSettings.defaultShowWindScentCone;
   bool _showDisturbanceLayer = AppSettings.defaultShowDisturbanceLayer;
   bool _showLensFieldOfView = AppSettings.defaultShowLensFieldOfView;
@@ -67,6 +68,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
       _showPlaceNames = settings.showPlaceNamesOnSatellite;
       _showRainRadar = settings.showRainRadarLayer;
       _showCompassBeam = settings.showCompassHeadingBeam;
+      _showHudCompassTape = settings.showHudCompassTape;
       _showWindScentCone = settings.showWindScentCone;
       _showDisturbanceLayer = settings.showDisturbanceLayer;
       _showLensFieldOfView = settings.showLensFieldOfView;
@@ -143,6 +145,14 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
     HapticFeedback.selectionClick();
     setState(() {
       _showCompassBeam = val;
+    });
+    await _saveFullSettings();
+  }
+
+  Future<void> _updateShowHudCompassTape(bool val) async {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _showHudCompassTape = val;
     });
     await _saveFullSettings();
   }
@@ -259,6 +269,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
       severeWeatherWindGustThresholdKmh: _gustThresholdKmh,
       severeWeatherSoundAndHaptics: _severeWeatherHaptics,
       showCompassHeadingBeam: _showCompassBeam,
+      showHudCompassTape: _showHudCompassTape,
       showWindScentCone: _showWindScentCone,
       showDisturbanceLayer: _showDisturbanceLayer,
       showLensFieldOfView: _showLensFieldOfView,
@@ -277,6 +288,7 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
       _showPlaceNames = true;
       _showRainRadar = false;
       _showCompassBeam = AppSettings.defaultShowCompassHeadingBeam;
+      _showHudCompassTape = AppSettings.defaultShowHudCompassTape;
       _showWindScentCone = AppSettings.defaultShowWindScentCone;
       _showDisturbanceLayer = AppSettings.defaultShowDisturbanceLayer;
       _showLensFieldOfView = AppSettings.defaultShowLensFieldOfView;
@@ -1094,6 +1106,45 @@ class _AppSettingsSheetState extends State<AppSettingsSheet> {
                           value: _showCompassBeam,
                           activeTrackColor: WildlifeScoutTheme.cyanWater,
                           onChanged: _updateShowCompassBeam,
+                        ),
+                        const Divider(
+                          height: 1,
+                          color: WildlifeScoutTheme.borderSubtle,
+                        ),
+
+                        // Minimalistisches HUD-Kompassband (Mobile)
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          secondary: Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: WildlifeScoutTheme.amberGold
+                                  .withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.linear_scale_rounded,
+                              size: 16,
+                              color: WildlifeScoutTheme.amberGold,
+                            ),
+                          ),
+                          title: const Text(
+                            'HUD-Kompassband (Mobile)',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'Horizontales 360°-Kompassband mit 5°-Schritten direkt auf dem unteren HUD.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: WildlifeScoutTheme.textMuted,
+                            ),
+                          ),
+                          value: _showHudCompassTape,
+                          activeTrackColor: WildlifeScoutTheme.amberGold,
+                          onChanged: _updateShowHudCompassTape,
                         ),
                         const Divider(
                           height: 1,
