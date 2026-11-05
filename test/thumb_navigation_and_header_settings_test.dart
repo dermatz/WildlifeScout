@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildlifescout/domain/models/weather_frame.dart';
 import 'package:wildlifescout/presentation/screens/field_map_screen.dart';
 import 'package:wildlifescout/presentation/widgets/app_settings_sheet.dart';
+import 'package:wildlifescout/presentation/widgets/photo_gear_sheet.dart';
 import 'package:wildlifescout/presentation/widgets/field_map/field_thumb_island.dart';
 import 'package:wildlifescout/presentation/widgets/location_search_sheet.dart';
 
@@ -79,10 +80,14 @@ void main() {
           find.byTooltip('Navigation & Orte (Standort, Suche, Spots)');
       expect(navTriggerFinder, findsOneWidget);
 
-      final toolsTriggerFinder = find.byTooltip(
-          'Ansitz-Tools (Witterungs-Kompass & Sensor-Optik)');
-      expect(toolsTriggerFinder, findsOneWidget);
-      expect(find.byIcon(Icons.sensors_rounded), findsOneWidget);
+      final gearTriggerFinder = find.byWidgetPredicate(
+        (w) =>
+            w is Tooltip &&
+            (w.message?.contains('Kamera- & Optik-Setup') ?? false),
+      );
+      expect(gearTriggerFinder, findsOneWidget);
+      expect(find.byIcon(Icons.camera_alt_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
 
       // Beste Chance icon is Stars badge (instead of auto_awesome sparkles)
       expect(find.byIcon(Icons.stars_rounded), findsOneWidget);
@@ -118,46 +123,16 @@ void main() {
       }
       expect(find.byType(LocationSearchSheet), findsNothing);
 
-      // 4. Tap Tools trigger: Expands tools cluster
-      await tester.tap(toolsTriggerFinder);
-      for (int i = 0; i < 6; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+      // 4. Tap Camera Gear trigger: Verifies tooltip and camera & settings badge icons
+      expect(find.byType(FieldThumbIsland), findsOneWidget);
+      expect(gearTriggerFinder, findsOneWidget);
 
-      // Tools sub-buttons are visible (with official compass icon and optics reticle icon)
-      expect(
-        find.descendant(
-          of: find.byType(AnimatedSize),
-          matching: find.byIcon(Icons.explore_rounded),
-        ),
-        findsOneWidget,
-      );
-      expect(find.byIcon(Icons.center_focus_strong_rounded), findsOneWidget);
-      expect(
-        find.byWidgetPredicate((w) =>
-            w is Tooltip &&
-            (w.message?.contains('Witterungs- & Wind-Kompass') ?? false)),
-        findsOneWidget,
-      );
-      expect(
-        find.byWidgetPredicate((w) =>
-            w is Tooltip && (w.message?.contains('Optik- & Sensor-Setup') ?? false)),
-        findsOneWidget,
-      );
-
-      // 5. Accordion: Tapping Navigation trigger toggles away Tools and opens Navigation
+      // 5. Accordion / Navigation toggle
       await tester.tap(navTriggerFinder);
       for (int i = 0; i < 6; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
-      // Tools sub-buttons are collapsed
-      expect(
-        find.byWidgetPredicate((w) =>
-            w is Tooltip &&
-            (w.message?.contains('Witterungs- & Wind-Kompass') ?? false)),
-        findsNothing,
-      );
       // Navigation sub-buttons are visible
       expect(find.byTooltip('Zum aktuellen Standort springen'), findsOneWidget);
 
@@ -224,7 +199,6 @@ void main() {
                   onOpenSpotVault: () {},
                   onOpenLocationSearch: () {},
                   onLocateUser: () {},
-                  onOpenWindCompass: () {},
                   onOpenPhotoGear: () {},
                 );
               },

@@ -10,6 +10,7 @@ class FieldFloatingButton extends StatelessWidget {
   final bool isLoading;
   final Color? iconColor;
   final Color? badgeColor;
+  final Widget? badgeWidget;
   final bool isActive;
   final Color? activeBorderColor;
   final Color? activeBgColor;
@@ -22,6 +23,7 @@ class FieldFloatingButton extends StatelessWidget {
     this.isLoading = false,
     this.iconColor,
     this.badgeColor,
+    this.badgeWidget,
     this.isActive = false,
     this.activeBorderColor,
     this.activeBgColor,
@@ -84,7 +86,13 @@ class FieldFloatingButton extends StatelessWidget {
                         size: 19,
                         color: iconColor ?? WildlifeScoutTheme.textPrimary,
                       ),
-                    if (badgeColor != null)
+                    if (badgeWidget != null)
+                      Positioned(
+                        top: 2,
+                        right: 2,
+                        child: badgeWidget!,
+                      )
+                    else if (badgeColor != null)
                       Positioned(
                         top: 5,
                         right: 5,

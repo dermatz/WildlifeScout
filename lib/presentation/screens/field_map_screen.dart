@@ -1545,7 +1545,6 @@ class _FieldMapScreenState extends State<FieldMapScreen>
               onOpenSpotVault: () => _openSpotVaultSheet(currentWeather),
               onOpenLocationSearch: _openLocationSearchSheet,
               onLocateUser: _locateAndMoveToCurrentPosition,
-              onOpenWindCompass: _openWindCompassSheet,
               onOpenPhotoGear: () {
                 PhotoGearSheet.show(
                   context,

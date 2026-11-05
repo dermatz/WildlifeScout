@@ -7,7 +7,6 @@ import 'field_map_buttons.dart';
 enum ThumbCluster {
   none,
   navigation,
-  tools,
 }
 
 /// Schwebende Funktions-Insel in der ergonomischen Daumenzone (Rechts)
@@ -29,7 +28,6 @@ class FieldThumbIsland extends StatelessWidget {
   final VoidCallback onOpenSpotVault;
   final VoidCallback onOpenLocationSearch;
   final VoidCallback onLocateUser;
-  final VoidCallback onOpenWindCompass;
   final VoidCallback onOpenPhotoGear;
 
   const FieldThumbIsland({
@@ -51,7 +49,6 @@ class FieldThumbIsland extends StatelessWidget {
     required this.onOpenSpotVault,
     required this.onOpenLocationSearch,
     required this.onLocateUser,
-    required this.onOpenWindCompass,
     required this.onOpenPhotoGear,
   });
 
@@ -96,8 +93,32 @@ class FieldThumbIsland extends StatelessWidget {
         ),
         const SizedBox(height: 6),
 
-        // 4. Ansitz- & Feld-Tools (Witterungs-Kompass & Sensor-Optik)
-        _buildToolsCluster(),
+        // 4. Kamera- & Foto-Gear Setup (Direktzugriff mit Kamera & Zahnrad-Badge)
+        FieldFloatingButton(
+          icon: Icons.camera_alt_rounded,
+          tooltip:
+              'Kamera- & Optik-Setup (${effectiveFocalLengthMm.round()} mm KB)',
+          badgeWidget: Container(
+            padding: const EdgeInsets.all(1.5),
+            decoration: const BoxDecoration(
+              color: WildlifeScoutTheme.surfaceCard,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.settings_rounded,
+              size: 9.5,
+              color: WildlifeScoutTheme.cyanWater,
+            ),
+          ),
+          iconColor: WildlifeScoutTheme.cyanWater,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            if (activeCluster != ThumbCluster.none) {
+              onClusterChanged(ThumbCluster.none);
+            }
+            onOpenPhotoGear();
+          },
+        ),
       ],
     );
   }
@@ -198,78 +219,6 @@ class FieldThumbIsland extends StatelessWidget {
             HapticFeedback.lightImpact();
             onClusterChanged(
               isExpanded ? ThumbCluster.none : ThumbCluster.navigation,
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildToolsCluster() {
-    final isExpanded = activeCluster == ThumbCluster.tools;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        AnimatedSize(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.centerRight,
-          child: isExpanded
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 1. Witterungs- & Wind-Kompass (mit offiziellem Kompass-Symbol)
-                    FieldFloatingButton(
-                      icon: Icons.explore_rounded,
-                      tooltip:
-                          '360° Witterungs- & Wind-Kompass (${currentWeather.windCardinalLabel}, ${currentWeather.windSpeedKmh.round()} km/h)',
-                      badgeColor: WildlifeScoutTheme.cyanWater,
-                      iconColor: WildlifeScoutTheme.cyanWater,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        onClusterChanged(ThumbCluster.none);
-                        onOpenWindCompass();
-                      },
-                    ),
-                    const SizedBox(width: 6),
-
-                    // 2. Foto-Ausrüstung & Wildlife-Optik (Optik/Fokus-Symbol statt Kamera)
-                    FieldFloatingButton(
-                      icon: Icons.center_focus_strong_rounded,
-                      tooltip:
-                          'Optik- & Sensor-Setup (${effectiveFocalLengthMm.round()} mm KB)',
-                      badgeColor: WildlifeScoutTheme.cyanWater,
-                      iconColor: WildlifeScoutTheme.cyanWater,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        onClusterChanged(ThumbCluster.none);
-                        onOpenPhotoGear();
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                  ],
-                )
-              : const SizedBox.shrink(),
-        ),
-
-        // Trigger Button für Ansitz- & Feld-Tools (Sensorik & Optik)
-        FieldFloatingButton(
-          icon: isExpanded ? Icons.close_rounded : Icons.sensors_rounded,
-          tooltip: isExpanded
-              ? 'Tools schließen'
-              : 'Ansitz-Tools (Witterungs-Kompass & Sensor-Optik)',
-          isActive: isExpanded,
-          activeBorderColor: WildlifeScoutTheme.cyanWater,
-          activeBgColor: WildlifeScoutTheme.cyanWater.withValues(alpha: 0.22),
-          iconColor: isExpanded
-              ? WildlifeScoutTheme.cyanWater
-              : WildlifeScoutTheme.textPrimary,
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onClusterChanged(
-              isExpanded ? ThumbCluster.none : ThumbCluster.tools,
             );
           },
         ),
