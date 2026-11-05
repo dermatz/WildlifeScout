@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -634,6 +635,16 @@ class _FieldMapScreenState extends State<FieldMapScreen>
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void _resetMapRotationToNorth() {
+    HapticFeedback.mediumImpact();
+    double currentZoom = 14.5;
+    try {
+      currentZoom = _mapController.camera.zoom;
+    } catch (_) {}
+    _mapController.moveAndRotate(_hidePinPosition, currentZoom, 0.0);
+    setState(() {});
   }
 
   void _openSpotVaultSheet(WeatherFrame currentWeather) {
@@ -1401,6 +1412,62 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                       onEndSession: () => setState(() => _isSessionActive = false),
                     ),
                   ],
+                  // Schwebender Nordpfeil-Kompass-Button direkt unter der TopBar, wenn Karte gedreht ist (Apple Maps / Google Maps UX)
+                  if ((mapRotation % 360).abs() > 1.0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Tooltip(
+                          message: 'Karte nach Norden ausrichten & zentrieren',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(13),
+                              onTap: _resetMapRotationToNorth,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(13),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: WildlifeScoutTheme.surfaceCard
+                                          .withValues(alpha: 0.85),
+                                      borderRadius: BorderRadius.circular(13),
+                                      border: Border.all(
+                                        color: WildlifeScoutTheme.crimsonScent
+                                            .withValues(alpha: 0.5),
+                                        width: 1.2,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black45,
+                                          blurRadius: 8,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: Transform.rotate(
+                                        // Der Pfeil zeigt immer zum echten Norden
+                                        angle: -mapRotation * (3.141592653589793 / 180.0),
+                                        child: const Icon(
+                                          Icons.navigation_rounded,
+                                          size: 22,
+                                          color: WildlifeScoutTheme.crimsonScent,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 320),
                     curve: Curves.easeOutCubic,
@@ -1471,6 +1538,8 @@ class _FieldMapScreenState extends State<FieldMapScreen>
               useSatelliteLayer: _useSatelliteLayer,
               currentWeather: currentWeather,
               effectiveFocalLengthMm: _currentPhotoGear.effectiveFocalLengthMm,
+              mapRotation: mapRotation,
+              onResetNorth: _resetMapRotationToNorth,
               onApplyBestChance: _applyBestChanceOpportunity,
               onOpenLayers: _openMapLayersSheet,
               onOpenSpotVault: () => _openSpotVaultSheet(currentWeather),

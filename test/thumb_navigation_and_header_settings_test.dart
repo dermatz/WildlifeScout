@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wildlifescout/domain/models/weather_frame.dart';
 import 'package:wildlifescout/presentation/screens/field_map_screen.dart';
 import 'package:wildlifescout/presentation/widgets/app_settings_sheet.dart';
+import 'package:wildlifescout/presentation/widgets/field_map/field_thumb_island.dart';
 import 'package:wildlifescout/presentation/widgets/location_search_sheet.dart';
 
 void main() {
@@ -177,6 +179,70 @@ void main() {
 
       expect(caughtDetails, isNull);
       expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+    });
+
+    testWidgets('Map rotation exposes North-reset button when rotated', (tester) async {
+      bool resetNorthCalled = false;
+      double rotation = 45.0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return FieldThumbIsland(
+                  activeCluster: ThumbCluster.navigation,
+                  onClusterChanged: (_) {},
+                  hasHabitatZones: true,
+                  savedSpotCount: 2,
+                  isLocatingUser: false,
+                  isNightVisionRedMode: false,
+                  showRainRadarLayer: false,
+                  useSatelliteLayer: true,
+                  currentWeather: WeatherFrame(
+                    time: DateTime.now(),
+                    temperatureCelsius: 15.0,
+                    precipitationMm: 0.0,
+                    windSpeedKmh: 10.0,
+                    windGustsKmh: 15.0,
+                    windDirectionDegrees: 180,
+                    surfacePressureHpa: 1013.2,
+                    pressureDelta6hHpa: 0.1,
+                    cloudCoverPercent: 20,
+                  ),
+                  effectiveFocalLengthMm: 400.0,
+                  mapRotation: rotation,
+                  onResetNorth: () {
+                    resetNorthCalled = true;
+                    setState(() {
+                      rotation = 0.0;
+                    });
+                  },
+                  onApplyBestChance: () {},
+                  onOpenLayers: () {},
+                  onOpenSpotVault: () {},
+                  onOpenLocationSearch: () {},
+                  onLocateUser: () {},
+                  onOpenWindCompass: () {},
+                  onOpenPhotoGear: () {},
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final resetNorthFinder = find.byTooltip('Karte nach Norden ausrichten & zentrieren');
+      expect(resetNorthFinder, findsOneWidget);
+
+      await tester.tap(resetNorthFinder);
+      await tester.pumpAndSettle();
+
+      expect(resetNorthCalled, isTrue);
+      expect(find.byTooltip('Karte nach Norden ausrichten & zentrieren'), findsNothing);
     });
   });
 }

@@ -22,6 +22,8 @@ class FieldThumbIsland extends StatelessWidget {
   final bool useSatelliteLayer;
   final WeatherFrame currentWeather;
   final double effectiveFocalLengthMm;
+  final double mapRotation;
+  final VoidCallback onResetNorth;
   final VoidCallback onApplyBestChance;
   final VoidCallback onOpenLayers;
   final VoidCallback onOpenSpotVault;
@@ -42,6 +44,8 @@ class FieldThumbIsland extends StatelessWidget {
     required this.useSatelliteLayer,
     required this.currentWeather,
     required this.effectiveFocalLengthMm,
+    this.mapRotation = 0.0,
+    required this.onResetNorth,
     required this.onApplyBestChance,
     required this.onOpenLayers,
     required this.onOpenSpotVault,
@@ -100,6 +104,7 @@ class FieldThumbIsland extends StatelessWidget {
 
   Widget _buildNavigationCluster() {
     final isExpanded = activeCluster == ThumbCluster.navigation;
+    final isRotated = (mapRotation % 360).abs() > 1.0;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -113,6 +118,21 @@ class FieldThumbIsland extends StatelessWidget {
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Nordausrichtung (nur sichtbar wenn gedreht)
+                    if (isRotated) ...[
+                      FieldFloatingButton(
+                        icon: Icons.navigation_rounded,
+                        tooltip: 'Karte nach Norden ausrichten & zentrieren',
+                        iconColor: WildlifeScoutTheme.crimsonScent,
+                        badgeColor: WildlifeScoutTheme.crimsonScent,
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          onResetNorth();
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+
                     // Gemerkte Punkte (Spot-Tresor)
                     FieldFloatingButton(
                       icon: Icons.bookmark_rounded,
