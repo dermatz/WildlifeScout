@@ -271,6 +271,9 @@ class HabitatRules {
 class SpeciesProfile {
   final String id;
   final String name;
+
+  /// Optionaler Kurzname für platzkritische UI (z. B. Header-Button).
+  final String? shortName;
   final String scientificName;
   final SpeciesCategory category;
   final String shortDescription;
@@ -289,6 +292,7 @@ class SpeciesProfile {
   const SpeciesProfile({
     required this.id,
     required this.name,
+    this.shortName,
     required this.scientificName,
     required this.category,
     required this.shortDescription,
@@ -305,6 +309,9 @@ class SpeciesProfile {
     required this.fieldTips,
   });
 
+  /// Anzeigename für kompakte Elemente – fällt auf [name] zurück.
+  String get displayShortName => shortName ?? name;
+
   factory SpeciesProfile.fromJson(Map<String, dynamic> json) {
     final hex = (json['accentColorHex']?.toString() ?? '#10B981').replaceFirst(
       '#',
@@ -317,6 +324,9 @@ class SpeciesProfile {
     return SpeciesProfile(
       id: id,
       name: json['name']?.toString() ?? 'Unbekannt',
+      shortName: (json['shortName']?.toString().trim().isEmpty ?? true)
+          ? null
+          : json['shortName'].toString().trim(),
       scientificName: json['scientificName']?.toString() ?? '',
       category: SpeciesCategory.fromString(
         json['category']?.toString() ?? 'ungulate',

@@ -108,6 +108,19 @@ class OsmSpatialMetrics {
       if (d < minHighCenter) minHighCenter = d;
       if (d < minHighBoundary) minHighBoundary = d;
 
+      if (d < 250.0 && polygonPoints.isNotEmpty) {
+        double dPoly = d;
+        for (int i = 0; i < polygonPoints.length; i += step) {
+          final dp = GeoGeometryUtils.distancePointToPolylineMeters(
+            polygonPoints[i],
+            r.points,
+          );
+          if (dp < dPoly) dPoly = dp;
+        }
+        if (dPoly < minRoad) minRoad = dPoly;
+        if (dPoly < minHighBoundary) minHighBoundary = dPoly;
+      }
+
       if (d <= 115.0) {
         final bearing = _distance.bearing(centroid, r.centroid);
         final quadrant = (((bearing + 360.0) % 360.0) / 90.0).floor() % 4;

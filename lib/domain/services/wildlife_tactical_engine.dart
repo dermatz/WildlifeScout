@@ -1,6 +1,8 @@
+import '../../data/api/gbif_occurrence_client.dart';
 import '../models/habitat_zone.dart';
 import '../models/species_profile.dart';
 import '../models/weather_frame.dart';
+import 'german_holiday_service.dart';
 import 'sun_moon_calculator.dart';
 import 'wildlife_phenology_service.dart';
 
@@ -55,6 +57,7 @@ class WildlifeTacticalEngine {
     required WeatherFrame weather,
     required SunMoonPosition astro,
     required int baseActivityScore,
+    GbifRegionalPresence? gbifPresence,
   }) {
     final badges = <TacticalFactorBadge>[];
     double adjustment = 0.0;
@@ -235,14 +238,16 @@ class WildlifeTacticalEngine {
     }
 
     // =========================================================================
-    // 4. Zeit- & Wochentags-abhängige Pfadstörung
+    // 4. Zeit-, Feiertags- & Wochentags-abhängige Pfadstörung
     // =========================================================================
-    final isWeekend =
+    final holidayInfo = GermanHolidayService.getHolidayOrVacationInfo(dateTime);
+    final isWeekendOrHoliday =
+        holidayInfo.isHoliday ||
         dateTime.weekday == DateTime.saturday ||
         dateTime.weekday == DateTime.sunday;
     final trailDist = zone.distanceToNearestTrailMeters;
 
-    if (!isWeekend && hour >= 4 && hour <= 7) {
+    if (!isWeekendOrHoliday && hour >= 4 && hour <= 7) {
       // Werktag früher Morgen (04:00 - 07:59): Wege komplett leer
       if (trailDist < 140.0) {
         const delta = 3.5;
@@ -258,17 +263,20 @@ class WildlifeTacticalEngine {
           ),
         );
       }
-    } else if (isWeekend && hour >= 9 && hour <= 17) {
-      // Wochenende tagsüber: Höchster Spaziergänger- & Hundedruck
+    } else if (isWeekendOrHoliday && hour >= 9 && hour <= 17) {
+      // Wochenende / Feiertag tagsüber: Höchster Spaziergänger- & Hundedruck
+      final leisureTitle = holidayInfo.isHoliday
+          ? 'Feiertags-Freizeitdruck (${holidayInfo.holidayName})'
+          : 'Wochenend-Freizeitdruck';
       if (trailDist < 65.0) {
         const delta = -7.0;
         adjustment += delta;
         badges.add(
           TacticalFactorBadge(
             icon: '🚶',
-            title: 'Wochenend-Freizeitdruck',
+            title: leisureTitle,
             description:
-                'Starke Pfadnutzung durch Wanderer & Hunde (${trailDist.round()}m Abstand). Wild flieht in unzugängliche Dickungen.',
+                'Starke Pfadnutzung durch Ausflügler & Hunde (${trailDist.round()}m Abstand). Wild flieht in unzugängliche Dickungen.',
             scoreDelta: delta,
             isPositive: false,
           ),
@@ -279,9 +287,11 @@ class WildlifeTacticalEngine {
         badges.add(
           TacticalFactorBadge(
             icon: '🚶',
-            title: 'Wochenend-Unruhe an Wegen',
+            title: holidayInfo.isHoliday
+                ? 'Feiertags-Unruhe an Wegen'
+                : 'Wochenend-Unruhe an Wegen',
             description:
-                'Regelmäßige Wegnutzung am Wochenende drückt das Wild tiefer in den Bestand.',
+                'Regelmäßige Wegnutzung am Feiertag/Wochenende drückt das Wild tiefer in den Bestand.',
             scoreDelta: delta,
             isPositive: false,
           ),
@@ -300,6 +310,43 @@ class WildlifeTacticalEngine {
           ),
         );
       }
+    } else if (!isWeekendOrHoliday &&
+        holidayInfo.isSchoolVacation &&
+        hour >= 9 &&
+        hour <= 16) {
+      // Werktags in den Schulferien (erhöhter Ausflugsverkehr tagsüber)
+      if (trailDist < 75.0) {
+        const delta = -3.0;
+        adjustment += delta;
+        badges.add(
+          TacticalFactorBadge(
+            icon: '🚶',
+            title: 'Ferien-Freizeitdruck (${holidayInfo.vacationName})',
+            description:
+                'Erhöhter Ausflugsverkehr von Familien & Hunden in den Ferien (${trailDist.round()}m Abstand).',
+            scoreDelta: delta,
+            isPositive: false,
+          ),
+        );
+      }
+    }
+
+    // =========================================================================
+    // 5. GBIF-Nachweise (Regionale Bio-Validierung)
+    // =========================================================================
+    if (gbifPresence != null && gbifPresence.isConfirmed) {
+      const delta = 3.0;
+      adjustment += delta;
+      badges.add(
+        TacticalFactorBadge(
+          icon: '🔬',
+          title: 'GBIF-Vorkommen bestätigt',
+          description:
+              '${gbifPresence.summaryLabel}. Hohe regionale Vorkommenssicherheit.',
+          scoreDelta: delta,
+          isPositive: true,
+        ),
+      );
     }
 
     // Begrenzung der taktischen Anpassung auf ±12 Punkte

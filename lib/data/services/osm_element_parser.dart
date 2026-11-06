@@ -18,6 +18,7 @@ class CategorizedOsmWays {
   final List<ParsedOsmWay> trailsHigh;
   final List<ParsedOsmWay> trailsTrack;
   final List<ParsedOsmWay> roadsAndSettlements;
+  final List<LatLng> huntingStands;
 
   const CategorizedOsmWays({
     required this.largeForests,
@@ -30,12 +31,22 @@ class CategorizedOsmWays {
     required this.trailsHigh,
     required this.trailsTrack,
     required this.roadsAndSettlements,
+    this.huntingStands = const [],
   });
 }
 
 /// Parser, Decoder und Klassifizierer für rohe OSM JSON-Elemente (Nodes, Ways, Multipolygon-Relations).
 class OsmElementParser {
   static const Distance _distance = Distance();
+
+  /// Erkennt flächige Stillgewässer (Seen, Baggerseen, Weiher, Rückhaltebecken,
+  /// Flussflächen) anhand der gängigen OSM-Tagging-Varianten.
+  static bool _isWaterBodyTagged(Map<String, dynamic> tags) {
+    return tags['natural'] == 'water' ||
+        tags.containsKey('water') ||
+        tags['waterway'] == 'riverbank' ||
+        const {'reservoir', 'basin'}.contains(tags['landuse']);
+  }
 
   /// Web-sicherer Decoder: Nutzt auf nativen Plattformen (iOS/Android/macOS)
   /// ein Hintergrund-Isolate und fällt im Web (`kIsWeb`, wo `Isolate.run`
@@ -66,6 +77,7 @@ class OsmElementParser {
     final waysById = <int, Map<String, dynamic>>{};
     final relations = <Map<String, dynamic>>[];
     final seenRelIds = <dynamic>{};
+    final compactedHuntingStandNodes = <Map<String, dynamic>>[];
 
     for (final body in rawJsonBodies) {
       if (body.isEmpty) continue;
@@ -82,6 +94,16 @@ class OsmElementParser {
           final lon = (item['lon'] as num?)?.toDouble();
           if (id != null && lat != null && lon != null) {
             nodes[id] = {'lat': lat, 'lon': lon};
+            final tags = item['tags'] as Map<String, dynamic>?;
+            if (tags != null && tags['amenity'] == 'hunting_stand') {
+              compactedHuntingStandNodes.add({
+                'type': 'node',
+                'id': id,
+                'tags': tags,
+                'lat': lat,
+                'lon': lon,
+              });
+            }
           }
         } else if (type == 'way') {
           final id = (item['id'] as num?)?.toInt();
@@ -112,7 +134,12 @@ class OsmElementParser {
           natural == 'grassland' ||
           natural == 'heath' ||
           natural == 'wetland' ||
-          natural == 'water';
+          landuse == 'residential' ||
+          landuse == 'industrial' ||
+          landuse == 'commercial' ||
+          tags.containsKey('leisure') ||
+          tags.containsKey('tourism') ||
+          _isWaterBodyTagged(tags);
       if (!isRelevantRel) continue;
 
       final members = rel['members'] as List<dynamic>? ?? const [];
@@ -135,9 +162,15 @@ class OsmElementParser {
 
       final hasRelevantTag =
           tags.containsKey('highway') ||
+          tags.containsKey('railway') ||
           tags.containsKey('landuse') ||
           tags.containsKey('natural') ||
           tags.containsKey('waterway') ||
+          tags.containsKey('leisure') ||
+          tags.containsKey('tourism') ||
+          tags.containsKey('barrier') ||
+          tags['amenity'] == 'parking' ||
+          tags['amenity'] == 'hunting_stand' ||
           tags['man_made'] == 'embankment' ||
           tags['embankment'] == 'yes' ||
           tags['cutting'] == 'yes';
@@ -168,7 +201,7 @@ class OsmElementParser {
       }
     }
 
-    return [...compactedWays, ...compactedRelations];
+    return [...compactedWays, ...compactedRelations, ...compactedHuntingStandNodes];
   }
 
   /// Parst und klassifiziert rohe Overpass-/OSM-Elemente in typisierte Polygone und Wege.
@@ -253,9 +286,23 @@ class OsmElementParser {
           landuse == 'grass' ||
           natural == 'grassland' ||
           natural == 'heath';
-      final isWetlandRel = natural == 'wetland' || natural == 'water';
+      final isWaterRel = _isWaterBodyTagged(tags);
+      final isWetlandRel = natural == 'wetland' || isWaterRel;
+      final isSettlementRel =
+          landuse == 'residential' ||
+          landuse == 'industrial' ||
+          landuse == 'commercial' ||
+          landuse == 'retail';
+      final isLeisureRel =
+          tags.containsKey('leisure') || tags.containsKey('tourism');
 
-      if (!isForestRel && !isMeadowRel && !isWetlandRel) continue;
+      if (!isForestRel &&
+          !isMeadowRel &&
+          !isWetlandRel &&
+          !isSettlementRel &&
+          !isLeisureRel) {
+        continue;
+      }
 
       final members = item['members'] as List<dynamic>? ?? [];
       for (final m in members) {
@@ -291,8 +338,11 @@ class OsmElementParser {
         final memberOwnTags = wayTagsById[refId] ?? {};
 
         if (isForestRel && role == 'inner') {
+          // Innere Ringe sind nur dann eine Waldlichtung, wenn sie kein
+          // Gewässer, Gebäude oder Siedlungsfläche sind (z. B. Baggersee im Wald!).
           if (!memberOwnTags.containsKey('building') &&
-              memberOwnTags['landuse'] != 'residential') {
+              memberOwnTags['landuse'] != 'residential' &&
+              !_isWaterBodyTagged(memberOwnTags)) {
             relationDerivedWays.add((
               id: '${refId}_clearing',
               tag: 'Waldlichtung (inner forest ring)',
@@ -311,6 +361,10 @@ class OsmElementParser {
             points: pts,
             minAreaBoostHa: 35.0,
           ));
+        } else if (role == 'inner') {
+          // Innere Ringe von Wiesen- (Aussparung) bzw. Gewässer-Relationen
+          // (Inseln) dürfen nicht als Wiese bzw. Wasserfläche gewertet werden.
+          continue;
         } else if (isMeadowRel) {
           relationDerivedWays.add((
             id: '${relId}_$refId',
@@ -323,9 +377,30 @@ class OsmElementParser {
         } else if (isWetlandRel) {
           relationDerivedWays.add((
             id: '${relId}_$refId',
-            tag: natural == 'water' ? 'natural=water' : 'natural=wetland',
+            tag: isWaterRel ? 'natural=water' : 'natural=wetland',
             name: name,
-            kind: natural == 'water' ? OsmKind.waterStream : OsmKind.wetland,
+            kind: isWaterRel ? OsmKind.waterStream : OsmKind.wetland,
+            points: pts,
+            minAreaBoostHa: 1.0,
+          ));
+        } else if (isSettlementRel) {
+          relationDerivedWays.add((
+            id: '${relId}_$refId',
+            tag: 'landuse=$landuse',
+            name: name,
+            kind: OsmKind.roadSettlement,
+            points: pts,
+            minAreaBoostHa: 2.0,
+          ));
+        } else if (isLeisureRel) {
+          final leisureTag = tags.containsKey('leisure')
+              ? 'leisure=${tags['leisure']}'
+              : 'tourism=${tags['tourism']}';
+          relationDerivedWays.add((
+            id: '${relId}_$refId',
+            tag: leisureTag,
+            name: name,
+            kind: OsmKind.trailHigh,
             points: pts,
             minAreaBoostHa: 1.0,
           ));
@@ -343,6 +418,22 @@ class OsmElementParser {
     final trailsHigh = <ParsedOsmWay>[];
     final trailsTrack = <ParsedOsmWay>[];
     final roadsAndSettlements = <ParsedOsmWay>[];
+    final huntingStands = <LatLng>[];
+
+    // Sammle alle Standorte von Hochsitzen (Nodes mit amenity=hunting_stand)
+    for (final item in rawElements) {
+      if (item is! Map<String, dynamic>) continue;
+      if (item['type']?.toString() == 'node') {
+        final tags = item['tags'] as Map<String, dynamic>?;
+        if (tags != null && tags['amenity'] == 'hunting_stand') {
+          final lat = (item['lat'] as num?)?.toDouble();
+          final lon = (item['lon'] as num?)?.toDouble();
+          if (lat != null && lon != null) {
+            huntingStands.add(LatLng(lat, lon));
+          }
+        }
+      }
+    }
 
     void registerCategorizedWay({
       required String idStr,
@@ -418,6 +509,29 @@ class OsmElementParser {
       final landuse = tags['landuse']?.toString();
       final natural = tags['natural']?.toString();
       final waterway = tags['waterway']?.toString();
+      final railway = tags['railway']?.toString();
+      final leisure = tags['leisure']?.toString();
+      final tourism = tags['tourism']?.toString();
+      final amenity = tags['amenity']?.toString();
+      final barrier = tags['barrier']?.toString();
+
+      // Aktive, oberirdische Bahnstrecken als Störungskorridor.
+      // Ignoriert: Tunnel (kein Lärm/Sichtkontakt an der Oberfläche) sowie
+      // Rangier-, Abstell- & Anschlussgleise (`service=*`) mit seltenem Verkehr.
+      // Stillgelegte Strecken tragen `railway=disused/abandoned` und fallen raus.
+      if (railway != null &&
+          const {'rail', 'light_rail', 'narrow_gauge'}.contains(railway) &&
+          tags['tunnel'] != 'yes' &&
+          tags['tunnel'] != 'building_passage' &&
+          !tags.containsKey('service')) {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: railway == 'light_rail' ? 'railway=light_rail' : 'railway=rail',
+          name: name ?? tags['ref']?.toString(),
+          rawKind: OsmKind.roadSettlement,
+          pts: pts,
+        );
+      }
 
       if (highway != null) {
         if (const {
@@ -488,10 +602,19 @@ class OsmElementParser {
             pts: pts,
           );
         } else if (const {
-          'residential',
-          'secondary',
+          // Autobahnen & Schnellstraßen inkl. Auf-/Abfahrten: stärkste
+          // Störquelle (Dauerlärm, Wildschutzzaun) – dürfen niemals fehlen!
+          'motorway',
+          'motorway_link',
+          'trunk',
+          'trunk_link',
           'primary',
+          'primary_link',
+          'secondary',
+          'secondary_link',
           'tertiary',
+          'tertiary_link',
+          'residential',
           'unclassified',
           'living_street',
         }.contains(highway)) {
@@ -563,6 +686,14 @@ class OsmElementParser {
           pts: pts,
           minAreaOverrideHa: isEmbankmentOrSlope ? 0.35 : 0.0,
         );
+      } else if (natural == 'reedbed' || tags['wetland'] == 'reedbed') {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: 'wetland=reedbed',
+          name: name,
+          rawKind: OsmKind.wetland,
+          pts: pts,
+        );
       } else if (natural == 'wetland') {
         registerCategorizedWay(
           idStr: idStr,
@@ -571,17 +702,79 @@ class OsmElementParser {
           rawKind: OsmKind.wetland,
           pts: pts,
         );
-      } else if (natural == 'water' ||
+      } else if (natural == 'hedge' || barrier == 'hedge') {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: 'barrier=hedge',
+          name: name,
+          rawKind: OsmKind.scrub,
+          pts: pts,
+          minAreaOverrideHa: 0.25,
+        );
+      } else if (_isWaterBodyTagged(tags) ||
           (waterway != null &&
               const {'stream', 'river', 'ditch', 'canal', 'drain'}.contains(
                 waterway,
               ))) {
+        final isWaterBody = _isWaterBodyTagged(tags);
         registerCategorizedWay(
           idStr: idStr,
           primaryTag:
-              natural == 'water' ? 'natural=water' : 'waterway=$waterway',
+              isWaterBody ? 'natural=water' : 'waterway=$waterway',
           name: name,
           rawKind: OsmKind.waterStream,
+          pts: pts,
+        );
+      } else if (amenity == 'parking') {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: 'amenity=parking',
+          name: name,
+          rawKind: OsmKind.trailHigh,
+          pts: pts,
+        );
+      } else if (leisure != null &&
+          const {
+            'swimming_area',
+            'beach',
+            'water_park',
+            'park',
+            'pitch',
+            'golf_course',
+            'dog_park',
+          }.contains(leisure)) {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: 'leisure=$leisure',
+          name: name,
+          rawKind: OsmKind.trailHigh,
+          pts: pts,
+        );
+      } else if (tourism != null &&
+          const {'camp_site', 'caravan_site', 'theme_park'}.contains(tourism)) {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: 'tourism=$tourism',
+          name: name,
+          rawKind: OsmKind.trailHigh,
+          pts: pts,
+        );
+      } else if (tags['amenity'] == 'hunting_stand') {
+        final center = GeoGeometryUtils.computeCentroid(pts);
+        huntingStands.add(center);
+      } else if (landuse != null &&
+          const {
+            'residential',
+            'industrial',
+            'commercial',
+            'retail',
+            'farmyard',
+          }.contains(landuse)) {
+        registerCategorizedWay(
+          idStr: idStr,
+          primaryTag: 'landuse=$landuse',
+          name: name,
+          rawKind: OsmKind.roadSettlement,
           pts: pts,
         );
       }
@@ -609,6 +802,7 @@ class OsmElementParser {
       trailsHigh: trailsHigh,
       trailsTrack: trailsTrack,
       roadsAndSettlements: roadsAndSettlements,
+      huntingStands: huntingStands,
     );
   }
 }

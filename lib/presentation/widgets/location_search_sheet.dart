@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
@@ -12,6 +13,7 @@ class LocationSearchSheet extends StatefulWidget {
   final VoidCallback onUseCurrentLocation;
   final LatLng? biasCoordinate;
   final VoiceSearchService? voiceSearchService;
+  final LocationSearchClient? locationSearchClient;
 
   const LocationSearchSheet({
     super.key,
@@ -19,6 +21,7 @@ class LocationSearchSheet extends StatefulWidget {
     required this.onUseCurrentLocation,
     this.biasCoordinate,
     this.voiceSearchService,
+    this.locationSearchClient,
   });
 
   @override
@@ -26,9 +29,11 @@ class LocationSearchSheet extends StatefulWidget {
 }
 
 class _LocationSearchSheetState extends State<LocationSearchSheet> {
-  final LocationSearchClient _client = LocationSearchClient();
+  late final LocationSearchClient _client;
   final TextEditingController _searchCtrl = TextEditingController();
   late final VoiceSearchService _voice;
+  Timer? _debounceTimer;
+  String? _lastSearchedQuery;
   List<LocationSearchResult> _results = const [];
   List<NearbyNatureRegionEntry> _nearbyRegions = const [];
   bool _isSearching = false;
@@ -38,6 +43,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
   @override
   void initState() {
     super.initState();
+    _client = widget.locationSearchClient ?? LocationSearchClient();
     _voice = widget.voiceSearchService ?? VoiceSearchService.shared;
     _loadNearbyRegions();
   }
@@ -56,19 +62,25 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _performSearch(String query) async {
+    _debounceTimer?.cancel();
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       setState(() {
         _results = const [];
         _hasSearched = false;
+        _isSearching = false;
+        _lastSearchedQuery = null;
       });
       return;
     }
+
+    _lastSearchedQuery = trimmed;
 
     // Sofortige Auswertung, falls es direkte Koordinaten sind
     final direct = _client.parseDirectCoordinates(trimmed);
@@ -95,7 +107,7 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
     });
 
     final res = await _client.search(trimmed);
-    if (!mounted) return;
+    if (!mounted || _lastSearchedQuery != trimmed) return;
     setState(() {
       _results = res;
       _isSearching = false;
@@ -103,11 +115,14 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
   }
 
   void _onQueryChanged(String query) {
+    _debounceTimer?.cancel();
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       setState(() {
         _results = const [];
         _hasSearched = false;
+        _isSearching = false;
+        _lastSearchedQuery = null;
       });
       return;
     }
@@ -125,6 +140,17 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
           ),
         ];
         _hasSearched = true;
+        _isSearching = false;
+      });
+      return;
+    }
+
+    // Live-Suche während des Tippens (ab 2 Zeichen, 380 ms Debounce)
+    if (trimmed.length >= 2) {
+      _debounceTimer = Timer(const Duration(milliseconds: 380), () {
+        if (mounted && _searchCtrl.text.trim() == trimmed) {
+          _performSearch(trimmed);
+        }
       });
     }
   }
@@ -389,10 +415,13 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                         tooltip: 'Eingabe löschen',
                         icon: const Icon(Icons.clear, size: 18),
                         onPressed: () {
+                          _debounceTimer?.cancel();
                           _searchCtrl.clear();
                           setState(() {
                             _results = const [];
                             _hasSearched = false;
+                            _isSearching = false;
+                            _lastSearchedQuery = null;
                           });
                         },
                       ),
@@ -415,7 +444,10 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: WildlifeScoutTheme.emeraldBio,
+                              ),
                             )
                           : const Icon(Icons.arrow_forward),
                       onPressed: () => _performSearch(_searchCtrl.text),
@@ -515,115 +547,162 @@ class _LocationSearchSheetState extends State<LocationSearchSheet> {
 
             if (_hasSearched) ...[
               const SizedBox(height: 14),
-              Text(
-                'Gefundene Orte (${_results.length})',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: WildlifeScoutTheme.amberGold,
-                ),
+              Row(
+                children: [
+                  Text(
+                    _isSearching
+                        ? 'Suche läuft...'
+                        : 'Gefundene Orte (${_results.length})',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: WildlifeScoutTheme.amberGold,
+                    ),
+                  ),
+                  if (_isSearching) ...[
+                    const SizedBox(width: 8),
+                    const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: WildlifeScoutTheme.amberGold,
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 8),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 310),
-                child: _results.isEmpty
+                child: _isSearching
                     ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
+                        padding: EdgeInsets.symmetric(vertical: 36),
                         child: Center(
-                          child: Text(
-                            'Kein Ort gefunden. Versuche einen anderen Namen oder GPS-Koordinaten.',
-                            style: TextStyle(color: WildlifeScoutTheme.textMuted),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: WildlifeScoutTheme.emeraldBio,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'Suche nach Orten & Gebieten...',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: WildlifeScoutTheme.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       )
-                    : ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: _results.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final item = _results[index];
-                          final isGps = item.categoryLabel == 'GPS-Direkt';
-                          return InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () {
-                              widget.onLocationSelected(item);
-                              Navigator.of(context).maybePop();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: WildlifeScoutTheme.surfaceCard,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: WildlifeScoutTheme.borderSubtle,
+                    : _results.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: Text(
+                                _lastSearchedQuery != null
+                                    ? 'Kein Ort für "$_lastSearchedQuery" gefunden. Versuche einen anderen Namen oder GPS-Koordinaten.'
+                                    : 'Kein Ort gefunden. Versuche einen anderen Namen oder GPS-Koordinaten.',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: WildlifeScoutTheme.textMuted,
+                                  fontSize: 13,
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 38,
-                                    height: 38,
-                                    decoration: BoxDecoration(
-                                      color: WildlifeScoutTheme.emeraldBio.withValues(
-                                        alpha: 0.16,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Icon(
-                                      isGps ? Icons.gps_fixed : Icons.place_outlined,
-                                      color: WildlifeScoutTheme.emeraldBio,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.title,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 13.5,
-                                          ),
-                                        ),
-                                        Text(
-                                          item.subtitle,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: WildlifeScoutTheme.textMuted,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.06),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      item.categoryLabel,
-                                      style: const TextStyle(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: WildlifeScoutTheme.amberGold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
-                          );
-                        },
-                      ),
+                          )
+                        : ListView.separated(
+                            shrinkWrap: true,
+                            itemCount: _results.length,
+                            separatorBuilder: (_, _) => const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final item = _results[index];
+                              final isGps = item.categoryLabel == 'GPS-Direkt';
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  widget.onLocationSelected(item);
+                                  Navigator.of(context).maybePop();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: WildlifeScoutTheme.surfaceCard,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: WildlifeScoutTheme.borderSubtle,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 38,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          color: WildlifeScoutTheme.emeraldBio.withValues(
+                                            alpha: 0.16,
+                                          ),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Icon(
+                                          isGps ? Icons.gps_fixed : Icons.place_outlined,
+                                          color: WildlifeScoutTheme.emeraldBio,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.title,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 13.5,
+                                              ),
+                                            ),
+                                            Text(
+                                              item.subtitle,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: WildlifeScoutTheme.textMuted,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.06),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          item.categoryLabel,
+                                          style: const TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: WildlifeScoutTheme.amberGold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
               ),
             ],
           ],

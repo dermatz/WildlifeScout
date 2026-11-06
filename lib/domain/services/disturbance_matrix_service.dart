@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:yaml/yaml.dart';
+import 'german_holiday_service.dart';
 
 /// Eine wissenschaftlich fundierte Störungsregel für einen OSM-Wegtyp.
 class WayDisturbanceRule {
@@ -179,6 +180,40 @@ class DisturbanceMatrixService {
     }
     if (osmTag.contains('residential')) return _ways['highway=residential']!;
     if (osmTag.contains('unclassified')) return _ways['highway=unclassified']!;
+    if (osmTag.contains('light_rail') && _ways.containsKey('railway=light_rail')) {
+      return _ways['railway=light_rail']!;
+    }
+    if (osmTag.startsWith('railway=') && _ways.containsKey('railway=rail')) {
+      return _ways['railway=rail']!;
+    }
+    if (osmTag.contains('parking') && _ways.containsKey('amenity=parking')) {
+      return _ways['amenity=parking']!;
+    }
+    if ((osmTag.contains('swimming_area') ||
+            osmTag.contains('beach') ||
+            osmTag.contains('water_park')) &&
+        _ways.containsKey('leisure=swimming_area')) {
+      return _ways['leisure=swimming_area']!;
+    }
+    if ((osmTag.contains('camp_site') || osmTag.contains('caravan_site')) &&
+        _ways.containsKey('tourism=camp_site')) {
+      return _ways['tourism=camp_site']!;
+    }
+    if ((osmTag.contains('park') ||
+            osmTag.contains('pitch') ||
+            osmTag.contains('golf_course')) &&
+        _ways.containsKey('leisure=park')) {
+      return _ways['leisure=park']!;
+    }
+    if (osmTag.contains('industrial') && _ways.containsKey('landuse=industrial')) {
+      return _ways['landuse=industrial']!;
+    }
+    if (osmTag.contains('commercial') && _ways.containsKey('landuse=commercial')) {
+      return _ways['landuse=commercial']!;
+    }
+    if (osmTag.startsWith('landuse=') && _ways.containsKey('landuse=residential')) {
+      return _ways['landuse=residential']!;
+    }
 
     return _defaultGenericRule(osmTag);
   }
@@ -230,11 +265,15 @@ class DisturbanceMatrixService {
     return getRule(osmTag).label;
   }
 
-  /// Berechnet den zeitlichen Multiplikator für menschlichen Freizeitdruck.
+  /// Berechnet den zeitlichen Multiplikator für menschlichen Freizeitdruck
+  /// unter Berücksichtigung von Wochentagen, Feiertagen und Schulferien.
   static double getTimeModulationFactor(DateTime time) {
     final hour = time.hour + (time.minute / 60.0);
+    final isHoliday = GermanHolidayService.isPublicHoliday(time);
     final isWeekend =
-        time.weekday == DateTime.saturday || time.weekday == DateTime.sunday;
+        isHoliday ||
+        time.weekday == DateTime.saturday ||
+        time.weekday == DateTime.sunday;
 
     // Nachts (21:30 - 05:00): nahezu keine Freizeitstörung
     if (hour >= 21.5 || hour < 5.0) {
@@ -246,7 +285,7 @@ class DisturbanceMatrixService {
       return _timeModulation['dawn_and_dusk'] ?? 0.25;
     }
 
-    // Wochenende tagsüber: Peak-Freizeitdruck (Spaziergänger, E-Biker, Hunde)
+    // Wochenende / Feiertag tagsüber: Peak-Freizeitdruck (Spaziergänger, E-Biker, Hunde)
     if (isWeekend) {
       if (hour >= 10.5 && hour <= 17.5) {
         return _timeModulation['weekend_afternoon'] ?? 1.45;
@@ -259,7 +298,12 @@ class DisturbanceMatrixService {
       return _timeModulation['weekday_rushhour'] ?? 1.15;
     }
 
-    // Werktags tagsüber (09:00 - 16:30)
+    // Werktags in den Schulferien (erhöhter Ausflugsverkehr tagsüber)
+    if (GermanHolidayService.isSchoolVacation(time) && hour >= 9.5 && hour <= 16.5) {
+      return 1.10;
+    }
+
+    // Werktags tagsüber (09:00 - 16:30) regulär
     return _timeModulation['weekday_daytime'] ?? 0.90;
   }
 
@@ -425,6 +469,87 @@ class DisturbanceMatrixService {
       radiusMeters: 30.0,
       maxPenaltyPercent: -4.0,
       quietBonusDistance: 80.0,
+      rendersRedLine: false,
+    ),
+    'railway=rail': WayDisturbanceRule(
+      osmTag: 'railway=rail',
+      label: 'Bahnlinie',
+      description: 'Fern-, Regional- & Güterverkehr, Lärmspitzen & Kollisionsrisiko',
+      radiusMeters: 70.0,
+      maxPenaltyPercent: -12.0,
+      quietBonusDistance: 200.0,
+      rendersRedLine: true,
+    ),
+    'railway=light_rail': WayDisturbanceRule(
+      osmTag: 'railway=light_rail',
+      label: 'S-/Stadtbahn',
+      description: 'Dichter Takt, meist siedlungsnah',
+      radiusMeters: 50.0,
+      maxPenaltyPercent: -8.0,
+      quietBonusDistance: 140.0,
+      rendersRedLine: true,
+    ),
+    'amenity=parking': WayDisturbanceRule(
+      osmTag: 'amenity=parking',
+      label: 'Parkplatz / Wanderparkplatz',
+      description: 'Ausgangspunkt für Spaziergänger & Hunde',
+      radiusMeters: 60.0,
+      maxPenaltyPercent: -14.0,
+      quietBonusDistance: 160.0,
+      rendersRedLine: true,
+    ),
+    'leisure=swimming_area': WayDisturbanceRule(
+      osmTag: 'leisure=swimming_area',
+      label: 'Badestelle / Strandbad',
+      description: 'Hoher Freizeitbetrieb am Ufer',
+      radiusMeters: 90.0,
+      maxPenaltyPercent: -18.0,
+      quietBonusDistance: 220.0,
+      rendersRedLine: true,
+    ),
+    'tourism=camp_site': WayDisturbanceRule(
+      osmTag: 'tourism=camp_site',
+      label: 'Campingplatz',
+      description: 'Dauerhafte menschliche Anwesenheit & Zelte',
+      radiusMeters: 80.0,
+      maxPenaltyPercent: -16.0,
+      quietBonusDistance: 200.0,
+      rendersRedLine: true,
+    ),
+    'leisure=park': WayDisturbanceRule(
+      osmTag: 'leisure=park',
+      label: 'Parkanlage / Sportplatz',
+      description: 'Naherholungs- & Sportnutzung',
+      radiusMeters: 50.0,
+      maxPenaltyPercent: -10.0,
+      quietBonusDistance: 150.0,
+      rendersRedLine: true,
+    ),
+    'landuse=residential': WayDisturbanceRule(
+      osmTag: 'landuse=residential',
+      label: 'Wohnsiedlung',
+      description: 'Dichte Bebauung, Gärten & Anwohnerverkehr',
+      radiusMeters: 60.0,
+      maxPenaltyPercent: -14.0,
+      quietBonusDistance: 180.0,
+      rendersRedLine: false,
+    ),
+    'landuse=industrial': WayDisturbanceRule(
+      osmTag: 'landuse=industrial',
+      label: 'Gewerbe- & Industriegebiet',
+      description: 'Schwerlastverkehr, Maschinenlärm & Beleuchtung',
+      radiusMeters: 80.0,
+      maxPenaltyPercent: -16.0,
+      quietBonusDistance: 220.0,
+      rendersRedLine: false,
+    ),
+    'landuse=commercial': WayDisturbanceRule(
+      osmTag: 'landuse=commercial',
+      label: 'Gewerbefläche / Einkaufszone',
+      description: 'Kundenverkehr, Lieferanten & Parkplätze',
+      radiusMeters: 70.0,
+      maxPenaltyPercent: -14.0,
+      quietBonusDistance: 200.0,
       rendersRedLine: false,
     ),
   };

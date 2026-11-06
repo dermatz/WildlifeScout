@@ -8,11 +8,7 @@ import '../../domain/models/species_profile.dart';
 class SpeciesRepository {
   static const List<String> _registeredSpeciesPaths = [
     'assets/species/roe_deer.json',
-    'assets/species/red_deer.json',
-    'assets/species/wild_boar.json',
-    'assets/species/red_fox.json',
     'assets/species/badger.json',
-    'assets/species/kingfisher.json',
   ];
 
   Future<List<SpeciesProfile>> loadAllSpecies() async {

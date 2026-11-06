@@ -482,10 +482,10 @@ void main() {
       );
     });
 
-    test('All 6 species profiles provide license-free Unsplash photos, open biology data, behaviors, and field tips', () async {
+    test('All registered species profiles provide license-free Unsplash photos, open biology data, behaviors, and field tips', () async {
       final repo = SpeciesRepository();
       final speciesList = await repo.loadAllSpecies();
-      expect(speciesList, hasLength(6));
+      expect(speciesList, hasLength(2));
 
       for (final sp in speciesList) {
         // 1. Lizenzfreie Unsplash-Fotos (keine Unsplash+ / plus.unsplash.com)

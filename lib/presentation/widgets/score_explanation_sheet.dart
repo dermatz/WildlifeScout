@@ -603,6 +603,16 @@ class ScoreExplanationSheet {
                           value: soilDetail,
                           detail:
                               'Nährstoffreiches Substrat begünstigt schmackhafte Äsungspflanzen',
+                          isLast: !zone.subtitle.contains('Hochsitz'),
+                        ),
+                      if (zone.subtitle.contains('Hochsitz'))
+                        _buildFactorRow(
+                          icon: Icons.gps_fixed_rounded,
+                          iconColor: const Color(0xFFF59E0B),
+                          label: 'Praxis-Nachweis: Hochsitz / Jägerstand',
+                          value: '+3.5 Punkte Bio-Bonus',
+                          detail:
+                              'Hochsitz in Beobachtungsdistanz (OSM amenity=hunting_stand) belegt einen feldbiologisch bewährten Wildwechsel.',
                           isLast: true,
                         ),
                     ],

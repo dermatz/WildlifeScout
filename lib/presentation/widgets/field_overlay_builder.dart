@@ -118,8 +118,38 @@ class FieldOverlayBuilder {
     required SunMoonPosition astro,
     required List<DisturbanceTrail> trails,
     required bool showDisturbanceTrails,
+    List<LatLng>? huntingStands,
+    bool showHuntingStands = true,
   }) {
     final lines = <Polyline>[];
+
+    // 0. Zarte gepunktete Verbindungslinie zum nächsten Hochsitz (falls in der Nähe)
+    if (showHuntingStands && huntingStands != null && huntingStands.isNotEmpty) {
+      LatLng? nearestStand;
+      double minStandDist = double.infinity;
+      for (final stand in huntingStands) {
+        final d = _distance.as(LengthUnit.Meter, hidePosition, stand);
+        if (d < minStandDist) {
+          minStandDist = d;
+          nearestStand = stand;
+        }
+      }
+
+      // Linie einblenden, wenn im Jagd-Areal (bis zu 350 m)
+      if (nearestStand != null && minStandDist <= 350.0) {
+        final isDangerClose = minStandDist <= 200.0;
+        lines.add(
+          Polyline(
+            points: [hidePosition, nearestStand],
+            color: isDangerClose
+                ? const Color(0xFFEF4444).withValues(alpha: 0.85)
+                : const Color(0xFFCBD5E1).withValues(alpha: 0.55),
+            strokeWidth: isDangerClose ? 2.0 : 1.4,
+            pattern: const StrokePattern.dotted(spacingFactor: 2.2),
+          ),
+        );
+      }
+    }
 
     // 1. Störungs-Korridore um Rad- und Fußwege
     if (showDisturbanceTrails) {

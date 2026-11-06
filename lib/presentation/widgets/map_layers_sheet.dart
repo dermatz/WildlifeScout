@@ -6,15 +6,18 @@ class MapLayersSheet extends StatelessWidget {
   final SpeciesProfile primarySpecies;
   final int habitatCount;
   final int trailCount;
+  final int huntingStandCount;
   final bool useSatelliteLayer;
   final bool showHabitatLayer;
   final bool showDisturbanceLayer;
+  final bool showHuntingStandsLayer;
   final bool showRainRadarLayer;
   final bool showScentCone;
   final bool isNightVisionRedMode;
   final ValueChanged<bool> onChangedSatellite;
   final ValueChanged<bool> onChangedHabitat;
   final ValueChanged<bool> onChangedDisturbance;
+  final ValueChanged<bool>? onChangedHuntingStands;
   final ValueChanged<bool> onChangedRainRadar;
   final ValueChanged<bool> onChangedScentCone;
   final ValueChanged<bool> onChangedNightVision;
@@ -26,15 +29,18 @@ class MapLayersSheet extends StatelessWidget {
     required this.primarySpecies,
     required this.habitatCount,
     required this.trailCount,
+    this.huntingStandCount = 0,
     required this.useSatelliteLayer,
     required this.showHabitatLayer,
     required this.showDisturbanceLayer,
+    this.showHuntingStandsLayer = true,
     required this.showRainRadarLayer,
     required this.showScentCone,
     required this.isNightVisionRedMode,
     required this.onChangedSatellite,
     required this.onChangedHabitat,
     required this.onChangedDisturbance,
+    this.onChangedHuntingStands,
     required this.onChangedRainRadar,
     required this.onChangedScentCone,
     required this.onChangedNightVision,
@@ -162,6 +168,16 @@ class MapLayersSheet extends StatelessWidget {
             value: showDisturbanceLayer,
             activeColor: WildlifeScoutTheme.crimsonScent,
             onChanged: onChangedDisturbance,
+          ),
+          const SizedBox(height: 8),
+          _LayerToggleRow(
+            icon: Icons.gps_fixed,
+            title: 'OSM Hochsitze & Jägerstände ($huntingStandCount)',
+            subtitle:
+                'Bekannte Ansitzkanzeln & Leitern – Praxis-Indikator für Wildwechsel',
+            value: showHuntingStandsLayer,
+            activeColor: const Color(0xFFEAB308),
+            onChanged: onChangedHuntingStands ?? (_) {},
           ),
           const SizedBox(height: 8),
           _LayerToggleRow(

@@ -154,6 +154,87 @@ ways:
     quiet_bonus_distance: 80
     renders_red_line: false
 
+  # ----------------------------------------------------------------------------
+  # Schienenverkehr (railway=*): Taktverkehr mit Lärmspitzen statt Dauerlärm.
+  # Rehwild gewöhnt sich an Zugtakte, nutzt Bahndämme sogar als Äsung –
+  # unmittelbare Gleisnähe bleibt jedoch Kollisions- und Fluchtzone.
+  # Tunnel, stillgelegte Strecken sowie Rangier-/Abstellgleise werden ignoriert.
+  # ----------------------------------------------------------------------------
+  "railway=rail":
+    label: "Bahnlinie"
+    description: "Fern-, Regional- & Güterverkehr, Lärmspitzen & Kollisionsrisiko"
+    radius_meters: 70
+    max_penalty_percent: -12.0
+    quiet_bonus_distance: 200
+    renders_red_line: true
+
+  "railway=light_rail":
+    label: "S-/Stadtbahn"
+    description: "Dichter Takt, meist siedlungsnah"
+    radius_meters: 50
+    max_penalty_percent: -8.0
+    quiet_bonus_distance: 140
+    renders_red_line: true
+
+  # ----------------------------------------------------------------------------
+  # Siedlungs-, Gewerbe- & Freizeitflächen (landuse=*, leisure=*, tourism=*, amenity=*)
+  # ----------------------------------------------------------------------------
+  "amenity=parking":
+    label: "Parkplatz / Wanderparkplatz"
+    description: "Ausgangspunkt für Spaziergänger & freilaufende Hunde; hohe Störungsfrequenz"
+    radius_meters: 60
+    max_penalty_percent: -14.0
+    quiet_bonus_distance: 160
+    renders_red_line: true
+
+  "leisure=swimming_area":
+    label: "Badestelle / Strandbad"
+    description: "Massiver Bade- & Freizeitbetrieb am Ufer, besonders im Sommer"
+    radius_meters: 90
+    max_penalty_percent: -18.0
+    quiet_bonus_distance: 220
+    renders_red_line: true
+
+  "tourism=camp_site":
+    label: "Campingplatz"
+    description: "Dauerhafte menschliche Anwesenheit, Zelte & Wohnmobile"
+    radius_meters: 80
+    max_penalty_percent: -16.0
+    quiet_bonus_distance: 200
+    renders_red_line: true
+
+  "leisure=park":
+    label: "Parkanlage / Sportplatz"
+    description: "Regelmäßige Naherholungs- & Sportnutzung"
+    radius_meters: 50
+    max_penalty_percent: -10.0
+    quiet_bonus_distance: 150
+    renders_red_line: true
+
+  "landuse=residential":
+    label: "Wohnsiedlung"
+    description: "Dichte Wohnbebauung, Gärten, Haustiere & Anwohnerverkehr"
+    radius_meters: 60
+    max_penalty_percent: -14.0
+    quiet_bonus_distance: 180
+    renders_red_line: false
+
+  "landuse=industrial":
+    label: "Gewerbe- & Industriegebiet"
+    description: "Schwerlastverkehr, Maschinenlärm & künstliche Beleuchtung"
+    radius_meters: 80
+    max_penalty_percent: -16.0
+    quiet_bonus_distance: 220
+    renders_red_line: false
+
+  "landuse=commercial":
+    label: "Gewerbefläche / Einkaufszone"
+    description: "Kundenverkehr, Lieferanten & Parkplätze"
+    radius_meters: 70
+    max_penalty_percent: -14.0
+    quiet_bonus_distance: 200
+    renders_red_line: false
+
 # ------------------------------------------------------------------------------
 # 5. Wildbiologische Empfindlichkeits-Faktoren der Tierarten (Multiplikatoren)
 # ------------------------------------------------------------------------------

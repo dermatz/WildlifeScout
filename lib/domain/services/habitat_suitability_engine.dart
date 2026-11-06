@@ -16,6 +16,7 @@ import 'osm_spatial_metrics.dart';
 class HabitatAnalysisResult {
   final List<HabitatZone> habitatZones;
   final List<DisturbanceTrail> disturbanceTrails;
+  final List<LatLng> huntingStands;
   final int totalOsmElementsEvaluated;
   final String dataSourceLabel;
   final SoilSubstrateProfile? soilProfile;
@@ -23,6 +24,7 @@ class HabitatAnalysisResult {
   const HabitatAnalysisResult({
     required this.habitatZones,
     required this.disturbanceTrails,
+    this.huntingStands = const [],
     required this.totalOsmElementsEvaluated,
     required this.dataSourceLabel,
     this.soilProfile,
@@ -240,6 +242,7 @@ class HabitatSuitabilityEngine {
     return HabitatAnalysisResult(
       habitatZones: updatedZones,
       disturbanceTrails: base.disturbanceTrails,
+      huntingStands: base.huntingStands,
       totalOsmElementsEvaluated: base.totalOsmElementsEvaluated,
       dataSourceLabel:
           '${base.dataSourceLabel} • Boden: ${soilProfile.shortLabel}',
@@ -414,6 +417,16 @@ class HabitatSuitabilityEngine {
       ...roadsAndSettlements,
     ];
     final allWaterWays = [...wetlands, ...waterStreams];
+    // Flächige Stillgewässer (Seen, Baggerseen, Weiher) als Ausschluss-Maske
+    // für alle Landlebensräume: Rehwild steht nicht im Wasser!
+    final waterBodies = waterStreams
+        .where((w) => w.isClosedPolygon && w.primaryTag == 'natural=water')
+        .toList();
+    // Siedlungs- & Gewerbeflächen als Ausschluss-Maske: Wild hat keine
+    // Einstands- und Äsungshabitate inmitten von Wohn- und Industriegebieten!
+    final settlementPolygons = roadsAndSettlements
+        .where((w) => w.isClosedPolygon && w.primaryTag.startsWith('landuse='))
+        .toList();
     final substantialForests = [
       ...largeForests,
       ...smallWoodlots.where((w) => w.areaHectares >= 0.75),
@@ -486,6 +499,8 @@ class HabitatSuitabilityEngine {
           origin: origin,
           highDisturbanceWays: primaryDisturbanceWays,
           allDisturbanceWays: allDisturbanceWays,
+          waterBodies: waterBodies,
+          settlementPolygons: settlementPolygons,
         );
         forestEdgeAndDeepZones.addAll(interiorCandidates);
       }
@@ -513,6 +528,22 @@ class HabitatSuitabilityEngine {
       if (_distance.as(LengthUnit.Meter, origin, cand.centroid) > 2500) {
         continue;
       }
+
+      // Landlebensräume, die überwiegend auf einer Wasserfläche oder im Siedlungsgebiet liegen
+      // (z. B. als „Waldlichtung“ fehlinterpretierter Baggersee / Wohnsiedlung), verwerfen.
+      final isLandCandidate = cand.kind != OsmKind.waterStream &&
+          cand.kind != OsmKind.wetland;
+      final isMostlyOpenWater =
+          isLandCandidate && _polygonCoverageFraction(cand, waterBodies) >= 0.4;
+      final isMostlySettlement = isLandCandidate &&
+          _polygonCoverageFraction(cand, settlementPolygons) >= 0.25;
+
+      // Abstände zu allen klassifizierten Straßen & Siedlungen (für Lärm-Puffer laut Matrix)
+      final roadDistances = _roadDistancesNear(
+        cand.centroid,
+        roadsAndSettlements,
+        boundaryPoints: cand.points,
+      );
 
       // Differenzierter Punkt-zu-Segment-Abstand getrennt nach Hauptwegen, Forstwegen & Straßen
       final trailStats = OsmSpatialMetrics.computeExactTrailMetrics(
@@ -584,7 +615,25 @@ class HabitatSuitabilityEngine {
                   )
                 : 500.0);
 
+      // Abstand zum nächsten Hochsitz (amenity=hunting_stand)
+      double? distToHuntingStand;
+      if (ways.huntingStands.isNotEmpty) {
+        double minDist = double.infinity;
+        for (final stand in ways.huntingStands) {
+          final d = _distance.as(LengthUnit.Meter, cand.centroid, stand);
+          if (d < minDist) minDist = d;
+        }
+        if (minDist <= 300.0) {
+          distToHuntingStand = minDist;
+        }
+      }
+
       for (final sp in activeSpeciesList) {
+        if (isMostlyOpenWater && sp.id != 'kingfisher') continue;
+        if (isMostlySettlement && sp.id != 'red_fox') continue;
+
+        final roadImpact = _roadNoiseImpact(roadDistances, sp.id);
+
         final evaluation = HabitatBiologicalScorer.scoreCandidate(
           candidate: cand,
           species: sp,
@@ -601,6 +650,9 @@ class HabitatSuitabilityEngine {
           distToMeadowMeters: distToMeadow,
           distToFarmlandMeters: distToFarmland,
           soilProfile: soilProfile,
+          insideRoadNoiseBuffer: roadImpact.insideBuffer,
+          roadNoisePenalty: roadImpact.penalty,
+          distToHuntingStandMeters: distToHuntingStand,
         );
 
         if (evaluation == null) continue;
@@ -655,6 +707,33 @@ class HabitatSuitabilityEngine {
 
       if (polygonPts.length < 3) continue;
 
+      // Nach dem Zuschnitt erneut prüfen: Der sichtbare Zonen-Mittelpunkt darf
+      // weder im See, noch in einer Siedlung, noch im Lärmpuffer einer Autobahn/Bundesstraße liegen.
+      final finalCenter = _computeCentroid(polygonPts);
+      if (z.speciesId != 'kingfisher') {
+        final centerInWater = waterBodies.any(
+          (w) => _isInsideBounds(finalCenter, w) &&
+              _isPointInPolygon(finalCenter, w.points),
+        );
+        if (centerInWater) continue;
+
+        final centerInSettlement = settlementPolygons.any(
+          (w) => _isInsideBounds(finalCenter, w) &&
+              _isPointInPolygon(finalCenter, w.points),
+        );
+        if (centerInSettlement && z.speciesId != 'red_fox') continue;
+
+        final finalRoadImpact = _roadNoiseImpact(
+          _roadDistancesNear(
+            finalCenter,
+            roadsAndSettlements,
+            boundaryPoints: polygonPts,
+          ),
+          z.speciesId,
+        );
+        if (finalRoadImpact.insideBuffer) continue;
+      }
+
       deduplicatedZones.add(
         HabitatZone(
           id: z.id,
@@ -670,7 +749,7 @@ class HabitatSuitabilityEngine {
           distanceToWaterMeters: z.distanceToWaterMeters,
           distanceToForestMeters: z.distanceToForestMeters,
           polygonPoints: polygonPts,
-          center: _computeCentroid(polygonPts),
+          center: finalCenter,
           facingBearingDegrees: z.facingBearingDegrees,
         ),
       );
@@ -680,6 +759,7 @@ class HabitatSuitabilityEngine {
     return HabitatAnalysisResult(
       habitatZones: deduplicatedZones,
       disturbanceTrails: disturbanceTrails,
+      huntingStands: ways.huntingStands,
       totalOsmElementsEvaluated: rawElements.length,
       dataSourceLabel:
           '${disturbanceTrails.length} Wege • ${deduplicatedZones.length} Habitate',
@@ -695,6 +775,8 @@ class HabitatSuitabilityEngine {
     required LatLng origin,
     required List<ParsedOsmWay> highDisturbanceWays,
     required List<ParsedOsmWay> allDisturbanceWays,
+    List<ParsedOsmWay> waterBodies = const [],
+    List<ParsedOsmWay> settlementPolygons = const [],
   }) {
     final minLat = forest.minLat;
     final maxLat = forest.maxLat;
@@ -713,6 +795,20 @@ class HabitatSuitabilityEngine {
           continue;
         }
         if (!_isPointInPolygon(candidatePt, forest.points)) continue;
+        // Waldsee / Baggersee als innerer Ring: kein Einstand im Wasser
+        if (waterBodies.any(
+          (w) => _isInsideBounds(candidatePt, w) &&
+              _isPointInPolygon(candidatePt, w.points),
+        )) {
+          continue;
+        }
+        // Siedlungsfläche im Wald (z. B. Waldsiedlung/Klinik): kein Ruheeinstand
+        if (settlementPolygons.any(
+          (w) => _isInsideBounds(candidatePt, w) &&
+              _isPointInPolygon(candidatePt, w.points),
+        )) {
+          continue;
+        }
 
         final dHigh = _minSegmentDistanceToWaysMeters(
           candidatePt,
@@ -757,6 +853,123 @@ class HabitatSuitabilityEngine {
       if (result.length >= 2) break;
     }
     return result;
+  }
+
+  // --- Wasserflächen- & Straßenlärm-Masken ---
+
+  static bool _isInsideBounds(LatLng p, ParsedOsmWay w) =>
+      p.latitude >= w.minLat &&
+      p.latitude <= w.maxLat &&
+      p.longitude >= w.minLon &&
+      p.longitude <= w.maxLon;
+
+  /// Anteil (0.0–1.0) der Stichprobenpunkte eines Kandidaten, die innerhalb
+  /// einer gegebenen Masken-Polygon-Liste (z. B. Wasserflächen oder Siedlungen) liegen.
+  static double _polygonCoverageFraction(
+    ParsedOsmWay cand,
+    List<ParsedOsmWay> maskPolygons,
+  ) {
+    if (maskPolygons.isEmpty) return 0.0;
+    final nearby = maskPolygons
+        .where(
+          (w) =>
+              w.maxLat >= cand.minLat &&
+              w.minLat <= cand.maxLat &&
+              w.maxLon >= cand.minLon &&
+              w.minLon <= cand.maxLon,
+        )
+        .toList();
+    if (nearby.isEmpty) return 0.0;
+
+    final samples = <LatLng>[cand.centroid];
+    if (cand.isClosedPolygon && cand.points.length >= 4) {
+      const steps = 6;
+      for (int r = 1; r < steps; r++) {
+        for (int c = 1; c < steps; c++) {
+          final pt = LatLng(
+            cand.minLat + (cand.maxLat - cand.minLat) * (r / steps),
+            cand.minLon + (cand.maxLon - cand.minLon) * (c / steps),
+          );
+          if (_isPointInPolygon(pt, cand.points)) samples.add(pt);
+        }
+      }
+    }
+
+    int inMask = 0;
+    for (final s in samples) {
+      if (nearby.any(
+        (w) => _isInsideBounds(s, w) && _isPointInPolygon(s, w.points),
+      )) {
+        inMask++;
+      }
+    }
+    return inMask / samples.length;
+  }
+
+  /// Abstände (in Metern) eines Punktes und optionaler Polygonränder zu allen
+  /// Straßen, Bahnen und Siedlungen im Umkreis von 450 m.
+  static List<({String tag, double dist})> _roadDistancesNear(
+    LatLng p,
+    List<ParsedOsmWay> roads, {
+    List<LatLng> boundaryPoints = const [],
+  }) {
+    const searchMeters = 450.0;
+    const latPad = searchMeters * 0.0000092;
+    const lonPad = searchMeters * 0.0000150;
+    final result = <({String tag, double dist})>[];
+    for (final r in roads) {
+      if (p.latitude < r.minLat - latPad ||
+          p.latitude > r.maxLat + latPad ||
+          p.longitude < r.minLon - lonPad ||
+          p.longitude > r.maxLon + lonPad) {
+        continue;
+      }
+      double d = GeoGeometryUtils.distancePointToPolylineMeters(p, r.points);
+      if (boundaryPoints.isNotEmpty && d < 300.0) {
+        final step = math.max(1, boundaryPoints.length ~/ 6);
+        for (int i = 0; i < boundaryPoints.length; i += step) {
+          final dp = GeoGeometryUtils.distancePointToPolylineMeters(
+            boundaryPoints[i],
+            r.points,
+          );
+          if (dp < d) d = dp;
+        }
+      }
+      if (d <= searchMeters) result.add((tag: r.primaryTag, dist: d));
+    }
+    return result;
+  }
+
+  /// Wertet die Straßenabstände gegen die Störungsmatrix aus:
+  /// - Innerhalb des (artspezifisch skalierten) Störradius → Ausschluss.
+  /// - Zwischen Störradius und Ruhedistanz → linear abklingender Abzug.
+  static ({bool insideBuffer, double penalty}) _roadNoiseImpact(
+    List<({String tag, double dist})> roadDistances,
+    String speciesId,
+  ) {
+    bool inside = false;
+    double maxPenalty = 0.0;
+    for (final r in roadDistances) {
+      final radius = DisturbanceMatrixService.getRadius(
+        r.tag,
+        speciesId: speciesId,
+      );
+      if (radius <= 0.0) continue;
+      if (r.dist < radius) {
+        inside = true;
+        continue;
+      }
+      final rule = DisturbanceMatrixService.getRule(r.tag);
+      final quiet = math.max(rule.quietBonusDistance, radius + 1.0);
+      if (r.dist >= quiet) continue;
+      final fullPenalty = DisturbanceMatrixService.getEffectivePenaltyPercent(
+        r.tag,
+        speciesId: speciesId,
+      ).abs();
+      final falloff = 1.0 - (r.dist - radius) / (quiet - radius);
+      maxPenalty = math.max(maxPenalty, fullPenalty * falloff);
+    }
+    return (insideBuffer: inside, penalty: maxPenalty);
   }
 
   // --- Geometry & Spatial delegations for backwards compatibility ---

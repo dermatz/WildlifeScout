@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildlifescout/data/api/location_search_client.dart';
@@ -118,6 +122,110 @@ void main() {
       final results = await client.search('   ');
       expect(results, isEmpty);
     });
+
+    test('Nominatim search passes valid User-Agent and parses results', () async {
+      String? sentUserAgent;
+      final mock = MockClient((request) async {
+        sentUserAgent = request.headers['User-Agent'];
+        if (request.url.host == 'nominatim.openstreetmap.org') {
+          return http.Response(
+            jsonEncode([
+              {
+                'place_id': 12345,
+                'name': 'Villingen',
+                'display_name': 'Villingen, Villingen-Schwenningen, Schwarzwald-Baar-Kreis, Baden-Württemberg',
+                'lat': '48.0596',
+                'lon': '8.4598',
+                'type': 'administrative',
+                'category': 'boundary',
+              }
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('[]', 200);
+      });
+
+      final clientWithMock = LocationSearchClient(httpClient: mock);
+      final results = await clientWithMock.search('Villingen');
+
+      expect(sentUserAgent, contains('WildlifeScout'));
+      expect(results, isNotEmpty);
+      expect(results.first.title, 'Villingen');
+      expect(results.first.coordinate.latitude, closeTo(48.0596, 0.001));
+      expect(results.first.coordinate.longitude, closeTo(8.4598, 0.001));
+    });
+
+    test('Falls back to Open-Meteo geocoding if Nominatim returns 403 or error', () async {
+      final mock = MockClient((request) async {
+        if (request.url.host == 'nominatim.openstreetmap.org') {
+          return http.Response('Access denied', 403);
+        }
+        if (request.url.host == 'geocoding-api.open-meteo.com') {
+          return http.Response(
+            jsonEncode({
+              'results': [
+                {
+                  'name': 'Villingen-Schwenningen',
+                  'latitude': 48.062,
+                  'longitude': 8.493,
+                  'country': 'Deutschland',
+                  'admin1': 'Baden-Württemberg',
+                  'admin3': 'Schwarzwald-Baar-Kreis',
+                  'feature_code': 'PPLA3',
+                }
+              ]
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('{}', 404);
+      });
+
+      final fallbackClient = LocationSearchClient(httpClient: mock);
+      final results = await fallbackClient.search('Villingen-');
+
+      expect(results, isNotEmpty);
+      final item = results.firstWhere((r) => r.title.contains('Villingen'));
+      expect(item.title, 'Villingen-Schwenningen');
+      expect(item.subtitle, contains('Schwarzwald-Baar-Kreis'));
+      expect(item.coordinate.latitude, closeTo(48.062, 0.001));
+    });
+
+    test('reverseGeocodeRegionName sends User-Agent and resolves place name', () async {
+      String? sentUserAgent;
+      final mock = MockClient((request) async {
+        sentUserAgent = request.headers['User-Agent'];
+        return http.Response(
+          jsonEncode({
+            'address': {
+              'town': 'Villingen-Schwenningen',
+              'county': 'Schwarzwald-Baar-Kreis',
+            }
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final reverseClient = LocationSearchClient(httpClient: mock);
+      final name = await reverseClient.reverseGeocodeRegionName(const LatLng(48.06, 8.49));
+
+      expect(sentUserAgent, contains('WildlifeScout'));
+      expect(name, 'Villingen-Schwenningen');
+    });
+
+    test('Matches local curated nature regions (e.g. Schwarzwald)', () async {
+      final localClient = LocationSearchClient(
+        httpClient: MockClient((_) async => http.Response('[]', 200)),
+      );
+      final results = await localClient.search('Schwarzwald');
+
+      expect(results, isNotEmpty);
+      expect(results.any((r) => r.title.contains('Schwarzwald')), isTrue);
+    });
   });
 
   group('LocationSearchSheet Widget & UX Tests', () {
@@ -223,6 +331,123 @@ void main() {
       expect(find.text('Direkte GPS-Koordinate'), findsNothing);
       expect(find.text('Häufige Gebiete & Wälder:'), findsOneWidget);
       expect(find.text('Schwarzwald'), findsOneWidget);
+    });
+
+    testWidgets('Live typing debounces and renders location search results',
+        (tester) async {
+      LocationSearchResult? selectedResult;
+      final mock = MockClient((request) async {
+        return http.Response(
+          jsonEncode([
+            {
+              'name': 'Villingen-Schwenningen',
+              'display_name': 'Villingen-Schwenningen, Schwarzwald-Baar-Kreis, Baden-Württemberg',
+              'lat': '48.062',
+              'lon': '8.493',
+              'type': 'administrative',
+              'category': 'boundary',
+            }
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final mockClient = LocationSearchClient(httpClient: mock);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationSearchSheet(
+              locationSearchClient: mockClient,
+              onLocationSelected: (loc) => selectedResult = loc,
+              onUseCurrentLocation: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Type "Villingen-" into the search field
+      final textField = find.byType(TextField);
+      await tester.enterText(textField, 'Villingen-');
+
+      // Before debounce duration: no search yet
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Villingen-Schwenningen'), findsNothing);
+
+      // Advance clock past 380ms debounce and settle
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      // Results must now be rendered!
+      expect(find.text('Gefundene Orte (1)'), findsOneWidget);
+      expect(find.text('Villingen-Schwenningen'), findsOneWidget);
+
+      // Tap on the result
+      await tester.tap(find.text('Villingen-Schwenningen'));
+      await tester.pumpAndSettle();
+
+      expect(selectedResult, isNotNull);
+      expect(selectedResult!.title, 'Villingen-Schwenningen');
+    });
+
+    testWidgets('Search button triggers immediate search and shows loading indicator',
+        (tester) async {
+      final completer = Completer<http.Response>();
+      final mock = MockClient((request) => completer.future);
+      final mockClient = LocationSearchClient(httpClient: mock);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationSearchSheet(
+              locationSearchClient: mockClient,
+              onLocationSelected: (_) {},
+              onUseCurrentLocation: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Enter query and hit submit arrow
+      final textField = find.byType(TextField);
+      await tester.enterText(textField, 'Schwenningen');
+      await tester.tap(find.byIcon(Icons.arrow_forward));
+      await tester.pump();
+
+      // Loading indicator must be visible, NOT "Gefundene Orte (0)"!
+      expect(find.text('Suche läuft...'), findsOneWidget);
+      expect(find.text('Suche nach Orten & Gebieten...'), findsOneWidget);
+      expect(find.text('Gefundene Orte (0)'), findsNothing);
+
+      // Complete HTTP response
+      completer.complete(
+        http.Response(
+          jsonEncode([
+            {
+              'name': 'Schwenningen',
+              'display_name': 'Schwenningen, Villingen-Schwenningen, Baden-Württemberg',
+              'lat': '48.06',
+              'lon': '8.53',
+              'type': 'administrative',
+            }
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Results loaded
+      expect(find.text('Gefundene Orte (1)'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ListView),
+          matching: find.text('Schwenningen'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Voice input activates and inserts recognized speech into search',

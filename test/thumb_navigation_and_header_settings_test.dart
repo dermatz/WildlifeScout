@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildlifescout/domain/models/weather_frame.dart';
 import 'package:wildlifescout/presentation/screens/field_map_screen.dart';
 import 'package:wildlifescout/presentation/widgets/app_settings_sheet.dart';
-import 'package:wildlifescout/presentation/widgets/photo_gear_sheet.dart';
 import 'package:wildlifescout/presentation/widgets/field_map/field_thumb_island.dart';
 import 'package:wildlifescout/presentation/widgets/location_search_sheet.dart';
 

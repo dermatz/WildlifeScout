@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' hide Path;
 import '../../core/privacy/coordinate_guard.dart';
 import '../../core/theme/wildlifescout_theme.dart';
+import '../../data/api/gbif_occurrence_client.dart';
 import '../../data/api/location_search_client.dart';
 import '../../data/api/open_meteo_client.dart';
 import '../../data/repositories/species_repository.dart';
@@ -44,6 +45,7 @@ import '../widgets/field_map/best_chance_hud_card.dart';
 import '../widgets/field_map/field_scan_pulse.dart';
 import '../widgets/field_map/field_slider_track_shape.dart';
 import '../widgets/field_map/habitat_marker_widget.dart';
+import '../widgets/field_map/hunting_stand_icon.dart';
 import '../widgets/field_map/severe_weather_hud.dart';
 import '../widgets/field_map/field_bottom_control_deck.dart';
 import '../widgets/field_map/field_thumb_island.dart';
@@ -80,6 +82,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
   LatLng _hidePinPosition = const LatLng(51.1657, 10.4515);
   String _currentRegionTitle = 'Aktueller Standort';
   bool _isLocatingUser = true;
+  bool _isDraggingPin = false;
 
   // 7-Tage Vorplanung (7 Tage x 24 Stunden = 168 Stunden)
   List<WeatherFrame> _hourlyForecast =
@@ -90,11 +93,13 @@ class _FieldMapScreenState extends State<FieldMapScreen>
 
   List<HabitatZone> _habitatZones = [];
   List<DisturbanceTrail> _disturbanceTrails = [];
+  List<LatLng> _huntingStands = [];
   HabitatZone? _selectedZoneInfo;
   SoilSubstrateProfile? _currentSoilProfile;
   String _osmDataSourceStatus = 'Lade echte OpenStreetMap-Geometrien...';
   String? _bestChanceBannerInfo;
   String? _bestChanceZoneId;
+  final Map<String, GbifRegionalPresence> _gbifPresenceBySpecies = {};
 
   // UI Toggles (hinter dem Karten-Elemente-Button gebündelt)
   bool _isNightVisionRedMode = false;
@@ -104,6 +109,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
   String? _rainRadarUrlTemplate;
   bool _showHabitatLayer = true;
   bool _showDisturbanceLayer = AppSettings.defaultShowDisturbanceLayer;
+  bool _showHuntingStandsLayer = true;
   bool _showScentCone = true;
   bool _isLoadingOsm = false;
   bool _isDeckExpanded = false;
@@ -325,6 +331,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       _territoryOrigin = origin;
       _habitatZones = immediate.habitatZones;
       _disturbanceTrails = immediate.disturbanceTrails;
+      _huntingStands = immediate.huntingStands;
       _osmDataSourceStatus = immediate.dataSourceLabel;
       _selectedZoneInfo = null;
       _bestChanceBannerInfo = null;
@@ -341,6 +348,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       setState(() {
         _habitatZones = liveResult.habitatZones;
         _disturbanceTrails = liveResult.disturbanceTrails;
+        _huntingStands = liveResult.huntingStands;
         _currentSoilProfile = liveResult.soilProfile;
         _osmDataSourceStatus = liveResult.dataSourceLabel;
       });
@@ -363,6 +371,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
   }
 
   Future<void> _refreshWeatherForPosition(LatLng pos) async {
+    _refreshGbifForPosition(pos);
     final frames = await _weatherClient.fetchHourlyForecast(
       latitude: pos.latitude,
       longitude: pos.longitude,
@@ -373,6 +382,22 @@ class _FieldMapScreenState extends State<FieldMapScreen>
     });
   }
 
+  Future<void> _refreshGbifForPosition(LatLng pos) async {
+    final primary = _primarySpecies;
+    if (primary == null || primary.scientificName.isEmpty) return;
+    try {
+      final presence = await GbifOccurrenceClient.fetchRegionalPresence(
+        latitude: pos.latitude,
+        longitude: pos.longitude,
+        scientificName: primary.scientificName,
+      );
+      if (!mounted) return;
+      setState(() {
+        _gbifPresenceBySpecies[primary.id] = presence;
+      });
+    } catch (_) {}
+  }
+
   void _onMapTapped(TapPosition tapPosition, LatLng point) {
     const dist = Distance();
     final metersFromLastScan = dist.as(
@@ -380,6 +405,13 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       _territoryOrigin,
       point,
     );
+
+    // Liegt der getippte Punkt innerhalb des eben berechneten Sektors (~1.200 m Radius)
+    // und wurden bereits Habitate ermittelt, verschieben wir nur den Ansitzmarker und
+    // aktualisieren Witterungskegel & Windbeurteilung lokal – OHNE einen zeitraubenden
+    // Neuscan auszulösen. Erst ein Antippen des Ansitzmarkers scannt gezielt neu.
+    final bool isInsideCalculatedTerritory =
+        _habitatZones.isNotEmpty && metersFromLastScan <= 1200.0;
 
     setState(() {
       _hidePinPosition = point;
@@ -389,10 +421,10 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       _activeThumbCluster = _ThumbCluster.none;
     });
 
-    _recalculateHabitatZones(point);
     DeviceLocationService.saveLastLocation(point, _currentRegionTitle);
 
-    if (metersFromLastScan > 450.0 || _disturbanceTrails.isEmpty) {
+    if (!isInsideCalculatedTerritory) {
+      _recalculateHabitatZones(point);
       _refreshWeatherForPosition(point);
     }
   }
@@ -445,9 +477,11 @@ class _FieldMapScreenState extends State<FieldMapScreen>
             primarySpecies: primary,
             habitatCount: _habitatZones.length,
             trailCount: _disturbanceTrails.length,
+            huntingStandCount: _huntingStands.length,
             useSatelliteLayer: _useSatelliteLayer,
             showHabitatLayer: _showHabitatLayer,
             showDisturbanceLayer: _showDisturbanceLayer,
+            showHuntingStandsLayer: _showHuntingStandsLayer,
             showRainRadarLayer: _showRainRadarLayer,
             showScentCone: _showScentCone,
             isNightVisionRedMode: _isNightVisionRedMode,
@@ -463,6 +497,10 @@ class _FieldMapScreenState extends State<FieldMapScreen>
               setState(() => _showDisturbanceLayer = val);
               setSheetState(() {});
               AppSettingsService.setShowDisturbanceLayer(val);
+            },
+            onChangedHuntingStands: (val) {
+              setState(() => _showHuntingStandsLayer = val);
+              setSheetState(() {});
             },
             onChangedRainRadar: (val) {
               setState(() => _showRainRadarLayer = val);
@@ -574,6 +612,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => LocationSearchSheet(
+        biasCoordinate: _hidePinPosition,
         onUseCurrentLocation: () {
           _locateAndMoveToCurrentPosition();
         },
@@ -777,6 +816,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       weather: activeWeather,
       astro: activeAstro,
       baseActivityScore: zoneAssessment.activityScorePercent,
+      gbifPresence: _gbifPresenceBySpecies[species.id],
     );
   }
 
@@ -869,6 +909,7 @@ class _FieldMapScreenState extends State<FieldMapScreen>
         weather: weather,
         astro: astro,
         baseActivityScore: assessment.activityScorePercent,
+        gbifPresence: _gbifPresenceBySpecies[primary.id],
       );
 
       // Score-Berechnung:
@@ -995,6 +1036,8 @@ class _FieldMapScreenState extends State<FieldMapScreen>
       astro: astro,
       trails: _disturbanceTrails,
       showDisturbanceTrails: _showDisturbanceLayer,
+      huntingStands: _huntingStands,
+      showHuntingStands: _showHuntingStandsLayer,
     );
 
     double mapRotation = 0.0;
@@ -1112,6 +1155,75 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                 ),
               PolylineLayer(polylines: polylines),
               PolygonLayer(polygons: polygons),
+              // 0b. OSM Hochsitze & Jägerstände (amenity=hunting_stand)
+              if (_showHuntingStandsLayer && _huntingStands.isNotEmpty)
+                MarkerLayer(
+                  rotate: false,
+                  markers: _huntingStands.map((stand) {
+                    final distToHide = const Distance().as(
+                      LengthUnit.Meter,
+                      _hidePinPosition,
+                      stand,
+                    );
+                    // Rote Warnstufe bei Gefahrenbereich (<= 200 m, typische Büchsen-Schussdistanz)
+                    final isDangerClose = distToHide <= 200.0;
+                    return Marker(
+                      point: stand,
+                      width: 24,
+                      height: 24,
+                      alignment: Alignment.center,
+                      child: Tooltip(
+                        message: 'Hochsitz / Jägerstand (${distToHide.round()}m entfernt)',
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Hochsitz in ${distToHide.round()}m Entfernung • Bewährter Wechsel / Ansitzbereich',
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                duration: const Duration(seconds: 3),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: WildlifeScoutTheme.surfaceGlass,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDangerClose
+                                  ? const Color(0xFFDC2626).withValues(alpha: 0.95)
+                                  : const Color(0xFF1E293B).withValues(alpha: 0.85),
+                              border: Border.all(
+                                color: isDangerClose
+                                    ? Colors.white
+                                    : const Color(0xFF94A3B8),
+                                width: isDangerClose ? 1.8 : 1.1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(3.5),
+                            child: Center(
+                              child: HuntingStandIcon(
+                                size: 13,
+                                color: isDangerClose
+                                    ? Colors.white
+                                    : const Color(0xFFCBD5E1),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               // 1. Nicht ausgewählte OSM Habitat-Hotspot-Pins zum Antippen
               if (_showHabitatLayer)
                 MarkerLayer(
@@ -1246,63 +1358,114 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                             ),
                           ),
                         ),
-                        // Exakt zentrierter Fotospot-Pin
+                        // Exakt zentrierter Fotospot-Pin (Scan-Button & frei verschiebbar)
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () {
                             HapticFeedback.mediumImpact();
-                            if (severeWeatherAlert != null) {
-                              SevereWeatherAlertSheet.show(
-                                context,
-                                alert: severeWeatherAlert,
-                                onEndSession: () {
-                                  setState(() => _isSessionActive = false);
-                                },
-                              );
-                            } else {
-                              _toggleSessionStatus();
+                            if (_isLoadingOsm) return;
+                            _recalculateHabitatZones(_hidePinPosition);
+                            _refreshWeatherForPosition(_hidePinPosition);
+                          },
+                          onPanStart: (_) {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _isDraggingPin = true;
+                            });
+                          },
+                          onPanUpdate: (details) {
+                            final currentOffset = _mapController.camera
+                                .latLngToScreenOffset(_hidePinPosition);
+                            final newOffset = currentOffset + details.delta;
+                            final newLatLng = _mapController.camera
+                                .screenOffsetToLatLng(newOffset);
+                            setState(() {
+                              _hidePinPosition = newLatLng;
+                              _selectedZoneInfo = null;
+                              _bestChanceBannerInfo = null;
+                              _bestChanceZoneId = null;
+                            });
+                          },
+                          onPanEnd: (_) {
+                            HapticFeedback.lightImpact();
+                            setState(() {
+                              _isDraggingPin = false;
+                            });
+                            DeviceLocationService.saveLastLocation(
+                              _hidePinPosition,
+                              _currentRegionTitle,
+                            );
+                          },
+                          onPanCancel: () {
+                            if (_isDraggingPin) {
+                              setState(() {
+                                _isDraggingPin = false;
+                              });
                             }
                           },
-                          child: Container(
-                            width: 34,
-                            height: 34,
-                            decoration: BoxDecoration(
-                              color: WildlifeScoutTheme.bgObsidian,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: (_isLoadingOsm || _isLocatingUser)
-                                    ? WildlifeScoutTheme.emeraldBio
-                                    : (severeWeatherAlert != null
-                                        ? severeWeatherAlert.accentColor
-                                        : (assessment.hasScentCollision
-                                            ? WildlifeScoutTheme.crimsonScent
-                                            : (_isSessionActive
-                                                ? WildlifeScoutTheme.amberGold
-                                                : Colors.white38))),
-                                width: 2.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (_isLoadingOsm || _isLocatingUser)
-                                      ? WildlifeScoutTheme.emeraldBio.withValues(
-                                          alpha: 0.55,
-                                        )
-                                      : (severeWeatherAlert != null
-                                          ? severeWeatherAlert.accentColor
-                                              .withValues(alpha: 0.6)
-                                          : Colors.black87),
-                                  blurRadius: (_isLoadingOsm || _isLocatingUser)
-                                      ? 14
-                                      : (severeWeatherAlert != null ? 12 : 8),
+                          child: AnimatedScale(
+                            duration: const Duration(milliseconds: 140),
+                            scale: _isDraggingPin ? 1.18 : 1.0,
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              alignment: Alignment.center,
+                              color: Colors.transparent,
+                              child: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: WildlifeScoutTheme.bgObsidian,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: (_isLoadingOsm || _isLocatingUser)
+                                        ? WildlifeScoutTheme.emeraldBio
+                                        : (severeWeatherAlert != null
+                                            ? severeWeatherAlert.accentColor
+                                            : (assessment.hasScentCollision
+                                                ? WildlifeScoutTheme.crimsonScent
+                                                : (_isSessionActive
+                                                    ? WildlifeScoutTheme.amberGold
+                                                    : Colors.white38))),
+                                    width: 2.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (_isLoadingOsm || _isLocatingUser)
+                                          ? WildlifeScoutTheme.emeraldBio
+                                              .withValues(alpha: 0.55)
+                                          : (severeWeatherAlert != null
+                                              ? severeWeatherAlert.accentColor
+                                                  .withValues(alpha: 0.6)
+                                              : (_isDraggingPin
+                                                  ? WildlifeScoutTheme.amberGold
+                                                      .withValues(alpha: 0.45)
+                                                  : Colors.black87)),
+                                      blurRadius: (_isLoadingOsm || _isLocatingUser)
+                                          ? 14
+                                          : (_isDraggingPin
+                                              ? 12
+                                              : (severeWeatherAlert != null
+                                                  ? 12
+                                                  : 8)),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: Icon(
-                              severeWeatherAlert != null
-                                  ? severeWeatherAlert.icon
-                                  : Icons.camera_alt_outlined,
-                              size: 17,
-                              color: Colors.white,
+                                child: (_isLoadingOsm || _isLocatingUser)
+                                    ? RotationTransition(
+                                        turns: _radarController,
+                                        child: const Icon(
+                                          Icons.radar_rounded,
+                                          size: 17,
+                                          color: WildlifeScoutTheme.emeraldBio,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.radar_rounded,
+                                        size: 17,
+                                        color: Colors.white,
+                                      ),
+                              ),
                             ),
                           ),
                         ),
@@ -1575,6 +1738,78 @@ class _FieldMapScreenState extends State<FieldMapScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Subtiler Jagd-/Hochsitz-Hinweis unten links über der Control Deck Leiste
+                      if (_isSessionActive && _huntingStands.isNotEmpty) ...[
+                        () {
+                          const distance = Distance();
+                          double nearestDist = double.infinity;
+                          for (final stand in _huntingStands) {
+                            final d = distance.as(
+                              LengthUnit.Meter,
+                              _hidePinPosition,
+                              stand,
+                            );
+                            if (d < nearestDist) nearestDist = d;
+                          }
+                          final inHuntingStandZone = nearestDist <= 350.0;
+                          // Zu nah = Gefahrenbereich / Schussdistanz (<= 200 m)
+                          final isImmediateHuntingStand = nearestDist <= 200.0;
+
+                          if (!inHuntingStandZone) return const SizedBox.shrink();
+
+                          return Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 6, left: 4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isImmediateHuntingStand
+                                      ? const Color(0xFFDC2626).withValues(alpha: 0.95)
+                                      : const Color(0xFF1E293B).withValues(alpha: 0.90),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isImmediateHuntingStand
+                                        ? const Color(0xFFFCA5A5)
+                                        : const Color(0xFFF59E0B).withValues(alpha: 0.8),
+                                    width: isImmediateHuntingStand ? 1.4 : 1.0,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.35),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    HuntingStandIcon(
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      isImmediateHuntingStand
+                                          ? 'Achtung: Hochsitz in ${nearestDist.round()}m! Jagdbetrieb möglich'
+                                          : 'Hochsitz-Areal (${nearestDist.round()}m) • Auf Jäger/Schussfeld achten',
+                                      style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }(),
+                      ],
                       if (isMobile && _appSettings.showHudCompassTape) ...[
                         HudCompassTape(
                           currentWeather: currentWeather,

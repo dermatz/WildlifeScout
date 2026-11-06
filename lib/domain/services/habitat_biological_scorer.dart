@@ -31,11 +31,21 @@ class HabitatBiologicalScorer {
     required double distToMeadowMeters,
     required double distToFarmlandMeters,
     SoilSubstrateProfile? soilProfile,
+    bool insideRoadNoiseBuffer = false,
+    double roadNoisePenalty = 0.0,
+    double? distToHuntingStandMeters,
   }) {
     final id = species.id;
     double score = 0.0;
     HabitatZoneType zoneType = HabitatZoneType.optimalEdge;
     String title = '';
+
+    // 0. Klassifizierte Lärm-/Störpuffer großer Straßen (Autobahn 150 m,
+    //    Bundesstraße 85 m … laut Störungsmatrix, artspezifisch skaliert).
+    //    Der Eisvogel ist am Gewässer straßentolerant und nur vom Abzug betroffen.
+    if (insideRoadNoiseBuffer && id != 'kingfisher') {
+      return null;
+    }
 
     // 1. Ausschluss von unmittelbaren Asphalt-Straßenrändern (Wildunfall-Gefahr!)
     final minRoadDist =
@@ -60,26 +70,27 @@ class HabitatBiologicalScorer {
       //     werden niemals als Einstand gewählt.
       //   * Störung an Wegen: In kleinen Gehölzen (< 1.5 ha) meidet Rehwild unmittelbare Wegnähe (< 18m).
 
-      // Sanfter Ruhe-/Störungsfaktor für Rehwild:
-      // - Hauptwege (Fuß-/Radwege): bis +9 Punkte Bonus bei Ruhe, max -6 Punkte nah am Weg
-      // - Forst-/Feldwege (track): fast neutral (+2 Punkte bei Ruhe, max -2.5 Punkte direkt am Weg)
-      final highTrailFactor = distToHighTrailMeters >= 35.0
-          ? (distToHighTrailMeters.clamp(35.0, 220.0) - 35.0) * 0.048
-          : -((35.0 - distToHighTrailMeters) / 35.0) * 6.0;
+      // Differenzierter Ruhe-/Störungsfaktor für Rehwild (Entzerrung):
+      // - Hauptwege, Straßen, Badestellen, Parkplätze: bis +11 Punkte bei >250m Ruhe,
+      //   spürbarer Abzug bei Wegenähe (<40m bis zu -8 Punkte).
+      // - Forst-/Feldwege (track): +2.5 Punkte bei Ruhe, bis -3 Punkte direkt am Weg.
+      final highTrailFactor = distToHighTrailMeters >= 40.0
+          ? ((distToHighTrailMeters.clamp(40.0, 260.0) - 40.0) / 220.0) * 11.0
+          : -((40.0 - distToHighTrailMeters) / 40.0) * 8.0;
       final trackFactor = distToTrackMeters >= 20.0
-          ? (distToTrackMeters.clamp(20.0, 140.0) - 20.0) * 0.018
-          : -((20.0 - distToTrackMeters) / 20.0) * 2.5;
+          ? ((distToTrackMeters.clamp(20.0, 150.0) - 20.0) / 130.0) * 2.5
+          : -((20.0 - distToTrackMeters) / 20.0) * 3.0;
       final quietAdjust = highTrailFactor + trackFactor;
 
       if (candidate.kind == OsmKind.forestEdgeBay) {
         final hasMeadowEdge = distToMeadowMeters <= 75.0;
         final hasFarmlandEdge = distToFarmlandMeters <= 65.0;
         final edgeBonus = hasMeadowEdge
-            ? 8.5 - (distToMeadowMeters.clamp(0.0, 75.0) * 0.04)
+            ? 12.0 - (distToMeadowMeters.clamp(0.0, 75.0) * 0.08)
             : (hasFarmlandEdge
-                  ? 5.0 - (distToFarmlandMeters.clamp(0.0, 65.0) * 0.03)
-                  : 1.5);
-        score = 71.0 + edgeBonus + quietAdjust;
+                  ? 6.5 - (distToFarmlandMeters.clamp(0.0, 65.0) * 0.05)
+                  : 2.0);
+        score = 63.0 + edgeBonus + quietAdjust;
         zoneType = HabitatZoneType.optimalEdge;
         title = hasMeadowEdge
             ? 'Waldbucht & Wiesen-Äsungssaum'
@@ -89,16 +100,16 @@ class HabitatBiologicalScorer {
       } else if (candidate.kind == OsmKind.meadow &&
           distToSubstantialForestMeters <= 150.0) {
         final forestProximityBonus =
-            6.5 - (distToSubstantialForestMeters.clamp(0.0, 150.0) * 0.035);
-        score = 71.0 + forestProximityBonus + quietAdjust;
+            12.0 - (distToSubstantialForestMeters.clamp(0.0, 150.0) * 0.07);
+        score = 60.0 + forestProximityBonus + quietAdjust;
         zoneType = HabitatZoneType.optimalEdge;
         title = distToSubstantialForestMeters <= 65.0
             ? 'Äsungswiese am Waldrand'
             : 'Waldnahe Äsungswiese';
       } else if (candidate.kind == OsmKind.largeForest &&
           candidate.areaHectares >= 1.5) {
-        final areaBonus = (candidate.areaHectares.clamp(1.5, 25.0) - 1.5) * 0.12;
-        score = 69.0 + areaBonus + quietAdjust;
+        final areaBonus = (candidate.areaHectares.clamp(1.5, 25.0) - 1.5) * 0.16;
+        score = 58.0 + areaBonus + quietAdjust;
         zoneType = HabitatZoneType.coreRefuge;
         title = 'Waldeinstand (${candidate.areaHectares.round()} ha)';
       } else if (candidate.kind == OsmKind.smallWoodlot) {
@@ -122,12 +133,12 @@ class HabitatBiologicalScorer {
 
         final trailBufferPenalty =
             (candidate.areaHectares < 1.5 && distToNearestTrailMeters < 32.0)
-                ? ((32.0 - distToNearestTrailMeters) / 32.0) * 3.5
+                ? ((32.0 - distToNearestTrailMeters) / 32.0) * 4.0
                 : 0.0;
 
-        final forestBonus = distToLargeForestMeters <= 70.0 ? 3.0 : 0.5;
-        score = 62.5 +
-            (candidate.areaHectares.clamp(0.4, 2.5) * 2.2) +
+        final forestBonus = distToLargeForestMeters <= 70.0 ? 4.0 : 0.5;
+        score = 54.0 +
+            (candidate.areaHectares.clamp(0.4, 2.5) * 2.8) +
             forestBonus +
             quietAdjust -
             trailBufferPenalty;
@@ -135,28 +146,41 @@ class HabitatBiologicalScorer {
         title =
             'Feldgehölz-Einstand (${candidate.areaHectares.toStringAsFixed(1)} ha)';
       } else if (candidate.kind == OsmKind.scrub) {
-        // Dichte Dickung (Schwarzdorn, Brombeere, Verjüngungskegel)
-        if (!candidate.isClosedPolygon) return null;
-        if (candidate.areaHectares < 0.40) return null;
-        if (candidate.areaHectares < 0.75 && candidate.maxSpanMeters > 180.0) {
-          return null;
+        final isHedge = candidate.primaryTag.contains('hedge');
+        if (isHedge) {
+          final forestBonus = distToSubstantialForestMeters <= 90.0 ? 5.0 : 1.5;
+          score = 63.0 + forestBonus + quietAdjust;
+          zoneType = HabitatZoneType.optimalEdge;
+          title = 'Heckenriegel & Deckungskorridor';
+        } else {
+          // Dichte Dickung (Schwarzdorn, Brombeere, Verjüngungskegel)
+          if (!candidate.isClosedPolygon) return null;
+          if (candidate.areaHectares < 0.40) return null;
+          if (candidate.areaHectares < 0.75 && candidate.maxSpanMeters > 180.0) {
+            return null;
+          }
+          if (distToNearestTrailMeters < 18.0) return null;
+
+          final trailBufferPenalty = distToNearestTrailMeters < 30.0
+              ? ((30.0 - distToNearestTrailMeters) / 30.0) * 3.5
+              : 0.0;
+
+          final forestBonus =
+              distToSubstantialForestMeters <= 100.0 ? 3.5 : 0.0;
+          score = 56.0 + forestBonus + quietAdjust - trailBufferPenalty;
+          zoneType = HabitatZoneType.coreRefuge;
+          title =
+              'Dickungs-Einstand (${candidate.areaHectares.toStringAsFixed(1)} ha)';
         }
-        if (distToNearestTrailMeters < 18.0) return null;
-
-        final trailBufferPenalty = distToNearestTrailMeters < 30.0
-            ? ((30.0 - distToNearestTrailMeters) / 30.0) * 3.0
-            : 0.0;
-
-        final forestBonus =
-            distToSubstantialForestMeters <= 100.0 ? 2.5 : 0.0;
-        score = 63.5 + forestBonus + quietAdjust - trailBufferPenalty;
-        zoneType = HabitatZoneType.coreRefuge;
-        title =
-            'Dickungs-Einstand (${candidate.areaHectares.toStringAsFixed(1)} ha)';
+      } else if (candidate.kind == OsmKind.wetland &&
+          candidate.primaryTag.contains('reedbed')) {
+        score = 62.0 + quietAdjust;
+        zoneType = HabitatZoneType.optimalEdge;
+        title = 'Schilfgürtel-Deckung';
       } else if (candidate.kind == OsmKind.farmland &&
           distToSubstantialForestMeters <= 50.0) {
         final isOrchard = candidate.primaryTag == 'landuse=orchard';
-        score = (isOrchard ? 67.5 : 63.5) + quietAdjust;
+        score = (isOrchard ? 62.0 : 54.0) + quietAdjust;
         zoneType = HabitatZoneType.optimalEdge;
         title = isOrchard ? 'Streuobstwiesen-Äsung' : 'Wald-Feld-Äsungskante';
       } else {
@@ -350,10 +374,14 @@ class HabitatBiologicalScorer {
       }
     }
 
-    // 2. Moderater Wassernähe-Bonus (maximal +4 Punkte)
+    // 2. Differenzierter Wassernähe-Bonus (25-250 m ideal für Äsung & Schöpfen)
     final waterRule = species.habitatRules.waterProximity;
     if (waterRule != null && distToWaterMeters <= waterRule.maxDistanceMeters) {
-      score += math.min(4.0, waterRule.scoreBoost);
+      if (distToWaterMeters >= 25.0 && distToWaterMeters <= 220.0) {
+        score += math.min(5.0, waterRule.scoreBoost);
+      } else if (distToWaterMeters < 25.0) {
+        score += 1.0;
+      }
     }
 
     // 3. Moderater Abzug nur bei echter mehrseitiger Einkesselung durch Hauptwege
@@ -361,6 +389,10 @@ class HabitatBiologicalScorer {
       final perQuadrantPenalty = id == 'roe_deer' ? 2.5 : 6.0;
       score -= (surroundingHighTrailQuadrants - 1) * perQuadrantPenalty;
     }
+
+    // 3b. Abklingender Verkehrslärm-Abzug zwischen Störradius und Ruhedistanz
+    //     (z. B. Autobahn: voller Abzug bei 150 m, kein Abzug mehr ab 350 m).
+    score -= roadNoisePenalty;
 
     // 4. Geologischer Bodenuntergrund-Einfluss (BGR BÜK200 / ISRIC SoilGrids)
     if (soilProfile != null) {
@@ -370,8 +402,22 @@ class HabitatBiologicalScorer {
       );
     }
 
-    final clampedScore = score.clamp(35.0, 93.0);
-    if (clampedScore < 58.0) return null;
+    // 5. Praxis-Indikator: Hochsitz / Jägerstand in OSM (amenity=hunting_stand)
+    // Jäger errichten Ansitze an bewährten Wechseln, Austrittsbuchten und Einständen.
+    // Ein Hochsitz in 30–180 m Entfernung ist ein starker feldbiologischer Praxisnachweis.
+    bool huntingStandNearby = false;
+    if (distToHuntingStandMeters != null &&
+        distToHuntingStandMeters >= 25.0 &&
+        distToHuntingStandMeters <= 180.0) {
+      if (const {'roe_deer', 'wild_boar', 'red_deer', 'red_fox'}.contains(id)) {
+        score += 3.5;
+        huntingStandNearby = true;
+      }
+    }
+
+    // Entzerrter Score: Dynamischer Wertebereich zwischen 30.0 und 95.0
+    final clampedScore = score.clamp(30.0, 95.0);
+    if (clampedScore < 52.0) return null;
 
     final trailInfo = '${distToNearestTrailMeters.round()}m zum nächsten Wanderweg';
     final densityInfo = surroundingHighTrailQuadrants <= 1
@@ -384,12 +430,15 @@ class HabitatBiologicalScorer {
         soilProfile != null && soilProfile.diggability != SoilDiggability.unknown
             ? ' • Boden: ${soilProfile.shortLabel}'
             : '';
+    final standInfo = huntingStandNearby
+        ? ' • 🎯 Hochsitz ${distToHuntingStandMeters!.round()}m (bewährter Wechsel)'
+        : '';
 
     return (
       score: clampedScore,
       zoneType: zoneType,
       title: title,
-      subtitle: '$trailInfo ($densityInfo) • $waterInfo$soilInfo',
+      subtitle: '$trailInfo ($densityInfo) • $waterInfo$soilInfo$standInfo',
     );
   }
 }
